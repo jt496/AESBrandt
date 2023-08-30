@@ -9,6 +9,9 @@ namespace SimpleGraph
 open Finset
 variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [DecidableEq α][Fintype β] [DecidableEq β] [DecidableRel G.Adj]
 
+#check card_neighborFinset_eq_degree
+#check card_eq_sum_ones
+#check sum_comm'
 
 /-- Basic double counting: given a Finset of vertices s we have: 
  ∑ v ∈ V, |Γ(v)∩ s| = ∑ v ∈ s, d(v)  -/
@@ -16,7 +19,6 @@ lemma double_counting (s : Finset α) :
     ∑ v, (G.neighborFinset v ∩ s).card = ∑ v in s, G.degree v :=
 by
   sorry
-
 lemma degree_le [DecidableRel H.Adj](hle : G ≤ H) (x : α) : G.degree x ≤ H.degree x:=
 by
   sorry
