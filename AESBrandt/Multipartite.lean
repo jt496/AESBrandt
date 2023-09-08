@@ -10,7 +10,16 @@ variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [
 
 lemma not_col_of_chrom_succ (h : G.chromaticNumber = k + 1) : ¬ G.Colorable k:=
 by 
-  sorry
+  intro kcolourable
+  have : 1 ≤ 0 := by 
+    apply (add_le_add_iff_left k).1
+    rw [add_zero]
+    rw [← h ]
+    apply chromaticNumber_le_of_colorable
+    exact kcolourable
+  contradiction
+
+     
 
 
 lemma chromatic_succ_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i, ∃ v, C v = i :=
@@ -18,7 +27,10 @@ by
   by_contra hc
   push_neg at hc
   apply G.not_col_of_chrom_succ h
+  rcases hc with ⟨i , cneqi⟩
   sorry
+  
+
 
 
 lemma chromatic_succ_edges (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i j, i ≠ j →  ∃ u v, C u = i ∧ C v = j ∧ G.Adj u v:=

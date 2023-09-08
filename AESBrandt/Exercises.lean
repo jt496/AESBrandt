@@ -25,10 +25,12 @@ by
     intro xuniv
     exact card_eq_sum_ones (neighborFinset G x ∩ s) 
   have sumset : ∀ (x y : α), x ∈ univ ∧ y ∈ neighborFinset G x ∩ s ↔ x ∈ neighborFinset G y ∧ y ∈ s := by
-    intro x
-    intro y 
-    constructor
-    rintro ⟨h1, h2⟩   
+    sorry
+    --intro x
+    --intro y 
+    --constructor
+    --rintro ⟨h1, h2⟩   
+    
   sorry
   -- rw [this , sum_comm' ]
   -- sorry
