@@ -31,7 +31,8 @@ by
 
 
 
-lemma chromatic_succ_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i, ∃ v, C v = i :=
+lemma chromatic_succ_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : 
+∀ i, ∃ v, C v = i :=
 by
   by_contra hc
   push_neg at hc
@@ -78,6 +79,18 @@ by
 
 lemma chromatic_succ_edges (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i j, i ≠ j →  ∃ u v, C u = i ∧ C v = j ∧ G.Adj u v:=
 by
+  intro i j hij
+  by_contra hc
+  push_neg at hc
+  let D : α → Fin (k+1) := fun v => ite (C v = j) (i) (C v)
+  let D' : G.Coloring (Fin (k+1)) :=⟨D,
+  by
+
+    sorry
+  ⟩
+  have  hj : ∀ v, D v ≠ j
+  · sorry
+  
   sorry
 
 
