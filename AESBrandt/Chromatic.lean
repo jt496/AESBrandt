@@ -85,12 +85,32 @@ by
   let D : α → Fin (k+1) := fun v => ite (C v = j) (i) (C v)
   let D' : G.Coloring (Fin (k+1)) :=⟨D,
   by
-
-    sorry
-  ⟩
-  have  hj : ∀ v, D v ≠ j
-  · sorry
+    intro a b
+    intro adjab
+    dsimp 
+    split_ifs with h1 h2 h3
+    · intro eq
+      apply C.valid adjab
+      rw [h1 ,h2]
+    · intro eq
+      exact hc b a eq.symm h1 adjab.symm
+    · intro eq
+      exact hc a b eq h3 adjab
+    · intro eq
+      exact C.valid adjab eq ⟩
   
-  sorry
+  have  hj : ∀ v, D v ≠ j
+  · intro v
+    dsimp
+    split_ifs with h1
+    · exact hij
+    · exact h1
+  have : ∀ i, ∃ v, D' v = i := by
+    exact chromatic_succ_verts h D'
+  have contr : ¬ ∀ i, ∃ v, D v = i := by
+    push_neg
+    use j 
+  contradiction
+
 
 end SimpleGraph
