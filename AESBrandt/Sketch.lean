@@ -9,7 +9,7 @@ no imports
 
 2. If χ(G)= r+1 then G is not r-colorable`not_col_chrom_succ`
 
-3. If χ(G) = r and C is an r-coloring of G then `chrom_imp_vert` says that 
+3. If χ(G) = r and C is an r-coloring of G then `chrom_imp_verts` says that 
 for any color i there is a vertex v such that C v = i
 
 4. If χ(G) = r, C is an r-coloring of G and i ≠ j are distinct colors then `chrom_imp_edges`

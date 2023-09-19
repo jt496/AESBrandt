@@ -31,7 +31,7 @@ by
 
 
 
-lemma chromatic_succ_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : 
+lemma chromatic_imp_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : 
 ∀ i, ∃ v, C v = i :=
 by
   by_contra hc
@@ -77,7 +77,7 @@ by
 
 
 
-lemma chromatic_succ_edges (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i j, i ≠ j →  ∃ u v, C u = i ∧ C v = j ∧ G.Adj u v:=
+lemma chromatic_imp_edges (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i j, i ≠ j →  ∃ u v, C u = i ∧ C v = j ∧ G.Adj u v:=
 by
   intro i j hij
   by_contra hc
@@ -106,7 +106,7 @@ by
     · exact hij
     · exact h1
   have : ∀ i, ∃ v, D' v = i := by
-    exact chromatic_succ_verts h D'
+    exact chromatic_imp_verts h D'
   have contr : ¬ ∀ i, ∃ v, D v = i := by
     push_neg
     use j 
