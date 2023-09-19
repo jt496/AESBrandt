@@ -19,7 +19,8 @@ by
   constructor
   · intro E
     intro in_edgeset
-    simp
+    simp only [ge_iff_le, edgeSet_sup, edgeSet_fromEdgeSet, Set.mem_union, Set.mem_diff, Set.mem_singleton_iff,
+      Set.mem_setOf_eq]
     left
     exact in_edgeset
   · intro h
@@ -129,7 +130,7 @@ by
   · exact (mem_edgeSet G).1 memG
   · rw [Set.mem_singleton_iff] at nmemG
     simp at nmemG
-    rcases nmemG with ⟨ux , vy⟩ | ⟨uy , vx⟩ 
+    rcases nmemG with ⟨ux , _⟩ | ⟨_ , vx⟩ 
     · contradiction
     · contradiction  
  

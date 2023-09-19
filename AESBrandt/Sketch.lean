@@ -49,12 +49,13 @@ i.e. if there is a graph G with property P then there is a maximal supergraph of
 `P3bar` (results about P3bar) 
 no imports
 
-1. P3bar is a 3-set with one edge and 2 non-edges 
+0. P3bar is a 3-set with one edge and 2 non-edges 
 
 structure P3bar (v w₁ w₂ : α): Prop where 
   edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G) 
   nonedge : ¬G.Adj v w₁ ∧ ¬G.Adj v w₂ -- vw₁, vw₂ ∉ E(G)
-  ne : v ≠ w₁ ∧ v ≠ w₂  -- v ≠ w₁ and v ≠ w₂
+
+1.  (G.P3bar: v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂  `ne`-- v ≠ w₁ and v ≠ w₂
 
 2. `P3bar_comm` we can swap w₁ and w₂ in the definition of P3bar
  G.P3bar v w₁ w₂ ↔ G.P3bar v w₂ w₁
