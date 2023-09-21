@@ -150,11 +150,111 @@ lemma clique_iie (hc: IsNClique G (r+1) (insert v s)) (has: a ∈ s) (hvs: v ∉
 (had: ∀ w ∈ (insert v s), w ≠ a → G.Adj x w)
 : IsNClique G (r+1) (insert v (insert x (erase s a))):=
 by
-  sorry
-  /-rw [isNClique_iff]
+  rw [isNClique_iff]
   constructor
   · unfold IsClique
     unfold Set.Pairwise
-    rintro a amem b bmem aneb-/
+    rintro p pmem q qmem pneq
+    rw [mem_coe] at pmem
+    rw [mem_coe] at qmem
+    by_cases (p = x)
+    · rw [h]
+      rw [h] at pneq
+      apply had
+      · rw [mem_insert] at qmem
+        rw [mem_insert]
+        rcases qmem with qeqv | qmemxs 
+        · left
+          exact qeqv
+        · right
+          rw [mem_insert] at qmemxs
+          rcases qmemxs with qeqx | qmemsa
+          · symm at pneq 
+            contradiction
+          · apply erase_subset a
+            exact qmemsa
+      · rw [mem_insert , mem_insert] at qmem
+        rcases qmem with qeqv | qeqx | qmemsa 
+        · intro qeqa
+          rw [← qeqv] at hvs
+          rw [← qeqa] at has
+          contradiction
+        · symm at pneq
+          contradiction 
+        rw [mem_erase] at qmemsa
+        exact qmemsa.1
+    · have pneqx : p ≠ x := by
+        exact h
+      rw [mem_insert , mem_insert] at pmem
+      rw [mem_insert , mem_insert] at qmem
+      by_cases (q = x)
+      · apply Adj.symm
+        rw [h]
+        apply had
+        · rw [mem_insert]
+          rcases pmem with peqv | peqx | pmemsa
+          · left 
+            exact peqv
+          · contradiction
+          · right
+            apply erase_subset a
+            exact pmemsa
+        · rcases pmem with peqv | peqx | pmemsa
+          · rw [← peqv] at hvs
+            intro peqa
+            rw [← peqa] at has
+            contradiction
+          · contradiction 
+          · rw [mem_erase] at pmemsa
+            exact pmemsa.1
+      · rw [isNClique_iff] at hc
+        rcases hc with ⟨hcclique , hccard⟩   
+        apply hcclique
+        · rw [mem_coe]
+          rw [mem_insert]
+          rcases pmem with peqv | peqx | pmemsa
+          · left
+            exact peqv
+          · contradiction  
+          · right 
+            apply erase_subset a 
+            exact pmemsa
+        · rw [mem_coe , mem_insert] 
+          rcases qmem with qeqv | qeqx | qmemsa
+          · left 
+            exact qeqv
+          · contradiction  
+          · right
+            apply erase_subset a
+            exact qmemsa
+        · exact pneq
+  have vninxsa : ¬ v ∈ insert x (erase s a) := by
+    intro vinxsa
+    rw [mem_insert] at vinxsa
+    rcases vinxsa with veqx | vmemsa
+    · contradiction
+    · have : v ∈ s := by   
+        apply erase_subset a
+        exact vmemsa
+      contradiction
+  have xninsa : ¬x ∈ erase s a := by
+    intro xinsa
+    rw [mem_erase] at xinsa
+    apply SimpleGraph.irrefl G 
+    apply had
+    · rw [mem_insert]
+      right
+      exact xinsa.2
+    · exact xinsa.1 
+
+  rw [ card_insert_eq_ite , if_neg vninxsa, card_insert_eq_ite , if_neg xninsa , card_erase_add_one ]
+  rw [isNClique_iff] at hc
+  rcases hc with ⟨hcclique , hccard⟩
+  rw [card_insert_eq_ite , if_neg hvs] at hccard
+  exact hccard
+  exact has
+
+        
+
 
 end SimpleGraph
