@@ -27,9 +27,8 @@ by
 lemma P3bar_of_not_completeMultiPartite (h : ¬ completeMultiPartite G): ∃ v w₁ w₂, G.P3bar v w₁ w₂:=
 by
   contrapose! h
-  unfold completeMultiPartite ; unfold Transitive ; simp
   intro a b c nadjab nadjbc adjac
-  have nP3barbac : ¬P3bar b a c := by exact h b a c
+  have nP3barbac : ¬P3bar b a c := h b a c
   have nP3barbac2 : ¬( G.Adj a c ∧ (¬ G.Adj b a ∧ ¬ G.Adj b c )) := by
     contrapose! nP3barbac
     refine {edge := ?_ , nonedge := ?_}
@@ -68,9 +67,13 @@ by
   · rfl
  
 /-- If G is complete-r-partite then for every r-coloring C, if C x ≠ C y then xy must be an edge-/
-lemma completeMultiPartiteR_adj_ne_col (hcpr : G.completeMultiPartiteR (r + 1)) (C: G.Coloring (Fin (r + 1))) (x y: α):  
+lemma completeMultiPartiteR_adj_ne_col (hcpr : G.completeMultiPartiteR r) (C: G.Coloring (Fin r)) (x y: α):  
 C x ≠ C y → G.Adj x y:=
 by
+  cases r with
+  | zero =>  
+  exfalso; apply Fin.elim0 (C x) 
+  | succ r => 
   rcases hcpr with ⟨multipartG , chromG⟩  
   intro cxnecy
   by_contra nadjxy
@@ -229,10 +232,30 @@ by
           exact neg
     contrapose! Clt2
     exact chrom_imp_nat_col_self chromG CN2'
-  
+
+open Finset
 /-- If G is complete r-partite then it contains a copy of K_r -/
 lemma not_cliquefree_of_complete_multi_partite (hcpr: G.completeMultiPartiteR r) : ¬ G.CliqueFree r:=
 by
-  sorry
+  cases r with
+  | zero => sorry
+  | succ r => 
+    intro hcf
+    -- Get an (r+1)-coloring C of G 
+    have C : G.Coloring (Fin (r+1))
+    · sorry
+    -- assert that ∀ colors i, ∃ v such that C v = i
+    have Csurj: ∀ i, ∃ v , C v = i
+    · sorry
+    let f: Fin (r+1) → α := fun i => (Csurj i).choose
+    have hf: ∀ i, (C (f i))= i := fun i => (Csurj i).choose_spec 
+    let S: Finset α:= (univ : Finset (Fin (r+1))).image (fun i => f i)
+    apply hcf S
+    constructor 
+    · intro u hu v hv hne 
+      sorry
+    · rw [Nat.succ_eq_add_one, ← Fintype.card_fin (r+1)]
+      apply card_image_of_injective
+      sorry
 
 end SimpleGraph
