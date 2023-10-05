@@ -238,24 +238,53 @@ open Finset
 lemma not_cliquefree_of_complete_multi_partite (hcpr: G.completeMultiPartiteR r) : ¬ G.CliqueFree r:=
 by
   cases r with
-  | zero => sorry
+  | zero => intro cliquefree ; sorry
   | succ r => 
     intro hcf
     -- Get an (r+1)-coloring C of G 
-    have C : G.Coloring (Fin (r+1))
-    · sorry
+    have C : G.Coloring (Fin (r+1)) 
+    · have : G.Colorable (r+1) := by
+        rw [← Nat.succ_eq_add_one , ← hcpr.2]
+        apply colorable_of_chromaticNumber_pos
+        rw [hcpr.2 , Nat.succ_eq_add_one]
+        exact Nat.succ_pos r
+      apply Colorable.toColoring
+      · exact this
+      · simp only [Fintype.card_fin, le_refl]
+      
     -- assert that ∀ colors i, ∃ v such that C v = i
     have Csurj: ∀ i, ∃ v , C v = i
-    · sorry
+    · exact chromatic_imp_verts hcpr.2 C
     let f: Fin (r+1) → α := fun i => (Csurj i).choose
     have hf: ∀ i, (C (f i))= i := fun i => (Csurj i).choose_spec 
     let S: Finset α:= (univ : Finset (Fin (r+1))).image (fun i => f i)
     apply hcf S
     constructor 
     · intro u hu v hv hne 
-      sorry
+      apply completeMultiPartiteR_adj_ne_col hcpr C
+      contrapose! hne
+      rw [mem_coe , mem_image] at hu
+      rw [mem_coe , mem_image] at hv
+      rcases hu with ⟨ a , ⟨ amemuniv , faequ⟩⟩  
+      rcases hv with ⟨ b , ⟨ bmemuniv , fbeqv⟩⟩  
+      rw [←faequ , ← fbeqv ]
+      have finj : ∀ x₁ x₂ , f x₁ = f x₂ → x₁ = x₂ := by
+        intro x₁ x₂ fx1eqfx2
+        rw [← hf x₁ , ←hf x₂]
+        exact congrArg (↑C) fx1eqfx2
+      have aeqcu : C (f a) = C u := by
+        exact congrArg (↑C) faequ
+      rw [hf a] at aeqcu
+      have beqcv : C (f b) = C v := by
+        exact congrArg (↑C) fbeqv
+      rw [hf b] at beqcv
+      rw [←aeqcu , ← beqcv ] at hne
+      exact congrArg f hne      
     · rw [Nat.succ_eq_add_one, ← Fintype.card_fin (r+1)]
       apply card_image_of_injective
-      sorry
+      intro a b faeqfb
+      rw [← hf a , ←hf b]
+      exact congrArg (↑C) faeqfb
+
 
 end SimpleGraph

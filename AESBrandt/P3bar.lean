@@ -18,12 +18,26 @@ structure P3bar (v w₁ w₂ : α): Prop where
 
 lemma P3bar.ne  (p3: G.P3bar v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂  :=
 by
-  sorry
+  constructor
+  · intro veqw1
+    apply p3.nonedge.2
+    rw [veqw1]
+    exact p3.edge
+  · intro veqw2
+    apply p3.nonedge.1
+    rw [veqw2]
+    symm
+    exact p3.edge
+
 /--  we can swap w₁ and w₂ in the definition of P3bar-/
 lemma P3bar.comm  (p3: G.P3bar v w₁ w₂) : G.P3bar v w₁ w₂ ↔ G.P3bar v w₂ w₁ :=
 by
-  -- have hne:=p3.ne
-  -- have hedge:=p3.edge
-  sorry
+  --have hne:=p3.ne
+  --have hedge:=p3.edge
+  constructor
+  all_goals
+  · intro p3_12
+    refine {edge := p3_12.edge.symm , nonedge := ⟨ p3_12.nonedge.2 , p3_12.nonedge.1 ⟩ }
+  
 
 end SimpleGraph
