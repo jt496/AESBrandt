@@ -129,12 +129,23 @@ by
 
 /-- Given a member G of a set of graphs on a fintype α there exists a maximal element of the set
 that is a supergraph of G -/
-lemma pred_graph_maximal {P : SimpleGraph α → Prop } (hG: P G ) : 
+lemma pred_graph_maximal {P : SimpleGraph α → Prop } (hG: P G) : 
 ∃ H, G ≤ H ∧  P H  ∧ ∀ {K}, H < K →¬ P K :=
 by
   classical
   revert hG
   apply WellFounded.recursion (InvImage.wf (λ F ↦ card (Fᶜ.edgeFinset)) Nat.lt_wfRel.wf) G
-  sorry
-  
+  intro A hA
+  by_cases hm : ∀ {K}, A < K → ¬ P K 
+  · intro hPA
+    use A
+  · intro _
+    push_neg at hm
+    obtain ⟨K,hK1,hK2⟩:= hm
+    have := wf_edge_compl hK1
+    obtain ⟨H,hH1,hH2⟩:= hA K this hK2
+    use H 
+    exact ⟨hK1.le.trans hH1,hH2⟩
+    
+
 end SimpleGraph
