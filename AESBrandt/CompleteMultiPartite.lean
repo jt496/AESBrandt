@@ -238,7 +238,12 @@ open Finset
 lemma not_cliquefree_of_complete_multi_partite (hcpr: G.completeMultiPartiteR r) : ¬ G.CliqueFree r:=
 by
   cases r with
-  | zero => intro cliquefree ; sorry
+  | zero => 
+    intro cliquefree ; 
+    apply cliquefree ∅
+    constructor 
+    · intro i hi; exfalso; rw [coe_empty] at hi; exact hi 
+    · simp only [card_empty, Nat.zero_eq]
   | succ r => 
     intro hcf
     -- Get an (r+1)-coloring C of G 
