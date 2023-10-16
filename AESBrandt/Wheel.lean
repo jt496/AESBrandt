@@ -313,3 +313,31 @@ lemma BiggerWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hWc
 by
   sorry
       
+
+/-- If we have a BiggerWheel then it is bigger -/
+lemma card_BiggerWheel {s t : Finset α} (hab: a ∉ t ∧ b ∉ s) (hx: x ∉ s ∩ t): 
+card ((insert x (s.erase a)) ∩ (insert x (t.erase b))) = card (s ∩ t) + 1:=
+by 
+  sorry
+
+/-- For any vertex x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
+lemma degle_noncore  (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 
+1 ≤ card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)):=
+by
+  sorry
+
+/-- If x is not in the core then there is at least one vertex in s ∩ t that is non-adj to x -/
+lemma degcore_compl (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hx: x ∈ (G.WheelCore hw)ᶜ) :
+ 1 ≤  card ((s∩t).filter (fun z => ¬ G.Adj  x z)) :=
+by
+  sorry
+
+/-- If G is K_r+2 -free contains a MaxWheel W then every vertex that is adjacent to all of the common
+clique vertices is not adjacent to at least 3 vertices in W -/
+lemma three_le_wheel_nonadj (hmcf: G.MaxCliqueFree (r+2)) (p3: G.P3bar v w₁ w₂) (hw: G.IsWheel r v w₁ w₂ s t) 
+(hsf: card (s ∩ t) = G.MaxWheel hmcf p3) (hWc: x ∈ G.WheelCore hw) :
+ 3 ≤ card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)) :=
+by
+  sorry
+
+
