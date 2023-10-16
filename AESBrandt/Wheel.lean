@@ -208,5 +208,108 @@ by
     
     
 
- 
+
+/-- Any x ∈ V(G) is not adjacent to at least one vertex in s + w₁ -/
+lemma nonadj_w1s (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): ∃ y, y ∈ insert w₁ s ∧ ¬G.Adj x y:=
+by
+  sorry
+
+/-- Any x ∈ V(G) is not adjacent to at least one vertex in s + v -/
+lemma nonadj_vs (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): ∃ y, y ∈ insert v s ∧ ¬G.Adj x y:=
+by
+  sorry
+
+/- If x ∈ V(G) there exist a b c d non-neighbours of x such that ... (note a,b,c,d are not necessarily distinct)  -/
+lemma nonadj_IsWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 
+∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧ ¬G.Adj x c ∧  d ∈ insert v t ∧ ¬G.Adj x d:=
+by
+  sorry
+
+
+/-- Useful trivial fact about when |{a,b,c,d}| ≤ 2 given a ≠ b , a ≠ d, b ≠ c  -/
+lemma card_eq_two_of_four {a b c d :α} (hab: a ≠ b) (had: a ≠ d) (hbc : b ≠ c) : 
+2 ≤ card {a, b, c, d} ∧ (card {a,b,c,d} ≤ 2 → a = c ∧ b = d):=
+by
+  sorry
+
+/-- If G is maximally K_r+2-free and contains a P3bar then it certainly contains a Wheel.
+Given these two hypotheses we let MaxWheel be the largest |s ∩ t| of any such wheel in G 
+(Note: this does not necessarily correspond to the largest wheel in G it is simply the size
+of |s ∩ t| for the largest wheel in G using a given copy of P3bar) -/
+noncomputable
+def MaxWheel (h: G.MaxCliqueFree (r+2)) (h3: G.P3bar v w₁ w₂) : ℕ :=
+by
+  classical
+  let F:= ((range r).filter (fun k => ∃ s t, G.IsWheel r v w₁ w₂ s t ∧ card (s ∩ t) = k)) 
+  let s:= (exists_IsWheel h h3).choose
+  let t:= (exists_IsWheel h h3).choose_spec.choose
+  have ltr: card (s ∩ t) < r:=
+    card_of_IsWheel_cf h.1 (exists_IsWheel h h3).choose_spec.choose_spec
+  have Fne: F.Nonempty
+  · use (card (s ∩ t)); rw [mem_filter,mem_range]
+    exact ⟨ltr,s,t,(exists_IsWheel h h3).choose_spec.choose_spec,rfl⟩
+  exact F.max' Fne
+
+/-- If we have any wheel in G using the same P3bar then it cannot be larger than the MaxWheel-/
+lemma le_MaxWheel (h: G.MaxCliqueFree (r+2))(p3: G.P3bar v w₁ w₂) (hw: G.IsWheel r v w₁ w₂ s' t') :
+card (s' ∩ t') ≤ MaxWheel h p3:=
+by
+  classical
+  sorry
+
+/-- Since G is maximally K_r+2-free and contains P3bar it must contain a wheel using P3bar
+and since any wheel has size at most r there must exist a wheel of size exactly MaxWheel-/
+lemma exists_MaxWheel (h: G.MaxCliqueFree (r+2)) (p3: G.P3bar v w₁ w₂): 
+∃ s t, G.IsWheel r v w₁ w₂ s t ∧ (card (s ∩ t)) = MaxWheel h p3:=
+by
+  classical
+  sorry
+
+
+
+/- Need Fintype α + DecidableRel G.Adj to form WheelCore : Finset α -/
+variable [Fintype α] [DecidableRel G.Adj]
+
+/-- The core nbhd of a Wheel is the set of vertices in α that are adjacent to all vertices in s ∩ t 
+Note this can be all vertices (for example if s ∩ t = ∅ )-/
+@[reducible]
+def WheelCore (_hw : G.IsWheel r v w₁ w₂ s t) : Finset α := 
+(univ : Finset α).filter (fun x => ∀ y, y ∈ s ∩ t → G.Adj x y)
+
+/-- if x is in the core then it adjacent to every y ∈ s ∩ t -/
+lemma mem_WheelCore {hw : G.IsWheel r v w₁ w₂ s t} (hx: x ∈ G.WheelCore hw) {y : α} (hy: y ∈ s ∩ t): G.Adj x y:=
+by
+  sorry
+
+/--  x is in the core iff it adjacent to every y ∈ s ∩ t -/
+lemma mem_WheelCore_iff {hw : G.IsWheel r v w₁ w₂ s t} : x ∈ G.WheelCore hw ↔ ∀ y, y ∈ s ∩ t → G.Adj x y:=
+by
+  sorry
+
+/-- If s ∩ t is empty then the core is the whole vertex set -/
+lemma WheelCoreUniv (hw: G.IsWheel r v w₁ w₂ s t) (hem: s ∩ t = ∅ ) : ∀ x, x ∈ WheelCore hw :=
+by
+  sorry
+
+/--This is a warmup for the next lemma `BiggerWheel` where we use it with `card_eq_two_of_four` to help build a
+bigger wheel -/ 
+lemma nonadj_core_IsWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hWc: x ∈ G.WheelCore hw ): 
+∃ a b c d , a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧ ¬G.Adj x c ∧  d ∈ insert v t ∧ ¬G.Adj x d
+∧ ( a ≠ b ) ∧ (a ≠ d) ∧ ( b ≠ c ) ∧ (a ∉ t) ∧ (b ∉ s):=
+by
+  sorry
+
+/-
+If we have a K_r+2-free graph with a wheel W and there is a vertex x that is adjacent to all of the 
+common vertices of the cliques that is adjacent to all but two of the vertices in W then we can build
+a bigger wheel (where the size of a wheel is the number of common vertices of the cliques)
+-/
+/-- We can build a wheel with a larger common clique set if there is a core verted that is adjacent to all but
+at most 2 of the vertices of the wheel 
+-/
+lemma BiggerWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hWc: x ∈ G.WheelCore hw) 
+(hsmall : card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)) ≤ 2) :
+ ∃ a b, a ∈ s ∧ b ∈ t ∧ a ∉ t ∧ b ∉ s ∧ (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=
+by
+  sorry
       
