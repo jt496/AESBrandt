@@ -801,7 +801,7 @@ by
 lemma card_BiggerWheel {s t : Finset α} (hab: a ∉ t ∧ b ∉ s) (hx: x ∉ s ∩ t): 
 card ((insert x (s.erase a)) ∩ (insert x (t.erase b))) = card (s ∩ t) + 1:=
 by 
-  apply card_inter
+  sorry
 
 /-- For any vertex x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
 lemma degle_noncore  (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 
