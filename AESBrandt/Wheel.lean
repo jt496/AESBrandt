@@ -212,26 +212,166 @@ by
 /-- Any x ∈ V(G) is not adjacent to at least one vertex in s + w₁ -/
 lemma nonadj_w1s (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): ∃ y, y ∈ insert w₁ s ∧ ¬G.Adj x y:=
 by
-  sorry
+  by_contra contra
+  push_neg at contra
+  apply h (insert x (insert w₁ s))
+  refine {clique := ?_ , card_eq := ?_}
+  · have : (insert x (insert w₁ s)).toSet = insert x ((insert w₁ s).toSet) := by
+      ext y
+      rw [mem_coe , ← mem_insert_coe] 
+    rw [this]
+    apply isClique_insert_vertex
+    · simp only [mem_coe]
+      exact contra
+    · exact hw.cliques.2.1.clique 
+  · have xnin : ¬ x ∈ insert w₁ s := by
+      by_contra contra2
+      apply SimpleGraph.irrefl
+      exact contra x contra2
+    rw [card_insert_eq_ite , if_neg xnin]
+    rw [hw.cliques.2.1.card_eq , add_assoc, one_add_one_eq_two]
+
 
 /-- Any x ∈ V(G) is not adjacent to at least one vertex in s + v -/
 lemma nonadj_vs (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): ∃ y, y ∈ insert v s ∧ ¬G.Adj x y:=
 by
-  sorry
+  by_contra contra
+  push_neg at contra
+  apply h (insert x (insert v s))
+  refine {clique := ?_ , card_eq := ?_}
+  · have : (insert x (insert v s)).toSet = insert x ((insert v s).toSet) := by
+      ext y
+      rw [mem_coe , ← mem_insert_coe] 
+    rw [this]
+    apply isClique_insert_vertex
+    · simp only [mem_coe]
+      exact contra
+    · exact hw.cliques.1.clique 
+  · have xnin : ¬ x ∈ insert v s := by
+      by_contra contra2
+      apply SimpleGraph.irrefl
+      exact contra x contra2
+    rw [card_insert_eq_ite , if_neg xnin]
+    rw [hw.cliques.1.card_eq , add_assoc, one_add_one_eq_two]
 
 /- If x ∈ V(G) there exist a b c d non-neighbours of x such that ... (note a,b,c,d are not necessarily distinct)  -/
 lemma nonadj_IsWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 
 ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧ ¬G.Adj x c ∧  d ∈ insert v t ∧ ¬G.Adj x d:=
 by
-  sorry
-
+  rcases nonadj_w1s h hw x with ⟨a , ha⟩  
+  have hw_comm : G.IsWheel r v w₂ w₁ t s := by
+    exact IsWheel_comm.1 hw
+  have nonadj_w2t : ∃ y, y ∈ insert w₂ t ∧ ¬G.Adj x y := by
+    apply nonadj_w1s
+    · exact h
+    · exact hw_comm
+  rcases nonadj_w2t with ⟨b , hb⟩
+  rcases nonadj_vs h hw x with ⟨c , hc⟩      
+  have nonadj_vt : ∃ y, y ∈ insert v t ∧ ¬G.Adj x y := by
+    apply nonadj_vs
+    · exact h
+    · exact hw_comm
+  rcases nonadj_vt with ⟨d , hd⟩
+  use a ; use b ; use c ; use d
+  refine ⟨ha.1 , ha.2 , hb.1 , hb.2 , hc.1 , hc.2 , hd.1 , hd.2⟩
 
 /-- Useful trivial fact about when |{a,b,c,d}| ≤ 2 given a ≠ b , a ≠ d, b ≠ c  -/
+
 lemma card_eq_two_of_four {a b c d :α} (hab: a ≠ b) (had: a ≠ d) (hbc : b ≠ c) : 
 2 ≤ card {a, b, c, d} ∧ (card {a,b,c,d} ≤ 2 → a = c ∧ b = d):=
 by
-  sorry
-
+  constructor
+  · let f : ℕ → α := fun n => ite (n >= 2) (a) (ite (n = 0) (a) (b))
+    have f_inj : ∀ (i : ℕ), i < 2 → ∀ (j : ℕ), j < 2 → f i = f j → i = j := by
+      intro i ilt2 j jlt2 fieqfj
+      have not_i_ge_2 : ¬ i ≥ 2 := by
+        push_neg ; exact ilt2
+      have not_j_ge_2 : ¬ j ≥ 2 := by
+        push_neg ; exact jlt2 
+      dsimp at fieqfj
+      rw [if_neg not_j_ge_2 , if_neg not_i_ge_2] at fieqfj
+      have two_le {m : ℕ} (h0 : m ≠ 0) (h1 : m ≠ 1) : 2 ≤ m := by
+        cases m; contradiction
+        case succ m =>
+          cases m; contradiction
+          repeat' apply Nat.succ_le_succ
+          apply zero_le
+      have lt_two : ∀ m : ℕ , m < 2 → m = 0 ∨ m = 1 := by
+        intro m 
+        contrapose ; push_neg
+        intro mne
+        exact two_le mne.1 mne.2    
+      rcases lt_two i ilt2 with i0 | i1 
+      · rcases lt_two j jlt2 with j0 | j1 
+        · rw [i0 , j0]
+        · rw [if_pos i0 ] at fieqfj
+          have nj0 : ¬ j = 0 := by
+            intro j0
+            rw [j0] at j1
+            contradiction
+          rw [if_neg nj0] at fieqfj 
+          contradiction
+      · rcases lt_two j jlt2 with j0 | j1 
+        · have ni0 : ¬ i = 0 := by
+            intro i0
+            rw [i0] at i1
+            contradiction
+          rw [if_neg ni0 , if_pos j0] at fieqfj
+          symm at fieqfj
+          contradiction
+        · rw [i1 , j1]
+    apply le_card_of_inj_on_range f
+    · intro i ilt2 
+      have not_i_ge_2 : ¬ i ≥ 2 := by
+        push_neg ; exact ilt2
+      dsimp
+      rw [if_neg not_i_ge_2] 
+      split_ifs 
+      · exact mem_insert_self a {b, c, d} 
+      · rw [mem_insert] ; right ; exact mem_insert_self b {c , d}
+    · exact f_inj
+  · rw [card_insert_eq_ite]
+    split_ifs with h1 
+    · rw [card_insert_eq_ite]
+      · split_ifs with h3 
+        · rw [mem_insert , mem_singleton] at h3
+          rw [mem_insert , mem_insert , mem_singleton] at h1  
+          intro _
+          refine ⟨(h1.resolve_left hab).resolve_right had,h3.resolve_left hbc⟩
+        · rw [card_insert_eq_ite]
+          split_ifs with h4 
+          rw [mem_insert , mem_insert , mem_singleton] at h1  
+          · have aeqd : a = d := by
+              rw [mem_singleton] at h4
+              rw [← h4]
+              exact (h1.resolve_left hab).resolve_right had
+            contradiction
+          · rw [add_assoc , one_add_one_eq_two ]
+            intro card_le
+            rw [card_singleton , add_comm, two_add_one_eq_three] at card_le
+            contradiction
+    · rw [card_insert_eq_ite]
+      split_ifs with h2
+      · rw [card_insert_eq_ite]
+        split_ifs with h3
+        · have beqc : b = c := by
+            rw [mem_singleton] at h3
+            rw [mem_insert , mem_singleton] at h2
+            rw [h3]
+            exact h2.resolve_left hbc
+          contradiction
+        · intro card_le
+          rw [card_singleton , one_add_one_eq_two , two_add_one_eq_three] at card_le
+          contradiction
+      · rw [card_insert_eq_ite]
+        split_ifs
+        · intro card_eq
+          rw [card_singleton , one_add_one_eq_two , two_add_one_eq_three] at card_eq  
+          contradiction
+        · intro card_eq
+          rw [card_singleton , one_add_one_eq_two , two_add_one_eq_three , three_add_one_eq_four] at card_eq
+          contradiction
+  
 /-- If G is maximally K_r+2-free and contains a P3bar then it certainly contains a Wheel.
 Given these two hypotheses we let MaxWheel be the largest |s ∩ t| of any such wheel in G 
 (Note: this does not necessarily correspond to the largest wheel in G it is simply the size
@@ -255,7 +395,14 @@ lemma le_MaxWheel (h: G.MaxCliqueFree (r+2))(p3: G.P3bar v w₁ w₂) (hw: G.IsW
 card (s' ∩ t') ≤ MaxWheel h p3:=
 by
   classical
-  sorry
+  rw [MaxWheel]
+  simp only [mem_range, not_exists, not_and]
+  apply le_max'
+  rw [mem_filter]
+  constructor
+  · rw [mem_range]
+    exact card_of_IsWheel_cf h.1 hw
+  · use s' ; use t'
 
 /-- Since G is maximally K_r+2-free and contains P3bar it must contain a wheel using P3bar
 and since any wheel has size at most r there must exist a wheel of size exactly MaxWheel-/
@@ -263,9 +410,22 @@ lemma exists_MaxWheel (h: G.MaxCliqueFree (r+2)) (p3: G.P3bar v w₁ w₂):
 ∃ s t, G.IsWheel r v w₁ w₂ s t ∧ (card (s ∩ t)) = MaxWheel h p3:=
 by
   classical
-  sorry
-
-
+  rw [MaxWheel]
+  simp only [mem_range, not_exists, not_and]
+  let F:= ((range r).filter (fun k => ∃ s t, G.IsWheel r v w₁ w₂ s t ∧ card (s ∩ t) = k)) 
+  let s:= (exists_IsWheel h p3).choose
+  let t:= (exists_IsWheel h p3).choose_spec.choose
+  have ltr: card (s ∩ t) < r:=
+    card_of_IsWheel_cf h.1 (exists_IsWheel h p3).choose_spec.choose_spec
+  have Fne: F.Nonempty
+  · use (card (s ∩ t)); rw [mem_filter,mem_range]
+    exact ⟨ltr,s,t,(exists_IsWheel h p3).choose_spec.choose_spec,rfl⟩
+  have max_F : max' F Fne ∈ F := by
+    exact max'_mem F Fne
+  dsimp at max_F
+  rw [mem_filter] at max_F
+  rcases max_F.2 with ⟨s_max , t_max , ⟨ WheelMax , card_inter⟩ ⟩ 
+  use s_max ; use t_max  
 
 /- Need Fintype α + DecidableRel G.Adj to form WheelCore : Finset α -/
 variable [Fintype α] [DecidableRel G.Adj]
@@ -279,17 +439,27 @@ def WheelCore (_hw : G.IsWheel r v w₁ w₂ s t) : Finset α :=
 /-- if x is in the core then it adjacent to every y ∈ s ∩ t -/
 lemma mem_WheelCore {hw : G.IsWheel r v w₁ w₂ s t} (hx: x ∈ G.WheelCore hw) {y : α} (hy: y ∈ s ∩ t): G.Adj x y:=
 by
-  sorry
+  rw [WheelCore , mem_filter] at hx
+  exact hx.2 y hy
 
 /--  x is in the core iff it adjacent to every y ∈ s ∩ t -/
 lemma mem_WheelCore_iff {hw : G.IsWheel r v w₁ w₂ s t} : x ∈ G.WheelCore hw ↔ ∀ y, y ∈ s ∩ t → G.Adj x y:=
 by
-  sorry
-
+  rw [WheelCore , mem_filter]
+  constructor
+  · intro H
+    exact H.2
+  · intro H
+    refine ⟨by exact mem_univ x, H⟩
+  
 /-- If s ∩ t is empty then the core is the whole vertex set -/
 lemma WheelCoreUniv (hw: G.IsWheel r v w₁ w₂ s t) (hem: s ∩ t = ∅ ) : ∀ x, x ∈ WheelCore hw :=
 by
-  sorry
+  intro x
+  rw [WheelCore , mem_filter]
+  constructor
+  · exact mem_univ x 
+  · intro y ymem ; rw [hem] at ymem ; exfalso ; exact not_mem_empty y ymem
 
 /--This is a warmup for the next lemma `BiggerWheel` where we use it with `card_eq_two_of_four` to help build a
 bigger wheel -/ 
@@ -297,8 +467,94 @@ lemma nonadj_core_IsWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s
 ∃ a b c d , a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧ ¬G.Adj x c ∧  d ∈ insert v t ∧ ¬G.Adj x d
 ∧ ( a ≠ b ) ∧ (a ≠ d) ∧ ( b ≠ c ) ∧ (a ∉ t) ∧ (b ∉ s):=
 by
-  sorry
-
+  rcases nonadj_IsWheel h hw x with ⟨a , b , c , d , ⟨amem , naadj , bmem , bnadj , cmem , cnadj , dmem , dnadj⟩⟩  
+  use a ; use b ; use c ; use d
+  refine ⟨amem , naadj, bmem , bnadj , cmem , cnadj , dmem , dnadj , ?_ , ?_ , ?_ , ?_ ⟩
+  rw [mem_insert] at amem
+  rw [mem_insert] at bmem
+  · rcases amem with ax₁ | as
+    · rcases bmem with bx₂ | bt
+      · rw [ax₁ , bx₂]
+        intro eq
+        apply SimpleGraph.irrefl
+        have adjw₁ : G.Adj w₁ w₁ := by
+          nth_rw 2 [eq] 
+          exact hw.P3.edge
+        exact adjw₁
+      · have anint : ¬ a ∈ t := by
+          rw [ax₁] ; exact (IsWheel_disj_ext hw).1
+        exact Ne.symm (ne_of_mem_of_not_mem bt anint)
+    · rcases bmem with bx₂ | bt
+      · have bnint : ¬ b ∈ s := by
+          rw [bx₂] ; exact (IsWheel_disj_ext hw).2
+        exact ne_of_mem_of_not_mem as bnint
+      · intro aeqb
+        · rw [aeqb] at as
+          apply bnadj
+          have bmeminter : b ∈ s ∩ t := by
+            rw [mem_inter] ; exact ⟨as , bt⟩
+          rw [WheelCore , mem_filter] at hWc ; exact hWc.2 b bmeminter
+  rw [mem_insert] at amem
+  rw [mem_insert] at dmem
+  · rcases amem with ax₁ | as
+    · rcases dmem with dx₂ | dt
+      · rw [ax₁ , dx₂]
+        symm
+        exact (P3bar.ne hw.P3).1
+      · have anint : ¬ a ∈ t := by
+          rw [ax₁] ; exact (IsWheel_disj_ext hw).1
+        exact Ne.symm (ne_of_mem_of_not_mem dt anint)
+    · rcases dmem with dx₂ | dt
+      · have dnins : ¬ d ∈ s := by
+          rw [dx₂] ; exact hw.disj.1
+        exact ne_of_mem_of_not_mem as dnins
+      · intro aeqd
+        · rw [aeqd] at as
+          apply dnadj
+          have dmeminter : d ∈ s ∩ t := by
+            rw [mem_inter] ; exact ⟨as , dt⟩
+          rw [WheelCore , mem_filter] at hWc ; exact hWc.2 d dmeminter
+  rw [mem_insert] at bmem
+  rw [mem_insert] at cmem
+  · rcases bmem with bx₂ | bt
+    · rcases cmem with cx₁ | cs
+      · rw [cx₁ , bx₂]
+        symm
+        exact (P3bar.ne hw.P3).2
+      · have bnins : ¬ b ∈ s := by
+          rw [bx₂] ; exact (IsWheel_disj_ext hw).2
+        exact Ne.symm (ne_of_mem_of_not_mem cs bnins)
+    · rcases cmem with cx₁ | cs
+      · have cnint : ¬ c ∈ t := by
+          rw [cx₁] ; exact hw.disj.2.1
+        exact ne_of_mem_of_not_mem bt cnint
+      · intro beqc
+        · rw [beqc] at bt
+          apply cnadj
+          have cmeminter : c ∈ s ∩ t := by
+            rw [mem_inter] ; exact ⟨cs , bt⟩
+          rw [WheelCore , mem_filter] at hWc ; exact hWc.2 c cmeminter
+  constructor
+  · rw [mem_insert] at amem
+    rcases amem with ax₁ | amems
+    · rw [ax₁] ; exact (IsWheel_disj_ext hw).1
+    · intro amemt 
+      have ameminter : a ∈ s ∩ t := by
+        rw [mem_inter] ; exact ⟨amems , amemt⟩   
+      apply naadj
+      rw [WheelCore , mem_filter] at hWc
+      exact hWc.2 a ameminter
+  · rw [mem_insert] at bmem
+    rcases bmem with bx₂ | bmemt
+    · rw [bx₂] ; exact (IsWheel_disj_ext hw).2
+    · intro bmems 
+      have bmeminter : b ∈ s ∩ t := by
+        rw [mem_inter] ; exact ⟨bmems , bmemt⟩   
+      apply bnadj
+      rw [WheelCore , mem_filter] at hWc
+      exact hWc.2 b bmeminter
+                 
+ 
 /-
 If we have a K_r+2-free graph with a wheel W and there is a vertex x that is adjacent to all of the 
 common vertices of the cliques that is adjacent to all but two of the vertices in W then we can build
@@ -311,14 +567,241 @@ lemma BiggerWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hWc
 (hsmall : card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)) ≤ 2) :
  ∃ a b, a ∈ s ∧ b ∈ t ∧ a ∉ t ∧ b ∉ s ∧ (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=
 by
-  sorry
+  rcases nonadj_core_IsWheel h hw hWc with ⟨a , b , c , d ,⟨amem , naadj , bmem , nbadj , cmem , ncadj , dmem , ndadj, aneb , aned , bnec , anint , bnins⟩⟩
+  use a ; use b
+  have amemfilter : a ∈ filter (fun z => ¬Adj G x z) (wheelVerts hw) := by
+    rw [mem_insert] at amem
+    rcases amem with aw₁|as
+    · rw [aw₁ , mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert] ; right ; left ; rfl
+      · rw [←aw₁] ; exact naadj 
+    · rw [mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert , mem_insert ,  mem_union] ; right ; right ; right ; left ; exact as
+      · exact naadj  
+  have bmemfilter : b ∈ filter (fun z => ¬Adj G x z) (wheelVerts hw) := by
+    rw [mem_insert] at bmem
+    rcases bmem with bw₂|bt
+    · rw [bw₂ , mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert , mem_insert] ; right ; right ; left ; rfl
+      · rw [←bw₂] ; exact nbadj 
+    · rw [mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert , mem_insert ,  mem_union] ; right ; right ; right ; right ; exact bt
+      · exact nbadj  
+  have cmemfilter : c ∈ filter (fun z => ¬Adj G x z) (wheelVerts hw) := by
+    rw [mem_insert] at cmem
+    rcases cmem with cv|cs
+    · rw [cv , mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert] ; left ; rfl
+      · rw [←cv] ; exact ncadj 
+    · rw [mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert , mem_insert ,  mem_union] ; right ; right ; right ; left ; exact cs
+      · exact ncadj  
+  have dmemfilter : d ∈ filter (fun z => ¬Adj G x z) (wheelVerts hw) := by
+    rw [mem_insert] at dmem
+    rcases dmem with dv|dt
+    · rw [dv , mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert] ; left ; rfl
+      · rw [←dv] ; exact ndadj 
+    · rw [mem_filter]
+      constructor 
+      · rw [wheelVerts , mem_insert , mem_insert , mem_insert ,  mem_union] ; right ; right ; right ; right ; exact dt
+      · exact ndadj 
+  have filter_eq : (filter (fun z => ¬Adj G x z) (wheelVerts hw)) = {a,b,c,d} := by
+    have card_abcd : 2 ≤ card {a,b,c,d} := by
+      exact (card_eq_two_of_four aneb aned bnec).1
+    have card_le_card : card (filter (fun z => ¬Adj G x z) (wheelVerts hw)) ≤ card {a,b,c,d} := by
+      exact le_trans hsmall card_abcd
+    symm
+    apply (subset_iff_eq_of_card_le card_le_card).1
+    intro y ymem
+    rw [mem_insert , mem_insert , mem_insert , mem_singleton] at ymem
+    rcases ymem with ya | (yb | (yc | yd))
+    · rw [ya] ; exact amemfilter
+    · rw [yb] ; exact bmemfilter
+    · rw [yc] ; exact cmemfilter
+    · rw [yd] ; exact dmemfilter
+  rw [filter_eq] at hsmall
+  have ac_bd : a = c ∧ b = d := by
+    exact (card_eq_two_of_four aneb aned bnec).2 hsmall
+  rw [← ac_bd.1] at cmem
+  rw [← ac_bd.2] at dmem
+  have ains : a ∈ s 
+  · rw [mem_insert] at amem
+    rcases amem with aw₁ | as
+    · rw [aw₁ , mem_insert] at cmem  
+      rcases cmem with w₁v |w₁s 
+      · exfalso ; symm at w₁v ; exact (P3bar.ne hw.P3).1 w₁v
+      · exfalso ; exact hw.disj.2.2.1 w₁s
+    exact as
+  have bint : b ∈ t
+  · rw [mem_insert] at bmem
+    rcases bmem with bw₂ | bt
+    · rw [bw₂ , mem_insert] at dmem  
+      rcases dmem with w₂v |w₂t
+      · exfalso ; symm at w₂v ; exact (P3bar.ne hw.P3).2 w₂v
+      · exfalso ; exact hw.disj.2.2.2 w₂t
+    exact bt
+  refine ⟨?_,?_,?_,?_,?_⟩ 
+  · exact ains
+  · exact bint  
+  · exact anint
+  · exact bnins
+  have vnex : v ≠ x := by
+        intro veqx
+        have vnmemabcd : ¬ v ∈ {a ,b,c,d} := by
+          intro vmem
+          rw [mem_insert ,mem_insert , mem_insert , mem_singleton , ac_bd.1 , ac_bd.2] at vmem  
+          rw [← or_assoc , or_self] at vmem
+          rcases vmem with vc |vd
+          · rw [←ac_bd.1] at vc
+            rw [← vc , mem_insert] at amem
+            rcases amem with vw₁ |vs
+            · exact (P3bar.ne hw.P3).1 vw₁
+            · exact hw.disj.1 vs 
+          · rw [←ac_bd.2] at vd
+            rw [← vd , mem_insert] at bmem
+            rcases bmem with vw₂ |vt
+            · exact (P3bar.ne hw.P3).2 vw₂
+            · exact hw.disj.2.1 vt
+        apply vnmemabcd
+        rw [← filter_eq , mem_filter]
+        constructor   
+        · rw [wheelVerts , mem_insert] ; left ; rfl
+        · rw [veqx] ; exact SimpleGraph.irrefl G
+  have w₁nex : w₁ ≠ x := by
+        intro w₁eqx
+        have w₁nmemabcd : ¬ w₁ ∈ {a ,b,c,d} := by
+          intro w₁mem
+          rw [mem_insert ,mem_insert , mem_insert , mem_singleton , ac_bd.1 , ac_bd.2] at w₁mem  
+          rw [← or_assoc , or_self] at w₁mem
+          rcases w₁mem with w₁c |w₁d
+          · rw [←ac_bd.1] at w₁c
+            rw [← w₁c , mem_insert] at cmem
+            rcases cmem with w₁v |w₁s
+            · symm at w₁v ; exact (P3bar.ne hw.P3).1 w₁v
+            · exact hw.disj.2.2.1 w₁s
+          · rw [←ac_bd.2] at w₁d
+            rw [← w₁d , mem_insert] at dmem
+            rcases dmem with w₁v |w₁t
+            · exact (P3bar.ne hw.P3).1 w₁v.symm
+            · exact (IsWheel_disj_ext hw).1 w₁t
+        apply w₁nmemabcd
+        rw [← filter_eq , mem_filter]
+        constructor   
+        · rw [wheelVerts , mem_insert , mem_insert] ;right ; left ; rfl
+        · rw [w₁eqx] ; exact SimpleGraph.irrefl G
+  have w₂nex : w₂ ≠ x := by
+        intro w₂eqx
+        have w₂nmemabcd : ¬ w₂ ∈ {a ,b,c,d} := by
+          intro w₂mem
+          rw [mem_insert ,mem_insert , mem_insert , mem_singleton , ac_bd.1 , ac_bd.2] at w₂mem  
+          rw [← or_assoc , or_self] at w₂mem
+          rcases w₂mem with w₂c |w₂d
+          · rw [←ac_bd.1] at w₂c
+            rw [← w₂c , mem_insert] at cmem
+            rcases cmem with w₂v |w₂s
+            · exact (P3bar.ne hw.P3).2 w₂v.symm
+            · exact (IsWheel_disj_ext hw).2 w₂s
+          · rw [←ac_bd.2] at w₂d
+            rw [← w₂d , mem_insert] at dmem
+            rcases dmem with w₂v |w₂t
+            · exact (P3bar.ne hw.P3).2 w₂v.symm
+            · exact hw.disj.2.2.2 w₂t
+        apply w₂nmemabcd
+        rw [← filter_eq , mem_filter]
+        constructor   
+        · rw [wheelVerts , mem_insert , mem_insert , mem_insert] ;right ;right ; left ; rfl
+        · rw [w₂eqx] ; exact SimpleGraph.irrefl G
+  · refine {P3 := ?_ , disj := ?_ , cliques := ?_}
+    · exact hw.P3
+    · refine ⟨?_,?_,?_,?_⟩
+      · rw [mem_insert] ; push_neg ; refine ⟨vnex , by rw [mem_erase] ; push_neg ; intro _ ; exact hw.disj.1⟩
+      · rw [mem_insert] ; push_neg ; refine ⟨vnex , by rw [mem_erase] ; push_neg ; intro _ ; exact hw.disj.2.1⟩
+      · rw [mem_insert] ; push_neg ; refine ⟨w₁nex , by rw [mem_erase] ; push_neg ; intro _ ; exact hw.disj.2.2.1⟩
+      · rw [mem_insert] ; push_neg ; refine ⟨w₂nex , by rw [mem_erase] ; push_neg ; intro _ ; exact hw.disj.2.2.2⟩
+    · refine ⟨?_,?_,?_,?_⟩
+      · apply clique_iie hw.cliques.1 ains hw.disj.1 vnex
+        intro w wmem wnea
+        have not_w_in_abcd : ¬ w ∈ {a ,b, c ,d} := by
+          rw [mem_insert , mem_insert , mem_insert , mem_singleton ] 
+          intro w_ab
+          rw [← ac_bd.1 , ← ac_bd.2 ,← or_assoc , or_self ] at w_ab
+          rcases w_ab with wa |wb
+          · contradiction
+          · rw [wb , mem_insert] at wmem
+            rcases wmem with bv |bs
+            · rw [bv] at bint ; exact hw.disj.2.1 bint
+            · contradiction  
+        rw [←filter_eq , mem_filter] at not_w_in_abcd ; push_neg at not_w_in_abcd
+        apply not_w_in_abcd
+        rw [mem_insert] at wmem ; rcases wmem with wv | ws
+        · rw [wv] ; exact (mem_wheelVerts_P3 hw).1
+        · rw [wheelVerts , mem_insert , mem_insert , mem_insert , mem_union] ; right ;right ; right ;left ;exact ws
+      · apply clique_iie hw.cliques.2.1 ains hw.disj.2.2.1 w₁nex
+        intro w wmem wnea
+        have not_w_in_abcd : ¬ w ∈ {a ,b, c ,d} := by
+          rw [mem_insert , mem_insert , mem_insert , mem_singleton ] 
+          intro w_ab
+          rw [← ac_bd.1 , ← ac_bd.2 ,← or_assoc , or_self ] at w_ab
+          rcases w_ab with wa |wb
+          · contradiction
+          · rw [wb , mem_insert] at wmem
+            rcases wmem with bv |bs
+            · rw [bv] at bint ; exact (IsWheel_disj_ext hw).1 bint
+            · contradiction  
+        rw [←filter_eq , mem_filter] at not_w_in_abcd ; push_neg at not_w_in_abcd
+        apply not_w_in_abcd
+        rw [mem_insert] at wmem ; rcases wmem with wv | ws
+        · rw [wv] ; exact (mem_wheelVerts_P3 hw).2.1
+        · rw [wheelVerts , mem_insert , mem_insert , mem_insert , mem_union] ; right ;right ; right ;left ;exact ws
+      · apply clique_iie hw.cliques.2.2.1 bint hw.disj.2.1 vnex
+        intro w wmem wnea
+        have not_w_in_abcd : ¬ w ∈ {a ,b, c ,d} := by
+          rw [mem_insert , mem_insert , mem_insert , mem_singleton ] 
+          intro w_ab
+          rw [← ac_bd.1 , ← ac_bd.2 ,← or_assoc , or_self ] at w_ab
+          rcases w_ab with wa |wb
+          · rw [mem_insert] at wmem 
+            rcases wmem with wv |wt
+            · rw [wa] at wv ; rw [wv] at ains ; exact hw.disj.1 ains
+            · rw [wa] at wt ; contradiction
+          · contradiction
+        rw [←filter_eq , mem_filter] at not_w_in_abcd ; push_neg at not_w_in_abcd
+        apply not_w_in_abcd
+        rw [mem_insert] at wmem ; rcases wmem with wv | ws
+        · rw [wv] ; exact (mem_wheelVerts_P3 hw).1
+        · rw [wheelVerts , mem_insert , mem_insert , mem_insert , mem_union] ; right ;right ; right ;right ;exact ws
+      · apply clique_iie hw.cliques.2.2.2 bint hw.disj.2.2.2 w₂nex
+        intro w wmem wnea
+        have not_w_in_abcd : ¬ w ∈ {a ,b, c ,d} := by
+          rw [mem_insert , mem_insert , mem_insert , mem_singleton ] 
+          intro w_ab
+          rw [← ac_bd.1 , ← ac_bd.2 ,← or_assoc , or_self ] at w_ab
+          rcases w_ab with wa |wb
+          · rw [mem_insert] at wmem 
+            rcases wmem with wv |wt
+            · rw [wa] at wv ; rw [wv] at ains ; exact (IsWheel_disj_ext hw).2 ains
+            · rw [wa] at wt ; contradiction
+          · contradiction
+        rw [←filter_eq , mem_filter] at not_w_in_abcd ; push_neg at not_w_in_abcd
+        apply not_w_in_abcd
+        rw [mem_insert] at wmem ; rcases wmem with wv | ws
+        · rw [wv] ; exact (mem_wheelVerts_P3 hw).2.2
+        · rw [wheelVerts , mem_insert , mem_insert , mem_insert , mem_union] ; right ;right ; right ;right ;exact ws
       
 
 /-- If we have a BiggerWheel then it is bigger -/
 lemma card_BiggerWheel {s t : Finset α} (hab: a ∉ t ∧ b ∉ s) (hx: x ∉ s ∩ t): 
 card ((insert x (s.erase a)) ∩ (insert x (t.erase b))) = card (s ∩ t) + 1:=
 by 
-  sorry
+  apply card_inter
 
 /-- For any vertex x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
 lemma degle_noncore  (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 

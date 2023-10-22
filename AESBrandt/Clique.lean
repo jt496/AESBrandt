@@ -208,7 +208,7 @@ by
           · rw [mem_erase] at pmemsa
             exact pmemsa.1
       · rw [isNClique_iff] at hc
-        rcases hc with ⟨hcclique , hccard⟩   
+        rcases hc with ⟨hcclique , _⟩   
         apply hcclique
         · rw [mem_coe]
           rw [mem_insert]
@@ -249,7 +249,7 @@ by
 
   rw [ card_insert_eq_ite , if_neg vninxsa, card_insert_eq_ite , if_neg xninsa , card_erase_add_one ]
   rw [isNClique_iff] at hc
-  rcases hc with ⟨hcclique , hccard⟩
+  rcases hc with ⟨_ , hccard⟩
   rw [card_insert_eq_ite , if_neg hvs] at hccard
   exact hccard
   exact has

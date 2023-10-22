@@ -89,7 +89,7 @@ by
     intro adjab
     dsimp 
     split_ifs with h1 h2 h3
-    · intro eq
+    · intro _
       apply C.valid adjab
       rw [h1 ,h2]
     · intro eq
