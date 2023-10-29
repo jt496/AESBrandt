@@ -254,7 +254,5 @@ by
   exact hccard
   exact has
 
-        
-
 
 end SimpleGraph

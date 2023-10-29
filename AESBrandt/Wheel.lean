@@ -461,6 +461,10 @@ by
   · exact mem_univ x 
   · intro y ymem ; rw [hem] at ymem ; exfalso ; exact not_mem_empty y ymem
 
+lemma not_mem_WheelCore_if_mem_inter {hw : G.IsWheel r v w₁ w₂ s t} : x ∈ G.WheelCore hw → ¬ x ∈ s ∩ t :=   
+by
+  intro h xmem ; rw [WheelCore , mem_filter] at h ; apply SimpleGraph.irrefl ; exact h.2 x xmem
+
 /--This is a warmup for the next lemma `BiggerWheel` where we use it with `card_eq_two_of_four` to help build a
 bigger wheel -/ 
 lemma nonadj_core_IsWheel (h: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hWc: x ∈ G.WheelCore hw ): 
@@ -800,27 +804,75 @@ by
 /-- If we have a BiggerWheel then it is bigger -/
 lemma card_BiggerWheel {s t : Finset α} (hab: a ∉ t ∧ b ∉ s) (hx: x ∉ s ∩ t): 
 card ((insert x (s.erase a)) ∩ (insert x (t.erase b))) = card (s ∩ t) + 1:=
-by 
-  sorry
-
+by
+  have xnmem : ¬ x ∈ erase s a ∩ erase t b := by
+    rw [mem_inter] at hx ; push_neg at hx ; rw [mem_inter] ; push_neg ; intro xmem 
+    rw [mem_erase] at xmem ; rw [mem_erase] ; push_neg ; intro _ ; exact hx xmem.2
+  rw [← insert_inter_distrib , card_insert_eq_ite , if_neg xnmem , Nat.add_right_cancel_iff]
+  apply fun a => congrArg card a 
+  ext p ; constructor
+  · intro pmem ; rw [mem_inter , mem_erase ,mem_erase] at pmem
+    rw [mem_inter] ; exact ⟨pmem.1.2,pmem.2.2⟩
+  · intro pmem ; rw [mem_inter , mem_erase , mem_erase]
+    refine ⟨⟨?_,by rw [mem_inter] at pmem ; exact pmem.1⟩,?_,by rw [mem_inter] at pmem ; exact pmem.2⟩
+    · intro peqa ; rw [peqa] at pmem ; rw [mem_inter] at pmem ; exact hab.1 pmem.2   
+    · intro peqb ; rw [peqb] at pmem ; rw [mem_inter] at pmem ; exact hab.2 pmem.1
+  
 /-- For any vertex x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
 lemma degle_noncore  (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (x : α): 
 1 ≤ card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)):=
 by
-  sorry
+  by_contra h ; push_neg at h
+  rw [Nat.lt_one_iff , card_eq_zero ] at h
+  have y_in_filter : ∃ y , y ∈ filter (fun z => ¬Adj G x z) (wheelVerts hw) := by
+    by_cases (x ∈ insert w₁ s)
+    · use x ; rw [mem_filter] ; refine ⟨by apply (mem_wheelVerts hw).1 ; left ; exact h , SimpleGraph.irrefl G⟩ 
+    · by_contra H ; push_neg at H 
+      apply hcf (insert x (insert w₁ s))
+      refine {clique := ?_ , card_eq := ?_}
+      · simp only [mem_insert, coe_insert, mem_coe, Set.mem_insert_iff]
+        apply isClique_insert_vertex 
+        · intro b bmem
+          rcases H b with b_nmem
+          rw [mem_filter] at b_nmem ; push_neg at b_nmem 
+          apply b_nmem
+          simp only [mem_coe, Set.mem_insert_iff] at bmem 
+          rw [← mem_insert] at bmem
+          apply (mem_wheelVerts hw).1
+          left ; exact bmem
+        · have : insert w₁ s.toSet = (insert w₁ s).toSet 
+          · exact Eq.symm (coe_insert w₁ s) 
+          simp only [this]
+          exact hw.cliques.2.1.clique
+      · rw [card_insert_eq_ite , if_neg h , hw.cliques.2.1.card_eq]
+  rcases y_in_filter with ⟨y , ymem⟩ ; rw [h] at ymem ; exact Iff.mp (List.mem_nil_iff y) ymem  
 
 /-- If x is not in the core then there is at least one vertex in s ∩ t that is non-adj to x -/
 lemma degcore_compl (hcf: G.CliqueFree (r+2)) (hw: G.IsWheel r v w₁ w₂ s t) (hx: x ∈ (G.WheelCore hw)ᶜ) :
  1 ≤  card ((s∩t).filter (fun z => ¬ G.Adj  x z)) :=
 by
-  sorry
-
+  rw [mem_compl , WheelCore , mem_filter] at hx ; push_neg at hx
+  by_contra h ; push_neg at h
+  rw [Nat.lt_one_iff , card_eq_zero ] at h
+  rcases hx (mem_univ x) with ⟨y ,⟨ ymem , nadjxy ⟩⟩
+  have contra : y ∈ ∅ := by
+    rw [← h] ; rw [mem_filter] ; exact ⟨ymem , nadjxy⟩
+  contradiction
+      
 /-- If G is K_r+2 -free contains a MaxWheel W then every vertex that is adjacent to all of the common
 clique vertices is not adjacent to at least 3 vertices in W -/
 lemma three_le_wheel_nonadj (hmcf: G.MaxCliqueFree (r+2)) (p3: G.P3bar v w₁ w₂) (hw: G.IsWheel r v w₁ w₂ s t) 
 (hsf: card (s ∩ t) = G.MaxWheel hmcf p3) (hWc: x ∈ G.WheelCore hw) :
  3 ≤ card ((G.wheelVerts hw).filter (fun z => ¬ G.Adj  x z)) :=
 by
-  sorry
+  by_contra hsmall ; push_neg at hsmall ; rw [Nat.lt_iff_add_one_le] at hsmall ; rw [← two_add_one_eq_three] at hsmall
+  rw [add_le_add_iff_right] at hsmall
+  rcases BiggerWheel hmcf.1 hw hWc hsmall with ⟨a , ⟨b , ⟨as , bt , ant , bns , biggerWheel⟩⟩⟩
+  have n_card_le : ¬ card ((insert x (erase s a)) ∩ (insert x (erase t b))) ≤ card (s ∩ t) 
+  · push_neg ; rw [card_BiggerWheel ⟨ant , bns⟩ (not_mem_WheelCore_if_mem_inter hWc)]
+    exact Nat.lt.base (card (s ∩ t))
+  apply n_card_le ; rw [hsf]
+  exact le_MaxWheel hmcf p3 biggerWheel
+
 
 

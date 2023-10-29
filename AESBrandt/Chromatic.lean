@@ -112,5 +112,4 @@ by
     use j 
   contradiction
 
-
 end SimpleGraph

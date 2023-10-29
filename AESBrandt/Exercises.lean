@@ -18,27 +18,19 @@ variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [
 lemma double_counting (s : Finset α) :
     ∑ v , (G.neighborFinset v ∩ s).card = ∑ v in s, G.degree v :=
 by
-  have : ∑ v , (G.neighborFinset v ∩ s).card = ∑ v , (∑ x in (G.neighborFinset v ∩ s) , 1) := by
-    apply sum_congr
-    · rfl
-    intro x
-    intro xuniv
-    exact card_eq_sum_ones (neighborFinset G x ∩ s) 
-  have sumset : ∀ (x y : α), x ∈ univ ∧ y ∈ neighborFinset G x ∩ s ↔ x ∈ neighborFinset G y ∧ y ∈ s := by
-    sorry
-    --intro x
-    --intro y 
-    --constructor
-    --rintro ⟨h1, h2⟩   
-    
-  sorry
-  -- rw [this , sum_comm' ]
-  -- sorry
-  
-
-  
-
-  
+  simp only [Finset.card_eq_sum_ones]
+  have comm : ∀ (x y : α), x ∈ univ ∧ y ∈ neighborFinset G x ∩ s ↔ x ∈ neighborFinset G y ∧ y ∈ s
+  · intro x y ; constructor
+    · intro h 
+      rw [mem_inter] at h
+      exact ⟨by apply (mem_neighborFinset G y x).2 ; rw [adj_comm] ; exact (mem_neighborFinset G x y).1 h.2.1,h.2.2 ⟩  
+    · intro h 
+      refine ⟨by exact mem_univ x, ?_⟩
+      · rw [mem_inter] 
+        refine ⟨by rw [mem_neighborFinset] ; rw [adj_comm] ; exact (mem_neighborFinset G y x).1 h.1 , by exact h.2⟩       
+  rw [sum_comm' comm ]
+  simp only [ ← Finset.card_eq_sum_ones , card_neighborFinset_eq_degree] 
+ 
   
 lemma degree_le [DecidableRel H.Adj](hle : G ≤ H) (x : α) : G.degree x ≤ H.degree x:=
 by
