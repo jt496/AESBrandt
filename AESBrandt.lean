@@ -142,14 +142,14 @@ theorem aes_brandt (hf: G.CliqueFree (r+2)) (md: (3*r - 1)* (Fintype.card α)/(3
           exact md
         _ ≤ minDegree H := by
           exact minDegree_le_of_le H_subgraph
-
-    have krle : (2 * r + 2+ card (s ∩ t)) * (Fintype.card α) /(2 * r + 2+ card (s ∩ t) + 3) ≤ (3 * r - 1) * (Fintype.card α) /(3 * r + 2)
-    · cases r with
+    cases r with
       | zero => contradiction;
       | succ r =>
-
+      have krle : (2 * r + 2+ card (s ∩ t)) * (Fintype.card α) /(2 * r + 2+ card (s ∩ t) + 3) ≤ (3 * r - 1) * (Fintype.card α) /(3 * r + 2)
+      ·
         sorry
-    sorry
+      -- I think you may also need to do a case split on whether or not `k = card(s ∩ t)` is zero
+      sorry
 
 
 
