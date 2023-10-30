@@ -143,47 +143,97 @@ theorem aes_brandt (hf: G.CliqueFree (r+2)) (md: (3*r - 1)* (Fintype.card α)/(3
         _ ≤ minDegree H := by
           exact minDegree_le_of_le H_subgraph
 
-    have krle : (2 * r + 2+ card (s ∩ t)) * (Fintype.card α) /(2 * r + 2+ card (s ∩ t) + 3) ≤ (3 * r - 1) * (Fintype.card α) /(3 * r + 2)
+    have krle : (2 * r + card (s ∩ t)) * (Fintype.card α) /(2 * r + card (s ∩ t) + 3) ≤ (3 * r - 1) * (Fintype.card α) /(3 * r + 2)
     · cases r with
       | zero => contradiction;
       | succ r =>
-
-        sorry
-    sorry
-
-
-
-
-
-
-
-
-
-
-
-      #check P3barFree
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        rw [Nat.succ_eq_add_one , mul_add , mul_add , mul_one , mul_one]
+        have aux : 3 * r + 3 - 1 = 3 * r + 2
+        · exact rfl 
+        rw [aux]
+        have aux2 : 3 * r + 3 + 2 = 3 * r + 5
+        · exact rfl
+        rw [aux2]
+        apply kr_bound ; apply Nat.le_of_lt_succ ; exact card_inter
+    have min_degree_le : minDegree H ≤ (3 * r - 1) * Fintype.card α / (3 * r + 2)
+    · apply le_trans _ krle
+      have aux : 0 < (2 * r + card (s ∩ t) + 3) 
+      · exact Nat.succ_pos (2 * r + card (s ∩ t) + 2)
+      apply (Nat.le_div_iff_mul_le aux).2
+      have min_deg_W : H.minDegree * card (wheelVerts hw) ≤ card (WheelCore hw) * (card (wheelVerts hw) - 3) + card (WheelCore hw)ᶜ * (card (wheelVerts hw) - 1)
+      · apply le_trans _ boundW
+        rw [mul_comm]
+        have aux2 : card (wheelVerts hw) * minDegree H = ∑ v in (wheelVerts hw) , minDegree H
+        · symm ; apply sum_const_nat ; intro _ _ ; rfl
+        rw [aux2] ; apply sum_le_sum ; intro i _ ; exact minDegree_le_degree H i
+      rcases Nat.eq_zero_or_eq_succ_pred (card (s ∩ t)) with k_eq_zero | one_le_K
+      · rw [k_eq_zero , add_zero] ; rw [k_eq_zero , add_zero] at card_wheel_inter ; rw [card_wheel_inter] at min_deg_W
+        have core_eq_n : WheelCore hw = univ 
+        · ext y ; constructor
+          · intro _ ; exact mem_univ y
+          · intro _ ; rw [mem_WheelCore_iff] ; intro l contra
+            rw [card_eq_zero.1 k_eq_zero] at contra
+            contradiction
+        rw [(card_eq_iff_eq_univ (WheelCore hw)).2 core_eq_n] at min_deg_W
+        have comple_core_empty : (WheelCore hw)ᶜ = ∅  
+        · exact Iff.mpr (compl_eq_empty_iff (WheelCore hw)) core_eq_n 
+        rw [comple_core_empty , card_empty , zero_mul , add_zero , mul_comm (Fintype.card α) , Nat.add_sub_assoc (Nat.le_refl 3) , Nat.sub_self , add_zero] at min_deg_W
+        exact min_deg_W
+      · have min_deg_K : H.minDegree * card (s ∩ t) ≤ card (WheelCore hw)ᶜ * (card (s ∩ t) - 1) + card (WheelCore hw) * card (s ∩ t)
+        · apply le_trans _ boundX
+          rw [mul_comm]
+          have aux2 : card (s ∩ t) * minDegree H = ∑ v in (s ∩ t) , minDegree H
+          · symm ; apply sum_const_nat ; intro _ _ ; rfl
+          rw [aux2] ; apply sum_le_sum ; intro i _ ; exact minDegree_le_degree H i
+        have two_min_deg_K : 2 * (H.minDegree * card (s ∩ t)) ≤ 2 * (card (WheelCore hw)ᶜ * (card (s ∩ t) - 1) + card (WheelCore hw) * card (s ∩ t))
+        · exact (mul_le_mul_left (Nat.succ_pos 1)).2 min_deg_K
+        have result : H.minDegree * card (wheelVerts hw) + 2 * (H.minDegree * card (s ∩ t)) ≤ 
+        (card (WheelCore hw) * (card (wheelVerts hw) - 3) + card (WheelCore hw)ᶜ * (card (wheelVerts hw) - 1)) + (2 * (card (WheelCore hw)ᶜ * (card (s ∩ t) - 1) + card (WheelCore hw) * card (s ∩ t)))
+        · exact Nat.add_le_add min_deg_W two_min_deg_K 
+        have lhs : minDegree H * card (wheelVerts hw) + 2 * (minDegree H * card (s ∩ t)) = minDegree H * (2 * r + card (s ∩ t) + 3)
+        · rw [← mul_assoc , mul_comm 2 , mul_assoc , ← mul_add] ; nth_rw 1 [← one_add_one_eq_two , add_mul , one_mul , one_mul]
+          rw [← add_assoc , card_wheelVerts] ; nth_rw 1 [add_assoc] ; rw [add_comm 3 , ← add_assoc ]
+        rw [lhs] at result
+        have rhs : card (WheelCore hw) * (card (wheelVerts hw) - 3) + card (WheelCore hw)ᶜ * (card (wheelVerts hw) - 1) +
+      2 * (card (WheelCore hw)ᶜ * (card (s ∩ t) - 1) + card (WheelCore hw) * card (s ∩ t)) = (2 * r + card (s ∩ t)) * Fintype.card α 
+        · rw [add_assoc , add_comm , mul_add , ← add_assoc , ← mul_assoc , mul_comm 2 , mul_assoc , ← mul_add ]
+          have three_le_card_wheel : 3 ≤ card (wheelVerts hw)
+          · rw [wheelVerts]
+            have n_v : ¬ v ∈ (insert w₁ (insert w₂ (s ∪ t)))
+            · rw [mem_insert , mem_insert , mem_union] ; push_neg
+              exact ⟨by exact (P3bar.ne p3).1 ,by exact (P3bar.ne p3).2 , by exact hw.disj.1 , by exact hw.disj.2.1⟩
+            rw [card_insert_eq_ite , if_neg n_v]
+            have n_w₁ : ¬ w₁ ∈ insert w₂ (s ∪ t)
+            · rw [mem_insert , mem_union] ; push_neg
+              refine ⟨?_,by exact hw.2.2.2.1 ,by exact (IsWheel_disj_ext hw).1 ⟩
+              · intro eq ; apply SimpleGraph.irrefl H ; rw [eq] at p3 ; exact p3.edge 
+            rw [card_insert_eq_ite , if_neg n_w₁ , add_assoc , one_add_one_eq_two]
+            have n_w₂ : ¬ w₂ ∈ s ∪ t
+            · rw [mem_union] ; push_neg
+              exact ⟨by exact (IsWheel_disj_ext hw).2 , by exact hw.2.2.2.2 ⟩ 
+            rw [card_insert_eq_ite , if_neg n_w₂ , add_assoc , add_comm 1 , two_add_one_eq_three ]
+            nth_rw 1 [← zero_add 3 ] ; apply add_le_add_right ; exact Nat.zero_le (card (s ∪ t))    
+          have one_le_card_wheel : 1 ≤ card (wheelVerts hw)
+          · calc 
+              1 ≤ 3 := by
+                norm_num
+              _ ≤ card (wheelVerts hw) := by
+                exact three_le_card_wheel
+          have one_le_card_inter : 1 ≤ card (s ∩ t)
+          · rw [Nat.one_eq_succ_zero , one_le_K] ; apply Nat.succ_le_succ ; exact Nat.zero_le (Nat.pred (card (s ∩ t)))
+          rw [Nat.mul_sub_left_distrib 2 (card (s ∩ t)) 1 , mul_one , ← Nat.sub_add_comm one_le_card_wheel ,←  Nat.add_sub_assoc (Nat.mul_le_mul_left 2 one_le_card_inter)]
+          rw [mul_one] ; nth_rw 1 [← one_add_one_eq_two , add_mul] ; rw [one_mul , ← add_assoc , card_wheel_inter , add_assoc (2 * r) , add_comm 3 , ← add_assoc]
+          have three_sub_two : 3 - 2 = 1
+          · norm_num 
+          rw [Nat.add_sub_assoc (by norm_num) , three_sub_two , Nat.add_sub_assoc (by norm_num) , Nat.sub_self , add_zero]
+          rw [add_assoc , mul_comm 2 ((card (WheelCore hw) * card (s ∩ t))) , mul_assoc , ← Nat.mul_add ]
+          nth_rw 2 [←one_add_one_eq_two] ; rw [Nat.mul_add (card (s ∩ t)) , mul_one , add_assoc , ← Nat.add_sub_assoc (three_le_card_wheel)]
+          rw [add_comm (card (s ∩ t)) (card (wheelVerts hw)) , card_wheel_inter , Nat.add_sub_assoc (by norm_num) , Nat.sub_self , add_zero]
+          rw [add_comm (card (s ∩ t)) (2 * r) , ← Nat.add_mul , add_comm (card (WheelCore hw)ᶜ) , card_compl]
+          rw [← Nat.add_sub_assoc (by exact card_le_univ (WheelCore hw)) , add_comm , Nat.add_sub_assoc (by norm_num) ,Nat.sub_self , add_zero , mul_comm] 
+        rw [rhs] at result ; exact result
+    have contra : ¬ (3 * r - 1) * Fintype.card α / (3 * r + 2) < minDegree H
+    · push_neg ; exact min_degree_le
+    contradiction
 
 end SimpleGraph
