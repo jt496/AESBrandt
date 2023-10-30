@@ -867,7 +867,7 @@ lemma three_le_wheel_nonadj (hmcf: G.MaxCliqueFree (r+2)) (p3: G.P3bar v w₁ w�
 by
   by_contra hsmall ; push_neg at hsmall ; rw [Nat.lt_iff_add_one_le] at hsmall ; rw [← two_add_one_eq_three] at hsmall
   rw [add_le_add_iff_right] at hsmall
-  rcases BiggerWheel hmcf.1 hw hWc hsmall with ⟨a , ⟨b , ⟨as , bt , ant , bns , biggerWheel⟩⟩⟩
+  rcases BiggerWheel hmcf.1 hw hWc hsmall with ⟨a , ⟨b , ⟨_ , _ , ant , bns , biggerWheel⟩⟩⟩
   have n_card_le : ¬ card ((insert x (erase s a)) ∩ (insert x (erase t b))) ≤ card (s ∩ t) 
   · push_neg ; rw [card_BiggerWheel ⟨ant , bns⟩ (not_mem_WheelCore_if_mem_inter hWc)]
     exact Nat.lt.base (card (s ∩ t))
