@@ -64,10 +64,7 @@ by
       · ext v ; rw [mem_filter , mem_inter , mem_neighborFinset , and_comm]
       rw [← this] ; exact nonadj_adj W (hx x x_memX)
     apply sum_le_sum
-    -- rw [← sum_to_list , ← sum_to_list]
-    -- apply List.sum_le_sum
     intro j jmem
-    --rw [mem_toList] at jmem ;
     exact this j jmem
   have sum_eq_card2 : ∑ x in Xᶜ , (card W - j) = card Xᶜ  * (card W - j)
   · rw [← sum_const_nat]
@@ -78,15 +75,34 @@ by
       have : (filter (fun z => Adj G x z) W) = neighborFinset G x ∩ W
       · ext v ; rw [mem_filter , mem_inter , mem_neighborFinset , and_comm]
       rw [← this] ; exact nonadj_adj W (hy x)
-    rw [← sum_to_list , ← sum_to_list]
-    apply List.sum_le_sum
+    apply sum_le_sum
     intro i imem
-    rw [mem_toList] at imem ; exact this i imem
+    exact this i imem
   rw [sum_eq_card] at sum_bound ; rw [sum_eq_card2] at sum_bound2
   exact Nat.add_le_add sum_bound sum_bound2
-#check Nat.div
+
 lemma abc {a : ℕ } {b : ℕ } {c : ℕ } {n : ℕ } (h : a ≤ c) (hab : 0 < a + b ): a * n / (a + b) ≤ c * n / (c + b) := by
-  sorry
+  have cb_pos : 0 < c + b
+  · calc
+      0 < a + b := by
+        exact hab
+      _ ≤ c + b := by
+        apply Nat.add_le_add_right  
+        exact h 
+  rw [← one_mul (a * n / (a + b)) ,← Nat.div_self cb_pos , mul_comm]
+  have : a * n / (a + b) * ((c + b) / (c + b)) ≤ (a * n / (a + b) * (c + b)) / (c + b)
+  · exact Nat.mul_div_le_mul_div_assoc (a * n / (a + b)) (c + b) (c + b)
+  apply le_trans this
+  apply Nat.div_le_div_right
+  rw [mul_comm]
+  have aux : (c + b) * (a * n / (a + b)) ≤ ((c + b) * (a * n)) / (a + b)
+  · exact Nat.mul_div_le_mul_div_assoc (c + b) (a * n) (a + b)
+  apply le_trans aux
+  apply Nat.div_le_of_le_mul'
+  rw [add_mul , add_mul , ← mul_assoc c , mul_comm c a , ← mul_assoc a , Nat.add_le_add_iff_left ]
+  apply Nat.mul_le_mul (by rfl)
+  apply Nat.mul_le_mul_right
+  exact h
 
 lemma kr_bound {k : ℕ} {r : ℕ}  (h : k ≤ r) (n : ℕ) : (2 * r + 2 + k) * n / (2 * r + 2 + k + 3) ≤  (3 * r + 2) *n / (3 * r + 5) := by
   have aux : (2 * r + 2 + k) ≤ (3 * r + 2)
