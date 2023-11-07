@@ -6,12 +6,12 @@ import Mathlib.Data.Fin.Basic
 open BigOperators
 
 namespace SimpleGraph
-variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [DecidableEq α][Fintype β] [DecidableEq β] [DecidableRel G.Adj]
+variable {α β: Type _} {G : SimpleGraph α}  
 
 lemma not_col_of_chrom_succ (h : G.chromaticNumber = k + 1) : ¬ G.Colorable k:=
-by 
+by
   intro kcolourable
-  have : 1 ≤ 0 := by 
+  have : 1 ≤ 0 := by
     apply (add_le_add_iff_left k).1
     rw [add_zero]
     rw [← h ]
@@ -19,9 +19,9 @@ by
     exact kcolourable
   contradiction
 
-     
+
 lemma chrom_imp_nat_col_self  (hcrom: G.chromaticNumber = k + 1) (C : G.Coloring ℕ): ∃ v, k ≤ C v :=
-by 
+by
   by_contra h
   push_neg at h
   have kcol : G.Colorable k := by
@@ -31,7 +31,7 @@ by
 
 
 
-lemma chromatic_imp_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : 
+lemma chromatic_imp_verts (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) :
 ∀ i, ∃ v, C v = i :=
 by
   by_contra hc
@@ -39,9 +39,9 @@ by
   apply G.not_col_of_chrom_succ h
   rcases hc with ⟨i , cneqi⟩
   let CN : α → ℕ := fun v => ite (C v = Fin.last k) (i) (C v)
-  have valid :  ∀ {a b : α}, Adj G a b → Adj ⊤ (CN a) (CN b) := 
+  have valid :  ∀ {a b : α}, Adj G a b → Adj ⊤ (CN a) (CN b) :=
   by
-    intro a b adjab 
+    intro a b adjab
     dsimp; split_ifs with h1 h2 h3
     all_goals intro eq; rw [Fin.val_eq_val] at eq
     · apply C.valid adjab; rw [h1,h2]
@@ -55,7 +55,7 @@ by
       rw [←Fin.eq_last_of_not_lt hl] at h1
       apply cneqi _ h1
     · apply Fin.val_lt_last h1
-  contrapose! Clt;  
+  contrapose! Clt;
   exact chrom_imp_nat_col_self h CN'
     -- by_cases hi: C a = Fin.last k
     -- --rcases em (C a = Fin.last k) with i | ni
@@ -68,12 +68,12 @@ by
     --   rw [if_neg nib] at eq
     --   symm at eq
     --   exact cneqi b eq
-     
+
  -- let CN' : G.Coloring ℕ := ⟨CN, by intro a b adjab si ⟩
  #check Fin.val_lt_last
   #check Fin.eq_last_of_not_lt
  variable (a : Fin n)
- 
+
 
 
 
@@ -87,7 +87,7 @@ by
   by
     intro a b
     intro adjab
-    dsimp 
+    dsimp
     split_ifs with h1 h2 h3
     · intro _
       apply C.valid adjab
@@ -98,7 +98,7 @@ by
       exact hc a b eq h3 adjab
     · intro eq
       exact C.valid adjab eq ⟩
-  
+
   have  hj : ∀ v, D v ≠ j
   · intro v
     dsimp
@@ -109,7 +109,7 @@ by
     exact chromatic_imp_verts h D'
   have contr : ¬ ∀ i, ∃ v, D v = i := by
     push_neg
-    use j 
+    use j
   contradiction
 
 end SimpleGraph
