@@ -16,7 +16,7 @@ variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [
 def completeMultiPartite (G : SimpleGraph α) : Prop := Transitive (λ u v ↦ ¬G.Adj u v)
 
 lemma completeMultiPartite.equiv (hc: G.completeMultiPartite) : Equivalence (λ u v ↦ ¬G.Adj u v):=
-by  
+by
   refine { refl := ?_, symm := ?symm, trans := ?_ }
   · intro x ; exact SimpleGraph.irrefl G
   · rintro x y ; contrapose! ; exact (adj_comm G x y).2
@@ -41,7 +41,7 @@ by
   contradiction
 
 /-- If G contains no induced P3bar then it must be complete-multi-partite -/
-lemma P3barFree  (p3f: ¬ ∃ v w₁ w₂, G.P3bar v w₁ w₂) : 
+lemma P3barFree  (p3f: ¬ ∃ v w₁ w₂, G.P3bar v w₁ w₂) :
 G.completeMultiPartite:=
 by
   rintro x y z nadjxy nadjyz
@@ -55,9 +55,9 @@ by
       contradiction
     · exact nadjyz
   contradiction
-  
+
 /--  Complete r -partite = Complete-multi-partite + χ(G) = r -/
-def completeMultiPartiteR (G : SimpleGraph α) (r : ℕ) : Prop := G.completeMultiPartite ∧ G.chromaticNumber = r 
+def completeMultiPartiteR (G : SimpleGraph α) (r : ℕ) : Prop := G.completeMultiPartite ∧ G.chromaticNumber = r
 
 /-- If G is complete-multi-paritite then it must be complete-χ(G)-partite -/
 lemma complete_chrom_partite (hc: G.completeMultiPartite) : G.completeMultiPartiteR (G.chromaticNumber):=
@@ -65,189 +65,46 @@ by
   constructor
   · exact hc
   · rfl
- 
+
 /-- If G is complete-r-partite then for every r-coloring C, if C x ≠ C y then xy must be an edge-/
-lemma completeMultiPartiteR_adj_ne_col (hcpr : G.completeMultiPartiteR r) (C: G.Coloring (Fin r)) (x y: α):  
+lemma completeMultiPartiteR_adj_ne_col (hcpr : G.completeMultiPartiteR r) (C: G.Coloring (Fin r)) (x y: α):
 C x ≠ C y → G.Adj x y:=
 by
   cases r with
-  | zero =>  
-  exfalso; apply Fin.elim0 (C x) 
-  | succ r => 
-  rcases hcpr with ⟨multipartG , chromG⟩  
-  intro cxnecy
-  by_contra nadjxy
-  let CN : α → ℕ := fun v => ite (¬ Adj G v y) (C x) (C v)
-  have validCN : ∀ {a b : α}, Adj G a b → Adj ⊤ (CN a) (CN b) := by
-    intro a b adjab 
-    dsimp
-    split_ifs with h1 h2 h3
-    · intro caeqcb
-      rw [Fin.val_eq_val] at caeqcb
-      have caneqcb : C a ≠ C b := by
-        apply Coloring.valid 
-        exact adjab
-      contradiction
-    · have adjax : Adj G a x := by
-        by_contra nadjax
-        have nadjay : ¬ Adj G a y := by
-          apply multipartG nadjax nadjxy
-        contradiction
-      intro caeqcx
-      have caneqcx : C a ≠ C x := by
-        apply Coloring.valid
-        exact adjax
-      rw [Fin.val_eq_val] at caeqcx
-      contradiction
-    · have adjbx : Adj G b x := by
-        by_contra nadjbx
-        have nadjay : ¬ Adj G b y := by
-          apply multipartG nadjbx nadjxy
-        contradiction
-      intro cbeqcx
-      have caneqcx : C b ≠ C x := by
-        apply Coloring.valid
-        exact adjbx
-      rw [Fin.val_eq_val] at cbeqcx
-      symm at cbeqcx
-      contradiction
-    · have nadjab : ¬ Adj G a b := by
-        apply multipartG h1 
-        intro adjby
-        symm at adjby
-        contradiction
-      contradiction
-  let CN' : G.Coloring ℕ :=⟨CN,validCN⟩
-  by_cases (r = C y )
-  · have Clt : ∀ v, CN v < r := by    
-      intro v
-      dsimp
-      split_ifs with h1 
-      · apply lt_iff_le_and_ne.2
-        constructor
-        · apply Fin.le_last
-        · intro cveqr
-        --rw [ h ] at cveqr
-          have : C v = C y := by
-            rw [← Fin.val_eq_val , cveqr , ← h]
-          have nadjvy : C v ≠ C y  := by
-            apply Coloring.valid
-            exact h1
-          contradiction
-      · by_contra rlecv
-        have reqcx : C x = r := by
-          have : Fin.last r = r := by 
-            exact Eq.symm (Fin.cast_nat_eq_last r)
-          rw [← this ]
-          apply Fin.eq_last_of_not_lt rlecv
-        rw [Fin.eq_iff_veq ] at reqcx
-        have : (↑(↑(r : ℕ) : Fin (r + 1)) : ℕ)  = r := by
-          rw [Fin.cast_nat_eq_last r]
-          exact rfl
-        rw [this] at reqcx
-        have cxeqcy : C x = C y := by
-          rw [← Fin.val_eq_val , reqcx , ← h] 
-        contradiction
-    contrapose! Clt
-    exact chrom_imp_nat_col_self chromG CN' 
-  · let CN2 : α → ℕ := fun v => ite (CN v = r) (C y) (CN v)
-    have validCN2 : ∀ {a b : α}, Adj G a b → Adj ⊤ (CN2 a) (CN2 b) := by
-      rintro a b adjab cn2eq
-      by_cases (CN a = r)
-      · dsimp at cn2eq
-        rcases em (CN b = r) with h2 | h2
-        · rw [← h ] at h2
-          have : CN a ≠ CN b := by
-            apply Coloring.valid CN'
-            exact adjab
-          symm at h2
-          contradiction
-        · dsimp at h
-          dsimp at h2
-          rw [if_pos h , if_neg h2] at cn2eq
-          simp at cn2eq
-          rcases em (Adj G b y) with h3| h3
-          · rw [if_pos h3 , Fin.val_eq_val] at cn2eq 
-            have : C b ≠ C y := by
-              apply Coloring.valid
-              exact h3
-            symm at cn2eq
-            contradiction
-          · rw [if_neg h3 , Fin.val_eq_val] at cn2eq  
-            symm at cn2eq
-            contradiction
-      · dsimp at cn2eq 
-        dsimp at h
-        rw [if_neg h] at cn2eq
-        rcases em (CN b = r) with h2| h2
-        · dsimp at h2
-          rw [if_pos h2] at cn2eq
-          · rcases em (¬ Adj G a y) with h3| h3 
-            · rw [if_pos h3 , Fin.val_eq_val] at cn2eq
-              contradiction
-            · rw [if_neg h3 , Fin.val_eq_val] at cn2eq
-              push_neg at h3
-              have : C a ≠ C y := by
-                apply Coloring.valid
-                exact h3
-              contradiction
-        · dsimp at h2 
-          rw [if_neg h2] at cn2eq   
-          have CNa : (if ¬Adj G a y then ((C x) : ℕ) else ((C a) : ℕ) ) = CN a := by 
-            simp 
-          have CNb : (if ¬Adj G b y then ((C x) : ℕ)  else ((C b) : ℕ )) = CN b := by 
-            simp
-          rw [CNa , CNb] at cn2eq
-          have : CN a ≠ CN b := by
-            apply Coloring.valid CN'
-            exact adjab 
-          contradiction
-    let CN2' : G.Coloring ℕ :=⟨CN2,validCN2⟩
-    have Clt2 : ∀ v, CN2 v < r := by  
-      intro v
-      dsimp 
-      rcases em ((if ¬Adj G v y then (C x : ℕ ) else (C v : ℕ )) = r) with pos | neg
-      · rw [if_pos pos]
-        apply lt_iff_le_and_ne.2
-        constructor
-        · apply Fin.le_last
-        · symm
-          push_neg at h
-          exact h
-      · rw [if_neg neg]
-        rcases em (¬ Adj G v y) with nadjvy | adjvy
-        · rw [if_pos nadjvy]
-          apply lt_iff_le_and_ne.2
-          constructor
-          · apply Fin.le_last
-          · rw [if_pos nadjvy] at neg
-            push_neg at neg
-            exact neg
-        rw [if_neg adjvy]
-        apply lt_iff_le_and_ne.2
-        constructor
-        · apply Fin.le_last
-        · rw [if_neg adjvy] at neg
-          push_neg at neg
-          exact neg
-    contrapose! Clt2
-    exact chrom_imp_nat_col_self chromG CN2'
+  | zero => exfalso; apply Fin.elim0 (C x)
+  | succ n =>
+    intro Cneq
+    obtain ⟨u , v , ⟨h1 , h2 , h3⟩⟩ := chromatic_imp_edges hcpr.2 C (C x) (C y) Cneq
+    by_contra nadj
+    have : ¬ Adj G u v
+    · have nadjux : ¬ Adj G u x
+      · exact Coloring.not_adj_of_mem_colorClass C h1 rfl
+      have nadjxv : ¬ Adj G x v
+      · apply hcpr.1
+        · exact nadj
+        · exact Coloring.not_adj_of_mem_colorClass C (id (Eq.symm h2)) rfl
+      apply hcpr.1
+      · exact nadjux
+      · exact nadjxv
+    contradiction
+
+
 
 open Finset
 /-- If G is complete r-partite then it contains a copy of K_r -/
 lemma not_cliquefree_of_complete_multi_partite (hcpr: G.completeMultiPartiteR r) : ¬ G.CliqueFree r:=
 by
   cases r with
-  | zero => 
-    intro cliquefree ; 
+  | zero =>
+    intro cliquefree ;
     apply cliquefree ∅
-    constructor 
-    · intro i hi; exfalso; rw [coe_empty] at hi; exact hi 
+    constructor
+    · intro i hi; exfalso; rw [coe_empty] at hi; exact hi
     · simp only [card_empty, Nat.zero_eq]
-  | succ r => 
+  | succ r =>
     intro hcf
-    -- Get an (r+1)-coloring C of G 
-    have C : G.Coloring (Fin (r+1)) 
+    -- Get an (r+1)-coloring C of G
+    have C : G.Coloring (Fin (r+1))
     · have : G.Colorable (r+1) := by
         rw [← Nat.succ_eq_add_one , ← hcpr.2]
         apply colorable_of_chromaticNumber_pos
@@ -256,22 +113,22 @@ by
       apply Colorable.toColoring
       · exact this
       · simp only [Fintype.card_fin, le_refl]
-      
+
     -- assert that ∀ colors i, ∃ v such that C v = i
     have Csurj: ∀ i, ∃ v , C v = i
     · exact chromatic_imp_verts hcpr.2 C
     let f: Fin (r+1) → α := fun i => (Csurj i).choose
-    have hf: ∀ i, (C (f i))= i := fun i => (Csurj i).choose_spec 
+    have hf: ∀ i, (C (f i))= i := fun i => (Csurj i).choose_spec
     let S: Finset α:= (univ : Finset (Fin (r+1))).image (fun i => f i)
     apply hcf S
-    constructor 
-    · intro u hu v hv hne 
+    constructor
+    · intro u hu v hv hne
       apply completeMultiPartiteR_adj_ne_col hcpr C
       contrapose! hne
       rw [mem_coe , mem_image] at hu
       rw [mem_coe , mem_image] at hv
-      rcases hu with ⟨ a , ⟨ amemuniv , faequ⟩⟩  
-      rcases hv with ⟨ b , ⟨ bmemuniv , fbeqv⟩⟩  
+      rcases hu with ⟨ a , ⟨ amemuniv , faequ⟩⟩
+      rcases hv with ⟨ b , ⟨ bmemuniv , fbeqv⟩⟩
       rw [←faequ , ← fbeqv ]
       have finj : ∀ x₁ x₂ , f x₁ = f x₂ → x₁ = x₂ := by
         intro x₁ x₂ fx1eqfx2
@@ -284,7 +141,7 @@ by
         exact congrArg (↑C) fbeqv
       rw [hf b] at beqcv
       rw [←aeqcu , ← beqcv ] at hne
-      exact congrArg f hne      
+      exact congrArg f hne
     · rw [Nat.succ_eq_add_one, ← Fintype.card_fin (r+1)]
       apply card_image_of_injective
       intro a b faeqfb

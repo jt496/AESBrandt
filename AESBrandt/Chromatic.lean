@@ -6,7 +6,7 @@ import Mathlib.Data.Fin.Basic
 open BigOperators
 
 namespace SimpleGraph
-variable {α β: Type _} {G : SimpleGraph α}  
+variable {α β: Type _} {G : SimpleGraph α}
 
 lemma not_col_of_chrom_succ (h : G.chromaticNumber = k + 1) : ¬ G.Colorable k:=
 by
@@ -57,21 +57,8 @@ by
     · apply Fin.val_lt_last h1
   contrapose! Clt;
   exact chrom_imp_nat_col_self h CN'
-    -- by_cases hi: C a = Fin.last k
-    -- --rcases em (C a = Fin.last k) with i | ni
-    -- · dsimp at eq
-    --   rw [if_pos hi] at eq
-    --   rcases em (C b = Fin.last k) with ib | nib
-    --   · have : C a = C b := by
-    --       rw [hi , ib]
-    --     exact Coloring.valid C adjab this
-    --   rw [if_neg nib] at eq
-    --   symm at eq
-    --   exact cneqi b eq
 
- -- let CN' : G.Coloring ℕ := ⟨CN, by intro a b adjab si ⟩
- #check Fin.val_lt_last
-  #check Fin.eq_last_of_not_lt
+
  variable (a : Fin n)
 
 
