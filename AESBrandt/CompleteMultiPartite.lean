@@ -8,7 +8,7 @@ import AESBrandt.Chromatic
 
 
 namespace SimpleGraph
-variable {α β: Type _} {G : SimpleGraph α} [Fintype α] [Fintype (Sym2 α)] [DecidableEq α][Fintype β] [DecidableEq β] [DecidableRel G.Adj]
+variable {α : Type _} {G : SimpleGraph α} [Fintype α]  [DecidableEq α] [DecidableRel G.Adj]
 
 
 
