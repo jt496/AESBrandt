@@ -72,7 +72,7 @@ C x ≠ C y → G.Adj x y:=
 by
   cases r with
   | zero => exfalso; apply Fin.elim0 (C x)
-  | succ n =>
+  | succ r =>
     intro Cneq
     obtain ⟨u , v , ⟨h1 , h2 , h3⟩⟩ := chromatic_imp_edges hcpr.2 C (C x) (C y) Cneq
     by_contra nadj
