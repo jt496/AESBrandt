@@ -63,7 +63,8 @@ by
 
 
 
-
+/-- If χ(G) = k + 1 , C is a (k + 1)- coloring of G and i ≠ j are distinct colors then
+there exists an edge between the color classes of i and j  -/
 lemma chromatic_imp_edges (h : G.chromaticNumber = k + 1) (C : G.Coloring (Fin (k+1))) : ∀ i j, i ≠ j →  ∃ u v, C u = i ∧ C v = j ∧ G.Adj u v:=
 by
   intro i j hij
