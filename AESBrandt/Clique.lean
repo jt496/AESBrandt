@@ -1,258 +1,106 @@
+import AESBrandt.Operations
 import Mathlib.Combinatorics.SimpleGraph.Clique
-import Mathlib.Combinatorics.SimpleGraph.Coloring
-import Mathlib.Tactic.Core
-import Mathlib.Data.Fin.Basic
-
-/-
-Useful facts about (building) cliques
--/
-
+import Mathlib.Order.Minimal
 namespace SimpleGraph
 open Finset
-variable {α : Type _} {G : SimpleGraph α} [Fintype α] [DecidableEq α] [DecidableRel G.Adj]
+variable {α : Type*} {G : SimpleGraph α}  {n : ℕ} {s : Finset α} {v w : α}
+lemma isEmpty_of_cliqueFree_one (h : G.CliqueFree 1) : IsEmpty α:=by
+  simp only [CliqueFree, isNClique_one, not_exists, forall_eq_apply_imp_iff] at h
+  exact { false := h }
 
-
-/-- If xy ∉ E(G) then G < G ⊔ {xy} -/
-lemma lt_of_insert_newedge {G: SimpleGraph α} (hne: x ≠ y) (hnadj: ¬G.Adj x y ) : G < G ⊔ (fromEdgeSet {⟦(x,y)⟧}):=
-by
-  apply edgeSet_ssubset_edgeSet.1
+section DecidableEq
+variable[DecidableEq α]
+lemma IsNClique.erase_of_mem (hs : G.IsNClique (n + 1) s) (ha : a ∈ s) :
+    G.IsNClique n (s.erase a):=by
   constructor
-  · intro E
-    intro in_edgeset
-    simp only [ge_iff_le, edgeSet_sup, edgeSet_fromEdgeSet, Set.mem_union, Set.mem_diff, Set.mem_singleton_iff,
-      Set.mem_setOf_eq]
-    left
-    exact in_edgeset
-  · intro h
-    rw [edgeSet_subset_edgeSet ] at h
-    nth_rw 1 [ ← fromEdgeSet_edgeSet G  ] at h
-    rw [fromEdgeSet_sup] at h
-    apply hnadj
-    apply h
-    apply (fromEdgeSet_adj (edgeSet G ∪ {Quotient.mk (Sym2.Rel.setoid α) (x, y)})).2
+  · apply hs.1.subset; simp
+  · rw [card_erase_of_mem ha,hs.2]
+    rfl
+
+lemma IsNClique.erase_of_not_mem (hs : G.IsNClique n s) (ha : a ∉ s): G.IsNClique n (s.erase a):=
+  (erase_eq_of_not_mem ha).symm ▸ hs
+
+lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
+    G.IsNClique n (Insert.insert a (erase s b)) := by
+  cases n with
+  | zero => simp_all
+  | succ n =>
+    apply (hs.erase_of_mem hb).insert
+    intro w h; rw [mem_erase] at h
+    apply had w h.2 h.1
+
+/-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/
+lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNClique (n + 1) s)
+(hx : v ∈ s) : G.IsNClique n (s.erase v):=by
+  constructor
+  · intro u hu v hv huvne
+    push_cast at *
+    obtain (h | h):= (hc.1 hu.1 hv.1 huvne)
+    · exact h
+    · simp only [edge_adj, Set.mem_singleton_iff, Sym2.eq, Sym2.rel_iff', Prod.mk.injEq,
+        Prod.swap_prod_mk, ne_eq] at h
+      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h;
+      · exact hu.2 <| Set.mem_singleton u
+      · exact hv.2 <| Set.mem_singleton v
+  · rw [card_erase_of_mem hx,hc.2]
+    rfl
+
+/-- If G is Kᵣ₊₁-free and s is an r-clique then every vertex is not adjacent to something in s -/
+lemma IsNClique.exists_non_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h: G.CliqueFree (n + 1))
+(x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y:= by
+  by_contra! hf
+  apply (hc.insert hf).not_cliqueFree h
+
+end DecidableEq
+
+/-- If s is a clique in G ⊔ {xy} and x,y ∉ s then s is a clique in G -/
+lemma IsNClique.sup_edge_not_mem (hc: (G ⊔ edge v w).IsNClique n s) (hx : v ∉ s) (hy : w ∉ s) :
+    G.IsNClique n s:=by
+  constructor
+  · intro u hu v hv hne
+    obtain ( h | h ):=(sup_adj ..).1 <| hc.1 hu hv hne
+    · exact h
+    · rw [edge_adj] at h
+      obtain ⟨(⟨rfl,rfl⟩ |⟨rfl,rfl⟩),_⟩:=h <;> contradiction
+  · exact hc.2
+
+section MaxCliqueFree
+variable {x y : α} {n : ℕ}
+
+/-- A graph G is maximally Kᵣ-free if it doesn't contain Kᵣ but any supergraph does contain Kᵣ -/
+abbrev MaxCliqueFree (G : SimpleGraph α) (r : ℕ) : Prop :=
+  Maximal (fun H => H.CliqueFree r) G
+
+/-- If we add a new edge to a maximally r-clique-free graph we get a clique -/
+protected lemma MaxCliqueFree.sup_edge (h: G.MaxCliqueFree n) (hne: x ≠ y) (hnadj: ¬G.Adj x y ):
+    ∃ t, (G ⊔ edge x y).IsNClique n t:=by
+  rw [MaxCliqueFree, maximal_iff_forall_gt] at h
+  convert h.2  <| G.lt_sup_edge hne hnadj
+  simp [CliqueFree, not_forall, not_not]
+
+variable [DecidableEq α]
+/-- If G is maximally Kᵣ₊₁-free and xy ∉ E(G) then there is a set s such that
+s ∪ {x} and s ∪ {y} are both (r + 1)-cliques -/
+lemma MaxCliqueFree.exists_of_not_adj (h: G.MaxCliqueFree (n + 1)) (hne: x ≠ y) (hnadj: ¬G.Adj x y):
+ ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique n (insert x s) ∧ G.IsNClique n (insert y s) := by
+  obtain ⟨t,hc⟩:= h.sup_edge hne hnadj
+  have xym: x ∈ t ∧ y ∈ t:= by
+    by_contra! hf
+    apply h.1 t;
     constructor
-    · right
-      exact rfl
-    · exact hne
- 
+    · intro u hu v hv hne
+      obtain (h | h):=(hc.1 hu hv hne)
+      · exact h
+      · simp only [edge_adj, ne_eq] at h
+        exfalso
+        obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h
+        · apply hf hu hv
+        · apply hf hv hu
+    · exact hc.2
+  use (t.erase x).erase y, erase_right_comm (a:=x) ▸ (not_mem_erase _ _),not_mem_erase _ _
+  rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
+      insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
+  exact ⟨(edge_comm ▸ hc).erase_of_sup_edge_of_mem xym.2,hc.erase_of_sup_edge_of_mem xym.1⟩
 
---- If we add a vertex to a subset of its nbhd that is a clique we get a new (bigger) clique
-lemma isClique_insert_vertex (hB :∀ b, b ∈ B → G.Adj v b) (hBc: IsClique G B): 
- IsClique G (insert v B) :=
-by
-  unfold IsClique
-  unfold Set.Pairwise
-  rintro x  xmem y ymem xney
-  by_cases (x = v) 
-  · rw [h]
-    apply hB
-    rw [h] at xney
-    exact Set.mem_of_mem_insert_of_ne ymem xney.symm
-  · have hx : ¬ x = v := by 
-      exact h
-    by_cases (y = v) 
-    · symm
-      rw [h]
-      apply hB 
-      rw [h] at xney
-      exact Set.mem_of_mem_insert_of_ne xmem xney
-    · apply hBc
-      · exact Set.mem_of_mem_insert_of_ne xmem hx
-      · exact Set.mem_of_mem_insert_of_ne ymem h
-      exact xney
-
-
-/-- If s is a clique in G ⊔ {xy} but not in G then x ∈ s and y ∈ s -/
-lemma mem_of_new_clique (hc: (G ⊔ (fromEdgeSet {⟦(x,y)⟧})).IsClique s) (hnc : ¬G.IsClique s) : x ∈ s ∧ y ∈ s:=
-by
-  contrapose! hnc 
-  unfold IsClique
-  unfold Set.Pairwise
-  rintro u umems v vmems unev
-  rw [← fromEdgeSet_edgeSet G , fromEdgeSet_sup] at hc 
-  have : Adj (fromEdgeSet (edgeSet G ∪ {Quotient.mk (Sym2.Rel.setoid α) (x, y)})) u v := by
-    apply hc 
-    · exact umems
-    · exact vmems
-    · exact unev
-  rw [fromEdgeSet_adj] at this  
-  rcases this with ⟨memedge , unev2⟩  
-  rcases memedge with h1 | h2
-  · rw[mem_edgeSet] at h1
-    exact h1
-  · rw [Set.mem_singleton_iff] at h2
-    simp at h2
-    rcases h2 with ⟨ux , vy⟩ | ⟨uy , vx⟩ 
-    by_cases (x = u)
-    · rw [← h] at umems
-      have : ¬y ∈ s := by
-        exact hnc umems
-      rw [vy] at vmems  
-      contradiction
-    · symm at ux
-      contradiction
-    by_cases (x = v) 
-    · rw [h] at hnc 
-      rw [← uy] at hnc
-      have : ¬u ∈ s := by
-        exact hnc vmems
-      contradiction
-    · symm at vx
-      contradiction
-    
-  
-        
-
-
-
-
-/-- If s is a clique in G ⊔ {xy} then s-{x}-/
-lemma clique_erase_insert_edge (hc: (G ⊔ (fromEdgeSet {⟦(x,y)⟧})).IsClique (s:Finset α)) :
- G.IsClique (s.erase x):=
-by
-  unfold IsClique
-  unfold Set.Pairwise
-  rintro u umem v vmem unev 
-  rw [mem_coe] at umem 
-  rw [mem_erase] at umem 
-  rw [mem_coe] at vmem
-  rw [mem_erase] at vmem 
-  rcases umem with ⟨ unex , umems ⟩
-  rcases vmem with ⟨ vnex , vmems ⟩ 
-  rw [← fromEdgeSet_edgeSet G , fromEdgeSet_sup] at hc 
-  have : Adj (fromEdgeSet (edgeSet G ∪ {Quotient.mk (Sym2.Rel.setoid α) (x, y)})) u v := by
-    apply hc 
-    · exact umems
-    · exact vmems
-    · exact unev
-  rw [fromEdgeSet_adj] at this  
-  rcases this with memG | nmemG
-  · exact (mem_edgeSet G).1 memG
-  · rw [Set.mem_singleton_iff] at nmemG
-    simp at nmemG
-    rcases nmemG with ⟨ux , _⟩ | ⟨_ , vx⟩ 
-    · contradiction
-    · contradiction  
- 
-
-/-
-The next lemma describes a simple situation when a clique can be altered by erasing one vertex and 
-inserting another to give a new clique of the same size.
-
-More precisely, if s ∪ {v} is a clique (with v ∉ s), a ∈ s and v ≠ x  and every member of the 
-clique (except possibly a) is adjacent to x, then we can form a new clique by removing a and 
-inserting x (and the new clique has the same size)
--/
-  
-/-- Given an (r+1)-clique under certain simple conditions we can swap a vertex from the clique with a new vertex to build
-a new (r+1)-clique -/
-lemma clique_iie (hc: IsNClique G (r+1) (insert v s)) (has: a ∈ s) (hvs: v ∉ s) (hvx: v ≠ x)
-(had: ∀ w ∈ (insert v s), w ≠ a → G.Adj x w)
-: IsNClique G (r+1) (insert v (insert x (erase s a))):=
-by
-  rw [isNClique_iff]
-  constructor
-  · unfold IsClique
-    unfold Set.Pairwise
-    rintro p pmem q qmem pneq
-    rw [mem_coe] at pmem
-    rw [mem_coe] at qmem
-    by_cases (p = x)
-    · rw [h]
-      rw [h] at pneq
-      apply had
-      · rw [mem_insert] at qmem
-        rw [mem_insert]
-        rcases qmem with qeqv | qmemxs 
-        · left
-          exact qeqv
-        · right
-          rw [mem_insert] at qmemxs
-          rcases qmemxs with qeqx | qmemsa
-          · symm at pneq 
-            contradiction
-          · apply erase_subset a
-            exact qmemsa
-      · rw [mem_insert , mem_insert] at qmem
-        rcases qmem with qeqv | qeqx | qmemsa 
-        · intro qeqa
-          rw [← qeqv] at hvs
-          rw [← qeqa] at has
-          contradiction
-        · symm at pneq
-          contradiction 
-        rw [mem_erase] at qmemsa
-        exact qmemsa.1
-    · have pneqx : p ≠ x := by
-        exact h
-      rw [mem_insert , mem_insert] at pmem
-      rw [mem_insert , mem_insert] at qmem
-      by_cases (q = x)
-      · apply Adj.symm
-        rw [h]
-        apply had
-        · rw [mem_insert]
-          rcases pmem with peqv | peqx | pmemsa
-          · left 
-            exact peqv
-          · contradiction
-          · right
-            apply erase_subset a
-            exact pmemsa
-        · rcases pmem with peqv | peqx | pmemsa
-          · rw [← peqv] at hvs
-            intro peqa
-            rw [← peqa] at has
-            contradiction
-          · contradiction 
-          · rw [mem_erase] at pmemsa
-            exact pmemsa.1
-      · rw [isNClique_iff] at hc
-        rcases hc with ⟨hcclique , _⟩   
-        apply hcclique
-        · rw [mem_coe]
-          rw [mem_insert]
-          rcases pmem with peqv | peqx | pmemsa
-          · left
-            exact peqv
-          · contradiction  
-          · right 
-            apply erase_subset a 
-            exact pmemsa
-        · rw [mem_coe , mem_insert] 
-          rcases qmem with qeqv | qeqx | qmemsa
-          · left 
-            exact qeqv
-          · contradiction  
-          · right
-            apply erase_subset a
-            exact qmemsa
-        · exact pneq
-  have vninxsa : ¬ v ∈ insert x (erase s a) := by
-    intro vinxsa
-    rw [mem_insert] at vinxsa
-    rcases vinxsa with veqx | vmemsa
-    · contradiction
-    · have : v ∈ s := by   
-        apply erase_subset a
-        exact vmemsa
-      contradiction
-  have xninsa : ¬x ∈ erase s a := by
-    intro xinsa
-    rw [mem_erase] at xinsa
-    apply SimpleGraph.irrefl G 
-    apply had
-    · rw [mem_insert]
-      right
-      exact xinsa.2
-    · exact xinsa.1 
-
-  rw [ card_insert_eq_ite , if_neg vninxsa, card_insert_eq_ite , if_neg xninsa , card_erase_add_one ]
-  rw [isNClique_iff] at hc
-  rcases hc with ⟨_ , hccard⟩
-  rw [card_insert_eq_ite , if_neg hvs] at hccard
-  exact hccard
-  exact has
-
-
+end MaxCliqueFree
 end SimpleGraph
