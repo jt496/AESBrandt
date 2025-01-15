@@ -17,9 +17,6 @@ lemma IsNClique.erase_of_mem (hs : G.IsNClique (n + 1) s) (ha : a ∈ s) :
   · rw [card_erase_of_mem ha,hs.2]
     rfl
 
-lemma IsNClique.erase_of_not_mem (hs : G.IsNClique n s) (ha : a ∉ s): G.IsNClique n (s.erase a):=
-  (erase_eq_of_not_mem ha).symm ▸ hs
-
 lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
     G.IsNClique n (Insert.insert a (erase s b)) := by
   cases n with
@@ -52,17 +49,6 @@ lemma IsNClique.exists_non_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h: G.C
   apply (hc.insert hf).not_cliqueFree h
 
 end DecidableEq
-
-/-- If s is a clique in G ⊔ {xy} and x,y ∉ s then s is a clique in G -/
-lemma IsNClique.sup_edge_not_mem (hc: (G ⊔ edge v w).IsNClique n s) (hx : v ∉ s) (hy : w ∉ s) :
-    G.IsNClique n s:=by
-  constructor
-  · intro u hu v hv hne
-    obtain ( h | h ):=(sup_adj ..).1 <| hc.1 hu hv hne
-    · exact h
-    · rw [edge_adj] at h
-      obtain ⟨(⟨rfl,rfl⟩ |⟨rfl,rfl⟩),_⟩:=h <;> contradiction
-  · exact hc.2
 
 section MaxCliqueFree
 variable {x y : α} {n : ℕ}

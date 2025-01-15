@@ -9,30 +9,6 @@ lemma degree_le (hle : G ≤ H) :
     G.degree v ≤ H.degree v:= by
   simp only [← card_neighborSet_eq_degree]
   apply Set.card_le_card fun v hv  => by exact hle hv
-  
-/-- If `P G` holds and `G` has finitely many edges then there exists an edge minimal
-subgraph H of G for which `P H` holds. -/
-lemma exists_minimal_subgraph (P : SimpleGraph V → Prop) (hG : P G) [Fintype G.edgeSet] :
-    ∃ H, H ≤ G ∧ Minimal P H:=by
-  let p : ℕ → Prop := fun n => ∃ H, ∃ _ : Fintype (H.edgeSet), H ≤ G ∧ P H ∧ H.edgeFinset.card ≤ n
-  have h : p G.edgeFinset.card := by
-    use G, inferInstance
-  classical
-  obtain ⟨H,_,hH⟩:=Nat.find_spec ⟨_,h⟩
-  use H, hH.1
-  rw [minimal_iff_forall_lt]
-  use hH.2.1
-  intro K hK
-  have hFin : Fintype K.edgeSet :=
-    Set.fintypeSubset G.edgeSet (edgeSet_subset_edgeSet.2 <| hK.le.trans hH.1)
-  have hKc: K.edgeFinset.card < H.edgeFinset.card :=
-    (Finset.card_lt_card <| edgeFinset_ssubset_edgeFinset.2 hK)
-  have := Nat.find_min ⟨_,h⟩ (lt_of_lt_of_le hKc hH.2.2)
-  dsimp [p] at this
-  push_neg at this
-  intro hF
-  apply Nat.lt_irrefl K.edgeFinset.card
-  exact this K hFin (lt_of_lt_of_le hK hH.1).le hF
 
 section fintypeV
 variable [Fintype V]
@@ -68,12 +44,5 @@ lemma minDegree_le_minDegree (hle : G ≤ H) [DecidableRel G.Adj] [DecidableRel 
     intro v; apply (G.minDegree_le_degree v).trans (G.degree_le hle)
   · rw [not_nonempty_iff] at hne
     simp
-
-/--If G is a subgraph of H then Δ(G) ≤ Δ(H) -/
-lemma maxDegree_le_maxDegree (hle : G ≤ H)[DecidableRel G.Adj] [DecidableRel H.Adj] :
-    G.maxDegree  ≤ H.maxDegree := by
-  apply maxDegree_le_of_forall_degree_le
-  intro v
-  apply (G.degree_le hle).trans <| H.degree_le_maxDegree v
 
 end fintypeV
