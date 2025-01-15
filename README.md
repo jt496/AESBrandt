@@ -2,7 +2,7 @@ This repository contains our formalization of Brandt's proof of the Andrásfai-E
 
 *If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable.*
 
-The proof of the main theorem is in `AESBrandt.lean`
+The proof of the main theorem is in `AESBrandt.AES.lean`
 
 References:
 
