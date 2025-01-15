@@ -15,7 +15,7 @@ Putting these together gives the definition of a wheel-like subgraph which can b
 maximally Kᵣ₊₂-free graph that is not complete-partite.
 Wheel-like subgraphs plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 Main definition:
-* `SimpleGraph.AES.IsWheel`: predicate for v w₁ w₂ s t to form a wheel-like subgraph of G with
+* `SimpleGraph.IsWheel`: predicate for v w₁ w₂ s t to form a wheel-like subgraph of G with
 r-sets s and t, and vertices v w₁ w₂ forming a P₂-complement.
 -/
 

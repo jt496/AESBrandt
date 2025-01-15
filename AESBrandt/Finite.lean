@@ -9,6 +9,7 @@ lemma degree_le (hle : G ≤ H) :
     G.degree v ≤ H.degree v:= by
   simp only [← card_neighborSet_eq_degree]
   apply Set.card_le_card fun v hv  => by exact hle hv
+  
 /-- If `P G` holds and `G` has finitely many edges then there exists an edge minimal
 subgraph H of G for which `P H` holds. -/
 lemma exists_minimal_subgraph (P : SimpleGraph V → Prop) (hG : P G) [Fintype G.edgeSet] :
