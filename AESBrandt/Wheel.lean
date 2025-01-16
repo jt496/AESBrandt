@@ -139,20 +139,16 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   obtain ⟨b,hb,hbj⟩:=hw.cliques.2.2.2.exists_non_adj_of_cliqueFree_succ h x
   obtain ⟨c,hc,hcj⟩:=hw.cliques.1.exists_non_adj_of_cliqueFree_succ h x
   obtain ⟨d,hd,hdj⟩:=hw.cliques.2.2.1.exists_non_adj_of_cliqueFree_succ h x
+  have :=hw.IsP2Compl.edge.ne
+  have :=hw.IsP2Compl.ne
+  have :=hw.disj'
   refine ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,?_,?_,?_,?_,?_⟩
-    <;> simp only [mem_insert] at ha hb hc hd;
-  · rintro rfl;
-    obtain (rfl | ha) := ha;
-    · obtain (rfl | hb ):= hb
-      · exfalso; apply  hw.IsP2Compl.edge.ne rfl
-      · apply hw.disj'.1  hb
-    · obtain (rfl | hb ):= hb
-      ·  apply hw.disj'.2 ha
-      ·  apply haj <| hWc  <| mem_inter.2 ⟨ha,hb⟩
+  <;> simp only [mem_insert] at ha hb hc hd;
+  · aesop
   · rintro rfl;
     obtain (rfl | ha) := ha;
     · obtain (rfl | hd ):= hd
-      · exfalso; apply  hw.IsP2Compl.ne.1 rfl
+      · apply  hw.IsP2Compl.ne.1 rfl
       · apply hw.disj'.1  hd
     · obtain (rfl | hd ):= hd
       ·  apply hw.disj.1 ha
@@ -160,19 +156,13 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   · rintro rfl;
     obtain (rfl | hb) := hb;
     · obtain (rfl | hc ):= hc
-      · exfalso; apply  hw.IsP2Compl.ne.2 rfl
+      · apply  hw.IsP2Compl.ne.2 rfl
       · apply hw.disj'.2  hc
     · obtain (rfl | hc ):= hc
       ·  apply hw.disj.2.1 hb
       ·  apply hbj <| hWc  <| mem_inter.2 ⟨hc,hb⟩
-  · intro hat
-    by_cases haw1: a = w₁
-    · apply hw.disj'.1 (haw1 ▸ hat)
-    · apply haj <|  hWc <| mem_inter.2  ⟨ha.resolve_left haw1,hat⟩
-  · intro hbs
-    by_cases hbw2: b = w₂
-    · apply hw.disj'.2 (hbw2 ▸ hbs)
-    · apply hbj <| hWc <| mem_inter.2 ⟨hbs,hb.resolve_left hbw2⟩
+  · aesop
+  · aesop
 
 open Classical
 /-- We can build a wheel with a larger common clique set if there is a core vertex that is
@@ -183,24 +173,15 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
   let W := (insert v (insert w₁ (insert w₂ (s ∪ t))))
   obtain ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,hab, had,hbc,hat,hbs⟩:= hw.exist_non_adj_core h hWc
+  have :=hw.IsP2Compl.ne
   have ac_bd : c = a ∧ d = b:= by
     apply card_le_two_of_four hab had hbc
     apply le_trans (card_le_card _) hsmall
     intro z; simp_rw [mem_filter,mem_insert,mem_singleton] at *
     aesop
   simp only [ac_bd.1,ac_bd.2,mem_insert] at ha hb hc hd;
-  have has: a ∈ s:= by
-    obtain (rfl|ha) := ha;
-    · obtain (rfl|hc) := hc
-      · exfalso; apply hw.IsP2Compl.ne.1 rfl
-      · exact hc
-    · exact ha
-  have hbt: b ∈ t :=by
-    obtain (rfl|hb) := hb;
-    · obtain (rfl|hd) := hd
-      · exfalso; apply hw.IsP2Compl.ne.2 rfl
-      · exact hd
-    · exact hb
+  have has: a ∈ s:= by aesop
+  have hbt: b ∈ t :=by aesop
   have habv: v ≠ a ∧ v ≠ b := ⟨fun hf => hw.disj.1 (hf ▸ has),fun hf => hw.disj.2.1 (hf ▸ hbt)⟩
   have haw2: a ≠ w₂ := fun hf => hw.disj'.2 (hf ▸ has)
   have hbw1: b ≠ w₁ := fun hf => hw.disj'.1 (hf ▸ hbt)
