@@ -130,21 +130,15 @@ lemma _root_.SimpleGraph.exists_max_wheel (h: G.MaxCliqueFree (r + 2)) (hnc : ¬
   intro s' t' hw'
   apply (Nat.le_findGreatest (hw'.card_clique_free h.1).le (by use s',t')).trans (hw.2.symm.le)
 
-/- If x ∈ V(G) there exist a b c d non-neighbours of x such that ...  -/
-lemma exist_non_adj (h: G.CliqueFree (r + 2)) (x : α): ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧
-    b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧ ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d:=by
-  obtain ⟨a,ha1,ha2⟩:=hw.cliques.2.1.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨b,hb1,hb2⟩:=hw.cliques.2.2.2.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨c,hc1,hc2⟩:=hw.cliques.1.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨d,hd1,hd2⟩:=hw.cliques.2.2.1.exists_non_adj_of_cliqueFree_succ h x
-  exact ⟨a,b,c,d,ha1,ha2,hb1,hb2,hc1,hc2,hd1,hd2⟩
-
 /--This is a warmup for the main lemma `bigger_wheel` where we use it with `card_eq_two_of_four`
 to help build a bigger wheel -/
 lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
     ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
-      ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b  ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
-  obtain ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj⟩ := hw.exist_non_adj h  x
+      ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
+  obtain ⟨a,ha,haj⟩:=hw.cliques.2.1.exists_non_adj_of_cliqueFree_succ h x
+  obtain ⟨b,hb,hbj⟩:=hw.cliques.2.2.2.exists_non_adj_of_cliqueFree_succ h x
+  obtain ⟨c,hc,hcj⟩:=hw.cliques.1.exists_non_adj_of_cliqueFree_succ h x
+  obtain ⟨d,hd,hdj⟩:=hw.cliques.2.2.1.exists_non_adj_of_cliqueFree_succ h x
   refine ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,?_,?_,?_,?_,?_⟩
     <;> simp only [mem_insert] at ha hb hc hd;
   · rintro rfl;
