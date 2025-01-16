@@ -10,5 +10,5 @@ References:
   *On the connection between chromatic number, maximal clique size, and minimal degree of a graph*
   https://doi.org/10.1016/0012-365X(74)90133-2
   
-  S. Brandt *The structure graphs with bounded clique number*
+  S. Brandt *The on structure graphs with bounded clique number*
   https://doi.org/10.1007/s00493-003-0042-z
