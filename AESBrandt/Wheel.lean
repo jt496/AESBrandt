@@ -163,7 +163,8 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
       ·  apply hbj <| hWc  <| mem_inter.2 ⟨hc,hb⟩
   · aesop
   · aesop
-set_option maxHeartbeats 1000000
+    
+set_option maxHeartbeats 500000
 open Classical
 /-- We can build a wheel with a larger common clique set if there is a core vertex that is
  adjacent to all but at most 2 of the vertices of the wheel -/
