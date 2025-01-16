@@ -163,8 +163,7 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
       ·  apply hbj <| hWc  <| mem_inter.2 ⟨hc,hb⟩
   · aesop
   · aesop
-    
-set_option maxHeartbeats 500000
+
 open Classical
 /-- We can build a wheel with a larger common clique set if there is a core vertex that is
  adjacent to all but at most 2 of the vertices of the wheel -/
@@ -174,15 +173,25 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
   let W := (insert v (insert w₁ (insert w₂ (s ∪ t))))
   obtain ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,hab, had,hbc,hat,hbs⟩:= hw.exist_non_adj_core h hWc
-  have :=hw.IsP2Compl.ne
+  have ⟨vnew1,vnew2⟩:=hw.IsP2Compl.ne
   have ac_bd : c = a ∧ d = b:= by
     apply card_le_two_of_four hab had hbc
     apply le_trans (card_le_card _) hsmall
     intro z; simp_rw [mem_filter,mem_insert,mem_singleton] at *
     aesop
   simp only [ac_bd.1,ac_bd.2,mem_insert] at ha hb hc hd;
-  have has: a ∈ s:= by aesop
-  have hbt: b ∈ t :=by aesop
+  have has: a ∈ s:= by
+    obtain (rfl|ha) := ha;
+    · obtain (rfl|hc) := hc
+      · contradiction
+      · exact hc
+    · exact ha
+  have hbt: b ∈ t :=by
+    obtain (rfl|hb) := hb;
+    · obtain (rfl|hd) := hd
+      · contradiction
+      · exact hd
+    · exact hb
   have habv: v ≠ a ∧ v ≠ b := ⟨fun hf => hw.disj.1 (hf ▸ has),fun hf => hw.disj.2.1 (hf ▸ hbt)⟩
   have haw2: a ≠ w₂ := fun hf => hw.disj'.2 (hf ▸ has)
   have hbw1: b ≠ w₁ := fun hf => hw.disj'.1 (hf ▸ hbt)
@@ -219,11 +228,16 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
            ⟨hxvw12.1.symm,fun hv => hw.disj.2.1 (mem_erase.1 hv).2⟩,
            ⟨hxvw12.2.1.symm,fun hw1 => hw.disj.2.2.1 (mem_erase.1 hw1).2⟩,
            ⟨hxvw12.2.2.symm,fun hv => hw.disj.2.2.2 (mem_erase.1 hv).2⟩⟩
--- Next we prove that the new cliques are indeed (r + 1)-cliques
-  · exact ⟨hw.cliques.1.insert_insert_erase has hw.disj.1 (fun z hz hz' => by aesop),
-      hw.cliques.2.1.insert_insert_erase has hw.disj.2.2.1 (fun z hz hz' => by aesop),
-      hw.cliques.2.2.1.insert_insert_erase hbt hw.disj.2.1 (fun z hz hz' => by aesop),
-      hw.cliques.2.2.2.insert_insert_erase hbt hw.disj.2.2.2 (fun z hz hz' => by aesop)⟩
+-- Finally we prove that the new cliques are indeed (r + 1)-cliques
+  · refine ⟨hw.cliques.1.insert_insert_erase has hw.disj.1 (fun z hz hz' => wadj _ (by aesop) hz' ?_),
+      hw.cliques.2.1.insert_insert_erase has hw.disj.2.2.1 (fun z hz hz' =>  wadj _ (by aesop) hz' ?_),
+      hw.cliques.2.2.1.insert_insert_erase hbt hw.disj.2.1 (fun z hz hz' =>  wadj _ (by aesop)  ?_ hz'),
+      hw.cliques.2.2.2.insert_insert_erase hbt hw.disj.2.2.2 (fun z hz hz' => wadj _ (by aesop) ?_ hz')⟩
+    <;> rintro rfl <;> rw [mem_insert] at hz;
+    · apply habv.2.symm (hz.resolve_right hbs)
+    · apply hbw1 (hz.resolve_right hbs)
+    · apply habv.1.symm (hz.resolve_right hat)
+    · apply haw2 (hz.resolve_right hat)
 
 /-- For any x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
 lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
@@ -238,8 +252,7 @@ lemma three_le_nonadj (hmcf : G.MaxCliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s �
 (hmax: ∀ s' t', G.IsWheel r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t)) :
     3 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter fun z => ¬ G.Adj  x z) :=by
   by_contra! hc; change _ + 1 ≤ _ + 1 at hc
-  simp only [Nat.reduceLeDiff] at hc
-  obtain ⟨c,d,hw1,hw2,hbW⟩:= hw.bigger_wheel hmcf.1 hWc hc
+  obtain ⟨c,d,hw1,hw2,hbW⟩:= hw.bigger_wheel hmcf.1 hWc (Nat.succ_le_succ_iff.1 hc)
   apply Nat.not_succ_le_self #(s ∩ t)
   rw [Nat.succ_eq_add_one, ← card_insert_of_not_mem fun hx => G.loopless x <| hWc hx] at *
   convert (hmax _ _ hbW) using 2
