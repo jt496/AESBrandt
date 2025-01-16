@@ -13,13 +13,18 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 /-!
 # Andrasfai-Erdos-Sos Theorem:
-We prove the Andrásfai-Erdős-Sós theorem: `colorable_of_cliqueFree_minDegree_gt`
+
+We formalize Brandt's proof of the Andrásfai-Erdős-Sós theorem:
+ `colorable_of_cliqueFree_minDegree_gt`
+ 
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable.
+
 ## References
+
   B. Andrasfái, P Erdős, V. T. Sós
   **On the connection between chromatic number, maximal clique, and minimal degree of a graph**
   https://doi.org/10.1016/0012-365X(74)90133-2
-  
+
   S. Brandt **On the structure of graphs with bounded clique number**
   https://doi.org/10.1007/s00493-003-0042-z
 -/
@@ -38,7 +43,7 @@ open Finset
 variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α}
 /-- Transform lower bound on non-edges into upper bound on edges -/
 lemma card_adj_of_card_non_adj {s : Finset α} (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)):
-# (s.filter fun z ↦ G.Adj x z) ≤ #s - i :=by
+#(s.filter fun z ↦ G.Adj x z) ≤ #s - i :=by
   rw [← filter_card_add_filter_neg_card_eq_card (s:=s) (fun z ↦ G.Adj x z)]
   rw [add_tsub_assoc_of_le hx]
   apply Nat.le_add_right
