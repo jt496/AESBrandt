@@ -2,8 +2,8 @@ import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Order.Minimal
 namespace SimpleGraph
 variable {V : Type*} {G H: SimpleGraph V}
-
 variable {v : V} [Fintype (G.neighborSet v)] [Fintype (H.neighborSet v)]
+
 /-- If G is a subgraph of H then d_G(v) ≤ d_H(v) for any vertev v -/
 lemma degree_le (hle : G ≤ H) :
     G.degree v ≤ H.degree v:= by

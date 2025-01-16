@@ -36,9 +36,9 @@ lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNCl
     · exact h
     · simp only [edge_adj, Set.mem_singleton_iff, Sym2.eq, Sym2.rel_iff', Prod.mk.injEq,
         Prod.swap_prod_mk, ne_eq] at h
-      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h;
-      · exact hu.2 <| Set.mem_singleton u
-      · exact hv.2 <| Set.mem_singleton v
+      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h
+      · exact hu.2 <| Set.mem_singleton _
+      · exact hv.2 <| Set.mem_singleton _
   · rw [card_erase_of_mem hx,hc.2]
     rfl
 
@@ -49,7 +49,6 @@ lemma IsNClique.exists_non_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h: G.C
   apply (hc.insert hf).not_cliqueFree h
 
 end DecidableEq
-
 section MaxCliqueFree
 variable {x y : α} {n : ℕ}
 
@@ -58,18 +57,18 @@ abbrev MaxCliqueFree (G : SimpleGraph α) (r : ℕ) : Prop :=
   Maximal (fun H => H.CliqueFree r) G
 
 /-- If we add a new edge to a maximally r-clique-free graph we get a clique -/
-protected lemma MaxCliqueFree.sup_edge (h: G.MaxCliqueFree n) (hne: x ≠ y) (hnadj: ¬G.Adj x y ):
+protected lemma MaxCliqueFree.sup_edge (h: G.MaxCliqueFree n) (hne: x ≠ y) (hn: ¬G.Adj x y ):
     ∃ t, (G ⊔ edge x y).IsNClique n t:=by
   rw [MaxCliqueFree, maximal_iff_forall_gt] at h
-  convert h.2  <| G.lt_sup_edge hne hnadj
+  convert h.2  <| G.lt_sup_edge hne hn
   simp [CliqueFree, not_forall, not_not]
 
 variable [DecidableEq α]
 /-- If G is maximally Kᵣ₊₁-free and xy ∉ E(G) then there is a set s such that
 s ∪ {x} and s ∪ {y} are both (r + 1)-cliques -/
-lemma MaxCliqueFree.exists_of_not_adj (h: G.MaxCliqueFree (n + 1)) (hne: x ≠ y) (hnadj: ¬G.Adj x y):
+lemma MaxCliqueFree.exists_of_not_adj (h: G.MaxCliqueFree (n + 1)) (hne: x ≠ y) (hn: ¬G.Adj x y):
  ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique n (insert x s) ∧ G.IsNClique n (insert y s) := by
-  obtain ⟨t,hc⟩:= h.sup_edge hne hnadj
+  obtain ⟨t,hc⟩:= h.sup_edge hne hn
   have xym: x ∈ t ∧ y ∈ t:= by
     by_contra! hf
     apply h.1 t;

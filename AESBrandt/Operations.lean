@@ -1,6 +1,4 @@
 import Mathlib.Combinatorics.SimpleGraph.Operations
-
-
 namespace SimpleGraph
 variable {α : Type*} {G : SimpleGraph α} {s t : α}
 

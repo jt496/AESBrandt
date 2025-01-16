@@ -84,7 +84,7 @@ lemma not_adj_iff_parts_eq :
   rw [h.finpartition.mem_part_iff_part_eq_part (mem_univ _) (mem_univ _), eq_comm]
 
 /-- Vertices are adjacent iff they lie in different parts -/
-lemma adj_iff_parts_ne  :  G.Adj x y ↔ h.finpartition.part x ≠ h.finpartition.part y:=by
+lemma adj_iff_parts_ne : G.Adj x y ↔ h.finpartition.part x ≠ h.finpartition.part y:=by
   rw [← not_iff_not, not_not, h.not_adj_iff_parts_eq]
 
 variable {t : Finset α}
@@ -115,14 +115,14 @@ lemma card_lt_of_cliqueFree (hc : G.CliqueFree n) : h.card < n :=by
 
 /-- A coloring by parts-/
 def coloring : G.Coloring h.finpartition.parts :=
-  Coloring.mk (fun v ↦ ⟨h.finpartition.part v,h.finpartition.part_mem (mem_univ _) ⟩) fun hadj ↦ by
-    rw [Ne, Subtype.mk_eq_mk]
+  ⟨fun v => ⟨h.finpartition.part v, h.finpartition.part_mem (mem_univ _)⟩, fun hadj => by
+    rw [top_adj,Ne, Subtype.mk_eq_mk]
     intro heq
-    exact h.not_adj_iff_parts_eq.2 heq hadj
+    exact h.not_adj_iff_parts_eq.2 heq hadj⟩
 
 /-- If G is complete r-partite it is r-colorable -/
 lemma colorable : G.Colorable h.card := by
-  convert  h.coloring.colorable; simp
+  convert h.coloring.colorable; simp
 
 /-- A complete r-partite graph is Kₙ-free iff r < n-/
 lemma cliqueFree_iff : h.card < n ↔ G.CliqueFree n :=by
@@ -136,17 +136,15 @@ lemma not_colorable [Nonempty α]: ¬ G.Colorable (h.card - 1) :=
 
 /-- The chromatic number of a complete-partite graph is the number of parts -/
 lemma chromaticNumber : G.chromaticNumber = h.card := by
-  apply le_antisymm
-  · apply h.colorable.chromaticNumber_le
-  · obtain ⟨s,h1,h2⟩:=h.exists_card_isNClique
-    exact h2 ▸ h1.card_le_chromaticNumber
+  apply le_antisymm h.colorable.chromaticNumber_le
+  obtain ⟨s,h1,h2⟩:=h.exists_card_isNClique
+  exact h2 ▸ h1.card_le_chromaticNumber
 
 end IsCompletePartite
-
 /--
 P2Compl is the graph on 3 vertices with one edge. It is a witness to non-complete-partiteness
 -/
-structure IsP2Compl (v w₁ w₂ : α): Prop where
+structure IsP2Compl (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G)
   nonedge : ¬G.Adj v w₁ ∧ ¬G.Adj v w₂ -- vw₁, vw₂ ∉ E(G)
 
