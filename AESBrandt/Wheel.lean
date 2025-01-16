@@ -45,7 +45,7 @@ lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · rintro rfl; contradiction
 
 lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s) (ha: a ∉ s)
-(had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj b w) :
+(had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
     IsNClique G (r + 1) (Insert.insert a (Insert.insert b (erase s c))):= by
   rw [insert_comm]
   convert hs.insert_erase had (mem_insert_of_mem hc)
@@ -163,7 +163,7 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
       ·  apply hbj <| hWc  <| mem_inter.2 ⟨hc,hb⟩
   · aesop
   · aesop
-
+set_option maxHeartbeats 1000000
 open Classical
 /-- We can build a wheel with a larger common clique set if there is a core vertex that is
  adjacent to all but at most 2 of the vertices of the wheel -/
@@ -203,7 +203,7 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     intro z hz haz hbz
     by_contra hf; push_neg at hf
     have gt2: 2 < #(W.filter (fun z => ¬ G.Adj x z)):=by
-      refine  two_lt_card.2 ⟨a,?_,b ,?_ ,z ,?_ ,hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
+      refine two_lt_card.2 ⟨a,?_,b ,?_ ,z ,?_ ,hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
       · aesop
       · aesop
       · rw [adj_comm] at hf
@@ -219,19 +219,10 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
            ⟨hxvw12.2.1.symm,fun hw1 => hw.disj.2.2.1 (mem_erase.1 hw1).2⟩,
            ⟨hxvw12.2.2.symm,fun hv => hw.disj.2.2.2 (mem_erase.1 hv).2⟩⟩
 -- Next we prove that the new cliques are indeed (r + 1)-cliques
-  · refine ⟨?_,?_,?_,?_⟩
-    · apply hw.cliques.1.insert_insert_erase has hw.disj.1
-      intro z hz hza; symm
-      aesop
-    · apply hw.cliques.2.1.insert_insert_erase has hw.disj.2.2.1
-      intro z hz hza; symm
-      aesop
-    · apply hw.cliques.2.2.1.insert_insert_erase hbt hw.disj.2.1
-      intro z hz hzb; symm
-      aesop
-    · apply hw.cliques.2.2.2.insert_insert_erase hbt hw.disj.2.2.2
-      intro z hz hzb; symm
-      aesop
+  · exact ⟨hw.cliques.1.insert_insert_erase has hw.disj.1 (fun z hz hz' => by aesop),
+      hw.cliques.2.1.insert_insert_erase has hw.disj.2.2.1 (fun z hz hz' => by aesop),
+      hw.cliques.2.2.1.insert_insert_erase hbt hw.disj.2.1 (fun z hz hz' => by aesop),
+      hw.cliques.2.2.2.insert_insert_erase hbt hw.disj.2.2.2 (fun z hz hz' => by aesop)⟩
 
 /-- For any x there is a wheelvertex that is not adjacent to x (in fact there is one in s+w₁) -/
 lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
