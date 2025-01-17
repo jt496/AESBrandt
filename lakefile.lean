@@ -5,8 +5,7 @@ package «aES_Brandt» {
   -- add any package configuration options here
 }
 
-require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git"
+require "leanprover-community" / "mathlib"
 
 @[default_target]
 lean_lib «AESBrandt» {
