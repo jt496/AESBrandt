@@ -16,7 +16,7 @@ import Mathlib.Tactic.Ring
 
 We formalize Brandt's proof of the Andrásfai-Erdős-Sós theorem:
  `colorable_of_cliqueFree_minDegree_gt`
- 
+
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable.
 
 ## References
@@ -105,7 +105,7 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_minDegree_gt (hf: G.CliqueFre
     obtain ⟨_,hy⟩ : ∃ y ∈ s ∩ t, ¬ H.Adj x y := by
       contrapose! hx
       simp only [mem_compl,not_not,X,Set.mem_toFinset]
-      intro z hz; apply hx _ hz
+      apply hx
     exact ⟨_,mem_filter.2 hy⟩
 -- So we also have a bound on degree sum over s ∩ t
 -- ∑ w in s ∩ t, degree H w ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|
@@ -156,6 +156,6 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_minDegree_gt (hf: G.CliqueFre
         rw [hap, ←add_mul,card_compl,add_tsub_cancel_of_le (card_le_univ _),mul_comm]
         apply Nat.mul_le_mul_right
         rw [two_mul,← add_assoc]; apply Nat.add_le_add_right
-        rw [tsub_add_eq_add_tsub w3, Wc] ; apply add_tsub_le_right
+        rw [tsub_add_eq_add_tsub w3, Wc,Nat.add_sub_cancel_right]
 
 end SimpleGraph.AES
