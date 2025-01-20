@@ -7,13 +7,17 @@ import AESBrandt.Clique
 import AESBrandt.CompletePartite
 
 /-!
-If G is maximally Kᵣ₊₂-free and xy is a non-edge xy then there exists an r-set such that
-s ∪ {x} and s ∪ {y} are r + 1 cliques.
+If G is maximally Kᵣ₊₂-free and xy is a non-edge then there exists an r-set such that
+s ∪ {x} and s ∪ {y} are both r + 1 cliques.
+
 If G is not complete-partite graph then it contains an edge w₁w₂ and a vertex v such that vw₁ and
 vw₂ are non-edges. We call this three vertex graph with a single edge a `P₂-complement`.
+
 Putting these together gives the definition of a wheel-like subgraph which can be found in any
 maximally Kᵣ₊₂-free graph that is not complete-partite.
+
 Wheel-like subgraphs plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
+
 Main definition:
 * `SimpleGraph.IsWheel`: predicate for v w₁ w₂ s t to form a wheel-like subgraph of G with
 r-sets s and t, and vertices v w₁ w₂ forming a P₂-complement.
@@ -23,7 +27,7 @@ open Finset
 variable {α : Type*}{a b c d : α} {G : SimpleGraph α} {r : ℕ } {s : Finset α} [DecidableEq α]
 /-- Useful trivial fact about when |{a,b,c,d}| ≤ 2 given a ≠ b , a ≠ d, b ≠ c  -/
 private lemma card_le_two_of_four  (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c)
-(hc2: #{a,b,c,d} ≤ 2): c = a ∧ d = b:=by
+(hc2: #{a,b,c,d} ≤ 2) : c = a ∧ d = b:=by
   by_contra! hf
   apply (#{a, b, c, d}).le_lt_asymm hc2 <| two_lt_card_iff.2 _
   by_cases hac: a = c <;> simp only [mem_insert,mem_singleton]
@@ -44,8 +48,8 @@ lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · simp [h]
     · rintro rfl; contradiction
 
-lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s) (ha: a ∉ s)
-(had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
+lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s)
+(ha: a ∉ s) (had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
     IsNClique G (r + 1) (Insert.insert a (Insert.insert b (erase s c))):= by
   rw [insert_comm]
   convert hs.insert_erase had (mem_insert_of_mem hc)
@@ -77,10 +81,10 @@ lemma symm :  G.IsWheel r v w₂ w₁ t s := by
 /-- We automatically have w₁ ∉ t and w₂ ∉ s for any wheel -/
 lemma disj' : w₁ ∉ t ∧ w₂ ∉ s:=by
   constructor <;> intro hf
-  · apply hw.IsP2Compl.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self _ _) ( mem_insert_of_mem hf)
+  · apply hw.IsP2Compl.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
        (hw.IsP2Compl.ne.1)
-  · apply hw.IsP2Compl.nonedge.2 <| hw.cliques.1.1 (mem_insert_self _ _) ( mem_insert_of_mem hf)
-        (hw.IsP2Compl.ne.2)
+  · apply hw.IsP2Compl.nonedge.2 <| hw.cliques.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
+       (hw.IsP2Compl.ne.2)
 
 lemma card_cliques : s.card = r ∧ t.card = r:=by
   constructor
