@@ -58,16 +58,16 @@ lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)
 variable (G)
 /-- A IsWheel r structure in G is 3 vertices and two r-sets such that... -/
 structure IsWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
-  IsP2Compl : G.IsP2Compl v w₁ w₂ -- w₁w₂ ∈ E(G) but vw₁,vw₂ ∉ E(G)
+  IsP2Complement : G.IsP2Complement v w₁ w₂ -- w₁w₂ ∈ E(G) but vw₁,vw₂ ∉ E(G)
   disj      : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
   cliques   : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
 
 variable {G}
-/-- If G contains a IsP2Compl and is maximal Kᵣ₊₂-free then we have a wheel like graph -/
+/-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a wheel like graph -/
 lemma exists_IsWheel (h : G.MaxCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
     ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t :=by
-  obtain ⟨v,w₁,w₂,h3⟩:=G.IsP2Compl_of_not_completePartite hnc
+  obtain ⟨v,w₁,w₂,h3⟩:=G.IsP2Complement_of_not_completePartite hnc
   obtain ⟨s,hvs,hw1s,hcsv,hcsw1⟩:=h.exists_of_not_adj h3.ne.1 h3.nonedge.1
   obtain ⟨t,hvt,hw2t,hctv,hctw2⟩:=h.exists_of_not_adj h3.ne.2 h3.nonedge.2
   exact ⟨v,w₁,w₂,s,t,h3,⟨hvs,hvt,hw1s,hw2t⟩,⟨hcsv,hcsw1,hctv,hctw2⟩⟩
@@ -81,10 +81,10 @@ lemma symm :  G.IsWheel r v w₂ w₁ t s := by
 /-- We automatically have w₁ ∉ t and w₂ ∉ s for any wheel -/
 lemma disj' : w₁ ∉ t ∧ w₂ ∉ s:=by
   constructor <;> intro hf
-  · apply hw.IsP2Compl.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
-       (hw.IsP2Compl.ne.1)
-  · apply hw.IsP2Compl.nonedge.2 <| hw.cliques.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
-       (hw.IsP2Compl.ne.2)
+  · apply hw.IsP2Complement.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
+       (hw.IsP2Complement.ne.1)
+  · apply hw.IsP2Complement.nonedge.2 <| hw.cliques.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
+       (hw.IsP2Complement.ne.2)
 
 lemma card_cliques : s.card = r ∧ t.card = r:=by
   constructor
@@ -102,14 +102,14 @@ lemma card_verts_add_inter  : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) 
   · rw [mem_union,not_or]
     exact ⟨hw.disj'.2, hw.disj.2.2.2⟩
   · rw [mem_insert,mem_union,not_or,not_or]
-    exact ⟨hw.IsP2Compl.edge.ne ,hw.disj.2.2.1,hw.disj'.1 ⟩
+    exact ⟨hw.IsP2Complement.edge.ne ,hw.disj.2.2.1,hw.disj'.1 ⟩
   · rw [mem_insert,mem_insert,mem_union]
     push_neg
-    exact ⟨hw.IsP2Compl.ne.1,hw.IsP2Compl.ne.2, hw.disj.1,hw.disj.2.1⟩
+    exact ⟨hw.IsP2Complement.ne.1,hw.IsP2Complement.ne.2, hw.disj.1,hw.disj.2.1⟩
 
 /-- Every wheel contains at least 3 vertices: v w₁ w₂-/
 lemma three_le_card_verts : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
-  ⟨v,by simp,w₁,by simp,w₂,by simp,hw.IsP2Compl.ne.1,hw.IsP2Compl.ne.2,hw.IsP2Compl.edge.ne⟩
+  ⟨v,by simp,w₁,by simp,w₂,by simp,hw.IsP2Complement.ne.1,hw.IsP2Complement.ne.2,hw.IsP2Complement.edge.ne⟩
 
 /-- If s ∩ t contains an r-set then then s ∪ {w₁,w₂} is Kᵣ₊₂ so -/
 lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
@@ -117,7 +117,7 @@ lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
   have hs : s ∩ t = s :=eq_of_subset_of_card_le inter_subset_left (hw.card_cliques.1 ▸ h)
   have ht : s ∩ t = t :=eq_of_subset_of_card_le inter_subset_right (hw.card_cliques.2 ▸ h)
   exact (hw.cliques.2.1.insert_insert  (hs ▸ ht.symm ▸ hw.cliques.2.2.2)
-    hw.disj'.2 hw.IsP2Compl.edge).not_cliqueFree
+    hw.disj'.2 hw.IsP2Complement.edge).not_cliqueFree
 
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal wheel -/
@@ -143,8 +143,8 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   obtain ⟨b,hb,hbj⟩:=hw.cliques.2.2.2.exists_non_adj_of_cliqueFree_succ h x
   obtain ⟨c,hc,hcj⟩:=hw.cliques.1.exists_non_adj_of_cliqueFree_succ h x
   obtain ⟨d,hd,hdj⟩:=hw.cliques.2.2.1.exists_non_adj_of_cliqueFree_succ h x
-  have :=hw.IsP2Compl.edge.ne
-  have :=hw.IsP2Compl.ne
+  have :=hw.IsP2Complement.edge.ne
+  have :=hw.IsP2Complement.ne
   have :=hw.disj'
   refine ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,?_,?_,?_,?_,?_⟩
   <;> simp only [mem_insert] at ha hb hc hd;
@@ -152,7 +152,7 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   · rintro rfl;
     obtain (rfl | ha) := ha;
     · obtain (rfl | hd ):= hd
-      · apply  hw.IsP2Compl.ne.1 rfl
+      · apply  hw.IsP2Complement.ne.1 rfl
       · apply hw.disj'.1  hd
     · obtain (rfl | hd ):= hd
       ·  apply hw.disj.1 ha
@@ -160,7 +160,7 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   · rintro rfl;
     obtain (rfl | hb) := hb;
     · obtain (rfl | hc ):= hc
-      · apply  hw.IsP2Compl.ne.2 rfl
+      · apply  hw.IsP2Complement.ne.2 rfl
       · apply hw.disj'.2  hc
     · obtain (rfl | hc ):= hc
       ·  apply hw.disj.2.1 hb
@@ -177,7 +177,7 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
   let W := (insert v (insert w₁ (insert w₂ (s ∪ t))))
   obtain ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,hab, had,hbc,hat,hbs⟩:= hw.exist_non_adj_core h hWc
-  have ⟨vnew1,vnew2⟩:=hw.IsP2Compl.ne
+  have ⟨vnew1,vnew2⟩:=hw.IsP2Complement.ne
   have ac_bd : c = a ∧ d = b:= by
     apply card_le_two_of_four hab had hbc
     apply le_trans (card_le_card _) hsmall
@@ -225,7 +225,7 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     apply Nat.lt_le_asymm gt2 hsmall
 -- Below we prove that the new wheel is indeed a wheel by showing disjointedness and that
 -- the 4 cliques exist
-  refine ⟨a,b,hat,hbs,⟨hw.IsP2Compl,?_,?_⟩⟩
+  refine ⟨a,b,hat,hbs,⟨hw.IsP2Complement,?_,?_⟩⟩
 -- We first prove disj-ointedness,i.e. v w₁ w₂ are not in the various new cliques
   · simp only [mem_insert, not_or]
     exact ⟨⟨hxvw12.1.symm,fun hv => hw.disj.1 (mem_erase.1 hv).2 ⟩,

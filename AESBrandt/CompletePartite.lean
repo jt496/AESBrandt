@@ -3,7 +3,6 @@ Copyright (c) 2024 John Talbot and Lian Bremner Tattersall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
-import Mathlib.Order.Partition.Finpartition
 import Mathlib.Combinatorics.SimpleGraph.Maps
 import Mathlib.Combinatorics.SimpleGraph.Partition
 
@@ -18,7 +17,7 @@ For finite vertex types:
 * `SimpleGraph.IsCompletePartite.finpartition`: the Finpartition.
 * `SimpleGraph.IsCompletePartite.card`: the number of parts in the Finpartition.
 * `SimpleGraph.IsCompletePartite.coloring`: the coloring by parts.
-* `SimpleGraph.IsCompletePartite.IsP2Compl`: predicate for a witness to non-complete-partiteness.
+* `SimpleGraph.IsCompletePartite.IsP2Complement`: predicate for a witness to non-complete-partiteness.
   i.e. v w₁ w₂ such that v is not adjacent to w₁ or w₂ but w₁ and w₂ are adjacent.
 -/
 namespace SimpleGraph
@@ -144,29 +143,35 @@ end IsCompletePartite
 /--
 P2Compl is the graph on 3 vertices with one edge. It is a witness to non-complete-partiteness
 -/
-structure IsP2Compl (v w₁ w₂ : α) : Prop where
+structure IsP2Complement (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G)
   nonedge : ¬G.Adj v w₁ ∧ ¬G.Adj v w₂ -- vw₁, vw₂ ∉ E(G)
 
-namespace IsP2Compl
+namespace IsP2Complement
 variable {v w₁ w₂ : α}
-lemma ne (p2 : G.IsP2Compl v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂:=
+lemma ne (p2 : G.IsP2Complement v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂:=
     ⟨fun hvw1 => p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 => p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
 
-/-- Can swap w₁ and w₂ in any IsP2Compl-/
-lemma symm (h : G.IsP2Compl v w₁ w₂) : G.IsP2Compl v w₂ w₁:= by
+/-- Can swap w₁ and w₂ in any IsP2Complement-/
+lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= by
   obtain ⟨ed,⟨n1,n2⟩⟩:=h
   exact ⟨ed.symm,⟨n2,n1⟩⟩
 
-end IsP2Compl
+end IsP2Complement
 
-/-- If G is not complete-partite then it contains an induced IsP2Compl-/
-lemma IsP2Compl_of_not_completePartite (h : ¬IsCompletePartite G):
-∃ v w₁ w₂, G.IsP2Compl v w₁ w₂:=by
+/-- If G is not complete-partite then it contains an induced IsP2Complement-/
+lemma IsP2Complement_of_not_completePartite (h : ¬IsCompletePartite G):
+∃ v w₁ w₂, G.IsP2Complement v w₁ w₂:=by
   rw [IsCompletePartite,Transitive] at h
   push_neg at h
   obtain ⟨w₁,v,w₂,h1,h2,h3⟩:=h
   rw [adj_comm] at h1
   exact ⟨v,w₁,w₂,h3,⟨h1,h2⟩⟩
+
+
+variable {ι : Type*} (V : ι → Type*)
+lemma completeMultipartiteGraph_isCompletePartite : (completeMultipartiteGraph V).IsCompletePartite :=by
+  intro a b c hab hbc
+  simp_all
 
 end SimpleGraph

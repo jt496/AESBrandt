@@ -60,7 +60,7 @@ lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun
     rw [← union_compl X,sum_union disjoint_compl_right]
     simp_rw [neighborFinset_eq_filter,filter_inter,univ_inter,card_eq_sum_ones X,
       card_eq_sum_ones Xᶜ,sum_mul,one_mul]
-    apply add_le_add <;> apply sum_le_sum <;> intro x hx1;
+    apply add_le_add <;> apply sum_le_sum <;> intro x hx1
     · apply card_adj_of_card_non_adj <| hx x hx1
     · apply card_adj_of_card_non_adj <| hy x
 
