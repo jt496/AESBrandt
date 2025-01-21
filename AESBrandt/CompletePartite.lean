@@ -5,20 +5,23 @@ Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.Maps
 import Mathlib.Combinatorics.SimpleGraph.Partition
+import Mathlib.Order.Minimal
 
 /-!
 # Complete Multi-Partite Graphs
 A graph is complete (multi)-partite iff non-adjacency is transitive.
+
 ## Main declarations
 * `SimpleGraph.IsCompletePartite`: predicate for a graph to be complete-partite.
 * `SimpleGraph.IsCompletePartite.setoid`: the Setoid given by non-adjacency.
 * `SimpleGraph.IsCompletePartite.partition`: the Partition into independent sets
+
 For finite vertex types:
 * `SimpleGraph.IsCompletePartite.finpartition`: the Finpartition.
 * `SimpleGraph.IsCompletePartite.card`: the number of parts in the Finpartition.
 * `SimpleGraph.IsCompletePartite.coloring`: the coloring by parts.
-* `SimpleGraph.IsCompletePartite.IsP2Complement`: predicate for a witness to non-complete-partiteness.
-  i.e. v w₁ w₂ such that v is not adjacent to w₁ or w₂ but w₁ and w₂ are adjacent.
+* `SimpleGraph.IsP2Complement`: predicate for a witness to non-complete-partiteness of a graph,
+  i.e. vertices v w₁ w₂ such that v is not adjacent to w₁ or w₂ but w₁ and w₂ are adjacent.
 -/
 namespace SimpleGraph
 variable {α : Type*} {G : SimpleGraph α}
@@ -170,7 +173,7 @@ lemma IsP2Complement_of_not_completePartite (h : ¬IsCompletePartite G):
 /-- Any completeMultipartite graph is complete partite-/
 lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*) :
     (completeMultipartiteGraph V).IsCompletePartite :=by
-  intro a b c hab hbc
+  intro
   simp_all
 
 end SimpleGraph
