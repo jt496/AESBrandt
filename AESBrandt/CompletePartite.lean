@@ -30,7 +30,7 @@ namespace IsCompletePartite
 variable (h: G.IsCompletePartite) include h
 /-- Any induced subgraph of a complete-partite graph is complete-partite -/
 lemma induced (s : Set α) : IsCompletePartite (G.induce s) :=by
-  intro a b c hab hbc;
+  intro a b c hab hbc
   simp only [comap_adj, Function.Embedding.coe_subtype] at *
   apply h hab hbc
 
@@ -40,7 +40,6 @@ lemma equivalence  : Equivalence (¬G.Adj · · ):=by
   · exact G.loopless
   · intro _ _ h'; rwa [adj_comm] at h'
   · apply h
-
 
 /-- The setoid given by non-adjacency -/
 def setoid : Setoid α := ⟨_, h.equivalence⟩
@@ -55,11 +54,11 @@ def partition : G.Partition where
     apply h.setoid.rel_iff_exists_classes.2
     use s
 
-variable [Fintype α] [DecidableEq α] [DecidableRel G.Adj]
-
+variable [Fintype α] [DecidableRel G.Adj]
 instance : DecidableRel h.setoid.r :=
   inferInstanceAs <| DecidableRel (¬G.Adj · ·)
 
+variable [DecidableEq α]
 /-- The finpartition given by non-adjacency. -/
 def finpartition : Finpartition (Finset.univ : Finset α):=
   Finpartition.ofSetoid h.setoid
@@ -96,13 +95,13 @@ lemma injOn_isClique (ht : Set.InjOn h.finpartition.part t) : G.IsClique t:=by
   apply ht hi hj hne1
 
 /-- A complete r-partite graph contains Kᵣ -/
-lemma exists_card_isNClique : ∃ (s : Finset α), G.IsNClique h.card s:=by
+lemma exists_isNClique_card : ∃ (s : Finset α), G.IsNClique h.card s:=by
   obtain ⟨s,hs⟩:=h.finpartition.exists_subset_part_bijOn
   use s,h.injOn_isClique hs.2.2.1, card_nbij _ hs.2.1 hs.2.2.1 hs.2.2.2
 
 /-- If G is complete-r-partite then it is not Kᵣ-free -/
 lemma not_cliqueFree  : ¬ G.CliqueFree h.card := by
-  obtain ⟨s,hs⟩:=h.exists_card_isNClique
+  obtain ⟨s,hs⟩:=h.exists_isNClique_card
   intro hf; apply hf _ hs
 
 variable {n : ℕ}
@@ -136,12 +135,12 @@ lemma not_colorable [Nonempty α]: ¬ G.Colorable (h.card - 1) :=
 /-- The chromatic number of a complete-partite graph is the number of parts -/
 lemma chromaticNumber : G.chromaticNumber = h.card := by
   apply le_antisymm h.colorable.chromaticNumber_le
-  obtain ⟨s,h1,h2⟩:=h.exists_card_isNClique
+  obtain ⟨s,h1,h2⟩:=h.exists_isNClique_card
   exact h2 ▸ h1.card_le_chromaticNumber
 
 end IsCompletePartite
 /--
-P2Compl is the graph on 3 vertices with one edge. It is a witness to non-complete-partiteness
+P2Complement is the graph on 3 vertices with one edge. It is a witness to non-complete-partiteness
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G)
@@ -168,9 +167,9 @@ lemma IsP2Complement_of_not_completePartite (h : ¬IsCompletePartite G):
   rw [adj_comm] at h1
   exact ⟨v,w₁,w₂,h3,⟨h1,h2⟩⟩
 
-
-variable {ι : Type*} (V : ι → Type*)
-lemma completeMultipartiteGraph_isCompletePartite : (completeMultipartiteGraph V).IsCompletePartite :=by
+/-- Any completeMultipartite graph is complete partite-/
+lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*) :
+    (completeMultipartiteGraph V).IsCompletePartite :=by
   intro a b c hab hbc
   simp_all
 
