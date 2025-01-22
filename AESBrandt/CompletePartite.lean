@@ -176,4 +176,20 @@ lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*
   intro
   simp_all
 
+/-- Any completePartite graph is isomorphic to the obvious completeMultipartiteGraph -/
+def IsCompletePartite.iso (h : G.IsCompletePartite) :
+  G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) => { x // h.setoid.r c.out x}) where
+  toFun := fun v => ⟨⟦v⟧,⟨v, Quotient.mk_out v⟩⟩
+  invFun := fun ⟨_,x⟩ =>  x.1
+  left_inv := fun v => rfl
+  right_inv := fun ⟨c,x⟩ => by
+    ext
+    · rw [Quotient.mk_eq_iff_out]
+      exact h.setoid.symm x.2
+    · rfl
+  map_rel_iff' :=by
+    simp only [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
+    intros; change ¬¬G.Adj _ _ ↔ _
+    rw [not_not]
+
 end SimpleGraph
