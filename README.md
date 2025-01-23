@@ -1,6 +1,6 @@
-This repository contains our formalization of Brandt's proof of the Andrásfai-Erdős-Sós theorem: `colorable_of_cliqueFree_minDegree_gt` 
+This repository contains our formalization of Brandt's proof of the Andrásfai-Erdős-Sós theorem: `colorable_of_cliqueFree_lt_minDegree` 
 
-*If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable.*
+*If G is Kᵣ₊₁-free and (3r - 4)n/(3r - 1) < δ(G) then G is (r + 1)-colorable.*
 
 The proof of the main theorem is in `AESBrandt.AES.lean`
 

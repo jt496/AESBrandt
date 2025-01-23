@@ -15,7 +15,7 @@ import Mathlib.Tactic.Ring
 # Andrasfai-Erdos-Sos Theorem:
 
 We formalize Brandt's proof of the Andrásfai-Erdős-Sós theorem:
- `colorable_of_cliqueFree_minDegree_gt`
+ `colorable_of_cliqueFree_lt_minDegree`
 
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable.
 
@@ -68,7 +68,7 @@ open Classical in
 /-- **Andrasfai-Erdos-Sos**
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable
 e.g. K₃-free and δ(G) > 2n/5 then G is 2-colorable -/
-theorem _root_.SimpleGraph.colorable_of_cliqueFree_minDegree_gt (hf: G.CliqueFree (r + 1))
+theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
     (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) : G.Colorable r:= by
   cases r with
   | zero => exact colorable_of_cliqueFree_one hf
