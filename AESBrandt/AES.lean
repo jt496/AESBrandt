@@ -92,7 +92,7 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
   have dXle: ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by
     intro z hx;
     simp only [Set.toFinset_setOf, mem_filter, mem_univ, true_and, X] at hx
-    apply hw.three_le_nonadj hmcf hx hmax
+    apply hw.three_le_nonadj hmcf.1 hx hmax
 -- Any vertex in α has at least 1 non-neighbor in W
 -- So we have a bound on the degree sum over W
 -- ∑ w in W, degree H w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
