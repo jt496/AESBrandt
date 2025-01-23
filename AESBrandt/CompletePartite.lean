@@ -57,11 +57,11 @@ def partition : G.Partition where
     apply h.setoid.rel_iff_exists_classes.2
     use s
 
-variable [Fintype α] [DecidableRel G.Adj]
+variable [DecidableRel G.Adj]
 instance : DecidableRel h.setoid.r :=
   inferInstanceAs <| DecidableRel (¬G.Adj · ·)
 
-variable [DecidableEq α]
+variable [DecidableEq α] [Fintype α]
 /-- The finpartition given by non-adjacency. -/
 def finpartition : Finpartition (Finset.univ : Finset α):=
   Finpartition.ofSetoid h.setoid
@@ -72,8 +72,7 @@ abbrev card : ℕ := h.finpartition.parts.card
 open Finset
 /-- If there are any vertices then the number of parts is positive -/
 lemma card_pos [Nonempty α] : 0 < h.card:= by
-  rw [Finset.card_pos,h.finpartition.parts_nonempty_iff,bot_eq_empty,ne_eq,univ_eq_empty_iff]
-  simp
+  simp [h.finpartition.parts_nonempty_iff,univ_eq_empty_iff]
 
 variable {x y : α}
 /-- Vertices are not adjacent iff they lie in the same part -/
@@ -94,13 +93,12 @@ lemma injOn_isClique (ht : Set.InjOn h.finpartition.part t) : G.IsClique t:=by
   intro i hi j hj hne
   apply h.adj_iff_parts_ne.2
   intro hne1
-  apply hne
-  apply ht hi hj hne1
+  apply hne <| ht hi hj hne1
 
 /-- A complete r-partite graph contains Kᵣ -/
 lemma exists_isNClique_card : ∃ (s : Finset α), G.IsNClique h.card s:=by
   obtain ⟨s,hs⟩:=h.finpartition.exists_subset_part_bijOn
-  use s,h.injOn_isClique hs.2.2.1, card_nbij _ hs.2.1 hs.2.2.1 hs.2.2.2
+  use s, h.injOn_isClique hs.2.2.1, card_nbij _ hs.2.1 hs.2.2.1 hs.2.2.2
 
 /-- If G is complete-r-partite then it is not Kᵣ-free -/
 lemma not_cliqueFree  : ¬ G.CliqueFree h.card := by
@@ -143,7 +141,8 @@ lemma chromaticNumber : G.chromaticNumber = h.card := by
 
 end IsCompletePartite
 /--
-P2Complement is the graph on 3 vertices with one edge. It is a witness to non-complete-partiteness
+P2Complement is the graph on 3 vertices with one edge (i.e. the complement of path of length 2).
+It is a witness to non-complete-partiteness
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G)
