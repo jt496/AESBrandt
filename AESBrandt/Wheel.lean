@@ -243,16 +243,16 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     · apply habv.1.symm (hz.resolve_right hat)
     · apply haw2 (hz.resolve_right hat)
 
-/-- For any x there is a wheelvertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
+/-- For any x there is a wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
 lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
     1 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter (fun z => ¬ G.Adj  x z)):=by
   apply card_pos.2
   obtain ⟨_,hz⟩:=hw.cliques.2.1.exists_non_adj_of_cliqueFree_succ hcf x
   exact ⟨_,mem_filter.2 ⟨by aesop,hz.2⟩⟩
 
-/-- If G is Kᵣ₊₂-free and contains a Wheel of maximum size (in terms of size of the
-intersection of the cliques) then every vertex that is adjacent to
- all of the common clique vertices is not adjacent to at least 3 vertices in W -/
+/-- If G is Kᵣ₊₂-free and contains a maximal Wheel (in terms of the size of the
+intersection of the cliques) then every vertex that is adjacent to  all of the common
+clique vertices is non-adjacent to at least 3 vertices in W -/
 lemma three_le_nonadj (hcf : G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y)
 (hmax: ∀ s' t', G.IsWheel r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t)) :
     3 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter fun z => ¬ G.Adj x z) :=by
@@ -262,11 +262,9 @@ lemma three_le_nonadj (hcf : G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   rw [Nat.succ_eq_add_one, ← card_insert_of_not_mem fun hx => G.loopless x <| hWc hx] at *
   convert (hmax _ _ hbW) using 2
   rw [← insert_inter_distrib]
-  congr! 1
+  apply congr_arg
   rw [erase_inter,inter_erase,erase_eq_of_not_mem,erase_eq_of_not_mem]
   · apply not_mem_mono inter_subset_left hw2
-  · apply not_mem_mono <| erase_subset _ _
-    apply not_mem_mono <| inter_subset_right
-    exact hw1
+  · apply not_mem_mono (erase_subset ..) <| not_mem_mono inter_subset_right hw1
 
 end SimpleGraph.IsWheel

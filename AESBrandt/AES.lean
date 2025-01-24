@@ -81,21 +81,21 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
   -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
   have hncp : ¬H.IsCompletePartite := fun hc =>
     hnotcol <| hc.colorable.mono  <| Nat.le_of_succ_le_succ <| hc.card_lt_of_cliqueFree hmcf.1
--- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a wheel of max size
+-- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a maximal wheel
   obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_wheel hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
 -- and W which is simply all the vertices of the wheel
-  let W := insert v (insert w₁ (insert w₂ (s ∪ t))) -- the vertices of the wheel
+  let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
 -- Any vertex in X has at least 3 non-neighbors in W (otherwise we can build a bigger wheel)
   have dXle: ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by
     intro z hx;
     simp only [Set.toFinset_setOf, mem_filter, mem_univ, true_and, X] at hx
     apply hw.three_le_nonadj hmcf.1 hx hmax
--- Any vertex in α has at least 1 non-neighbor in W
+-- Every vertex has at least 1 non-neighbor in W
 -- So we have a bound on the degree sum over W
--- ∑ w in W, degree H w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
+-- ∑ w ∈ W, d_H(w) ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
   have boundW :=sum_degree_le_of_le_non_adj dXle <| hw.one_le_non_adj hmcf.1
 -- Since X consists of all vertices adjacent to all of s ∩ t, so x ∈ Xᶜ → x
 -- has at least one non-neighbour in X
@@ -108,7 +108,7 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
       apply hx
     exact ⟨_,mem_filter.2 hy⟩
 -- So we also have a bound on degree sum over s ∩ t
--- ∑ w in s ∩ t, degree H w ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|
+-- ∑ w ∈ s ∩ t, d_H(w) ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|
   have boundX := sum_degree_le_of_le_non_adj xcle (fun x ↦ Nat.zero_le _)
   rw [compl_compl,tsub_zero,add_comm] at boundX
   let k := #(s ∩ t)
@@ -119,11 +119,11 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_clique_free hmcf.1
 -- Now complete the proof by contradiction
   apply H.minDegree.le_lt_asymm (le_trans _ krle) <| lt_of_lt_of_le hd
-    <| G.minDegree_le_minDegree hmcfle
+                         <| G.minDegree_le_minDegree hmcfle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
---- Two cases s ∩ t = ∅ or not
   have Wc : #W + k = 2 * r + 3 := hw.card_verts_add_inter
   have w3 : 3 ≤ #W :=hw.three_le_card_verts
+--- Two cases: s ∩ t = ∅ or not
   by_cases hst : k = 0
   · rw [hst,add_zero] at Wc ⊢
     rw [← Wc,← tsub_eq_of_eq_add Wc]
@@ -135,7 +135,7 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
     apply le_trans _ boundW;
     rw [card_eq_sum_ones,mul_sum,mul_one]
     apply sum_le_sum (fun i _ ↦ H.minDegree_le_degree i)
---- Now have s ∩ t ≠ ∅
+--- s ∩ t ≠ ∅
   · have hap:  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k:= by
       rw [mul_tsub,tsub_add_tsub_comm,tsub_add_eq_add_tsub w3]
       · rfl
