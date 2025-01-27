@@ -36,7 +36,7 @@ private lemma card_le_two_of_four  (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ 
   · exact ⟨a,b,c,Or.inl rfl,Or.inr <| Or.inl rfl,Or.inr <| Or.inr <| Or.inl rfl,hab,hac,hbc⟩
 
 namespace SimpleGraph
-lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
+private lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
 (h2 : G.IsNClique r (Insert.insert b s)) (h2' : b ∉ s) (hadj : G.Adj a b) :
     G.IsNClique (r + 1) (Insert.insert b ((Insert.insert a) s)) := by
   apply h1.insert
@@ -48,7 +48,7 @@ lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · simp [h]
     · rintro rfl; contradiction
 
-lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s)
+private lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s)
 (ha: a ∉ s) (had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
     IsNClique G (r + 1) (Insert.insert a (Insert.insert b (erase s c))):= by
   rw [insert_comm]
@@ -121,7 +121,7 @@ lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
 
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal wheel -/
-lemma _root_.SimpleGraph.exists_max_wheel (h: G.MaxCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
+lemma _root_.SimpleGraph.exists_max_isWheel (h: G.MaxCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
 : ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t ∧ ∀ s' t', G.IsWheel r v w₁ w₂ s' t'
     → #(s' ∩ t') ≤ #(s ∩ t):= by
   classical

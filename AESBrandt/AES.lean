@@ -29,9 +29,8 @@ If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorab
   https://doi.org/10.1007/s00493-003-0042-z
 -/
 local notation "‖" x "‖" => Fintype.card x
-namespace SimpleGraph.AES
 variable {k r n i j: ℕ}
-lemma kr_bound (hk: k ≤ r) :
+private lemma kr_bound (hk: k ≤ r) :
     (2 * r + 2 + k) * n / (2 * r + 2 + k + 3) ≤ (3 * r + 2) *n / (3 * r + 5):=by
   apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
       <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
@@ -39,18 +38,18 @@ lemma kr_bound (hk: k ≤ r) :
   apply (Nat.mul_le_mul_right _ (Nat.div_mul_le_self ..)).trans
   nlinarith
 
-open Finset
+open Finset SimpleGraph
 variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α}
 /-- Transform lower bound on non-edges into upper bound on edges -/
-lemma card_adj_of_card_non_adj {s : Finset α} (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)):
-#(s.filter fun z ↦ G.Adj x z) ≤ #s - i :=by
+private lemma card_adj_of_card_non_adj {s : Finset α} (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)):
+    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i :=by
   rw [← filter_card_add_filter_neg_card_eq_card (s:=s) (fun z ↦ G.Adj x z)]
   rw [add_tsub_assoc_of_le hx]
   apply Nat.le_add_right
 
 variable [Fintype α] [DecidableEq α] {W X : Finset α}
 /-- Given lower bounds on non-degrees from W into X and into α we can bound degrees over W-/
-lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
+private lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
 (hy : ∀ y, j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) :=calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
@@ -64,12 +63,13 @@ lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun
     · apply card_adj_of_card_non_adj <| hx x hx1
     · apply card_adj_of_card_non_adj <| hy x
 
+namespace SimpleGraph
 open Classical in
 /-- **Andrasfai-Erdos-Sos**
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable
 e.g. K₃-free and δ(G) > 2n/5 then G is 2-colorable -/
-theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
-    (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) : G.Colorable r:= by
+theorem colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
+    (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) : G.Colorable r:=by
   cases r with
   | zero => exact colorable_of_cliqueFree_one hf
   | succ r =>
@@ -82,7 +82,7 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
   have hncp : ¬H.IsCompletePartite := fun hc =>
     hnotcol <| hc.colorable.mono  <| Nat.le_of_succ_le_succ <| hc.card_lt_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a maximal wheel
-  obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_wheel hmcf hncp
+  obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_isWheel hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
@@ -158,4 +158,4 @@ theorem _root_.SimpleGraph.colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFre
         rw [two_mul,← add_assoc]; apply Nat.add_le_add_right
         rw [tsub_add_eq_add_tsub w3, Wc,Nat.add_sub_cancel_right]
 
-end SimpleGraph.AES
+end SimpleGraph
