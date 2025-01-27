@@ -5,7 +5,7 @@ variable {V : Type*} {G H: SimpleGraph V}
 variable {v : V} [Fintype (G.neighborSet v)] [Fintype (H.neighborSet v)]
 
 /-- If G is a subgraph of H then d_G(v) ≤ d_H(v) for any vertev v -/
-lemma degree_le (hle : G ≤ H) :
+lemma degree_le_of_le (hle : G ≤ H) :
     G.degree v ≤ H.degree v:= by
   simp only [← card_neighborSet_eq_degree]
   apply Set.card_le_card fun v hv  => by exact hle hv
@@ -41,7 +41,7 @@ lemma minDegree_le_minDegree (hle : G ≤ H) [DecidableRel G.Adj] [DecidableRel 
     G.minDegree  ≤ H.minDegree := by
   by_cases hne : Nonempty V
   · apply le_minDegree_of_forall_le_degree;
-    intro v; apply (G.minDegree_le_degree v).trans (G.degree_le hle)
+    intro v; apply (G.minDegree_le_degree v).trans (G.degree_le_of_le hle)
   · rw [not_nonempty_iff] at hne
     simp
 
