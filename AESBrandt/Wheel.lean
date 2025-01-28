@@ -48,9 +48,9 @@ private lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · simp [h]
     · rintro rfl; contradiction
 
-private lemma IsNClique.insert_insert_erase (hs : IsNClique G (r + 1) (Insert.insert a s))
+private lemma IsNClique.insert_insert_erase (hs : IsNClique G r (Insert.insert a s))
 (hc : c ∈ s) (ha : a ∉ s) (had : ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
-    IsNClique G (r + 1) (Insert.insert a (Insert.insert b (erase s c))):= by
+    IsNClique G r (Insert.insert a (Insert.insert b (erase s c))):= by
   rw [insert_comm]
   simp_rw [adj_comm] at had
   convert hs.insert_erase had (mem_insert_of_mem hc)
@@ -173,7 +173,7 @@ open Classical
 /-- We can build a wheel with a larger common clique set if there is a core vertex that is
  adjacent to all but at most 2 of the vertices of the wheel -/
 lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y)
-(hsmall : #((insert v (insert w₁ (insert w₂ (s ∪ t)))).filter (fun z => ¬ G.Adj  x z)) ≤ 2) :
+(hsmall : #((insert v (insert w₁ (insert w₂ (s ∪ t)))).filter (fun z => ¬ G.Adj x z)) ≤ 2) :
     ∃ a b, a ∉ t ∧ b ∉ s ∧
     (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
   let W := (insert v (insert w₁ (insert w₂ (s ∪ t))))
