@@ -19,13 +19,13 @@ lemma IsNClique.erase_of_mem (hs : G.IsNClique (n + 1) s) (ha : a ∈ s) :
   · rw [card_erase_of_mem ha,hs.2]
     rfl
 
-lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj w a) (hb : b ∈ s):
+lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
     G.IsNClique n (Insert.insert a (erase s b)) := by
   cases n with
   | zero => simp_all
   | succ n =>
     apply (hs.erase_of_mem hb).insert
-    intro w h; rw [mem_erase] at h; symm
+    intro w h; rw [mem_erase] at h
     apply had w h.2 h.1
 
 /-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/

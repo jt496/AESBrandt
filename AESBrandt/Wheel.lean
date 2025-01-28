@@ -48,10 +48,11 @@ private lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · simp [h]
     · rintro rfl; contradiction
 
-private lemma IsNClique.insert_insert_erase (hs: IsNClique G (r + 1) (Insert.insert a s)) (hc: c ∈ s)
-(ha: a ∉ s) (had: ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
+private lemma IsNClique.insert_insert_erase (hs : IsNClique G (r + 1) (Insert.insert a s))
+(hc : c ∈ s) (ha : a ∉ s) (had : ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
     IsNClique G (r + 1) (Insert.insert a (Insert.insert b (erase s c))):= by
   rw [insert_comm]
+  simp_rw [adj_comm] at had
   convert hs.insert_erase had (mem_insert_of_mem hc)
   rw [erase_insert_of_ne]; rintro rfl; contradiction
 
