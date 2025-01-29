@@ -66,7 +66,7 @@ structure IsWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
 
 variable {G}
 /-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a wheel like graph -/
-lemma exists_IsWheel (h : G.MaxCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
+lemma exists_IsWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
     ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t :=by
   obtain ⟨v,w₁,w₂,h3⟩:=G.IsP2Complement_of_not_completePartite hnc
   obtain ⟨s,hvs,hw1s,hcsv,hcsw1⟩:=h.exists_of_not_adj h3.ne.1 h3.nonedge.1
@@ -122,7 +122,7 @@ lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
 
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal wheel -/
-lemma _root_.SimpleGraph.exists_max_isWheel (h: G.MaxCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
+lemma _root_.SimpleGraph.exists_max_isWheel (h: G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
 : ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t ∧ ∀ s' t', G.IsWheel r v w₁ w₂ s' t'
     → #(s' ∩ t') ≤ #(s ∩ t):= by
   classical

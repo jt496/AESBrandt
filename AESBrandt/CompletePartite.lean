@@ -27,7 +27,8 @@ namespace SimpleGraph
 variable {α : Type*} {G : SimpleGraph α}
 
 /-- G is complete-partite iff non-adjacency is transitive -/
-abbrev IsCompletePartite (G : SimpleGraph α) : Prop := Transitive (fun u v => ¬G.Adj u v)
+abbrev IsCompletePartite (G : SimpleGraph α) : Prop :=
+  Transitive (fun u v => ¬G.Adj u v)
 
 namespace IsCompletePartite
 variable (h: G.IsCompletePartite) include h
