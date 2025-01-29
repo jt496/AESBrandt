@@ -60,8 +60,8 @@ variable (G)
 /-- A IsWheel r structure in G is 3 vertices and two r-sets such that... -/
 structure IsWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
   isP2Complement : G.IsP2Complement v w₁ w₂ -- w₁w₂ ∈ E(G) but vw₁,vw₂ ∉ E(G)
-  disj      : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
-  cliques   : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
+  disj : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
+  cliques : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
 
 variable {G}
