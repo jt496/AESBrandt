@@ -4,14 +4,14 @@ import Mathlib.Order.Minimal
 namespace SimpleGraph
 open Finset
 variable {α : Type*} {G : SimpleGraph α}  {n : ℕ} {s : Finset α} {v w : α}
+
 section DecidableEq
 variable[DecidableEq α]
-lemma IsNClique.erase_of_mem (hs : G.IsNClique (n + 1) s) (ha : a ∈ s) :
-    G.IsNClique n (s.erase a):=by
+lemma IsNClique.erase_of_mem (hs : G.IsNClique n s) (ha : a ∈ s) :
+    G.IsNClique (n - 1) (s.erase a):=by
   constructor
   · apply hs.1.subset; simp
-  · rw [card_erase_of_mem ha,hs.2]
-    rfl
+  · rw [card_erase_of_mem ha, hs.2]
 
 lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
     G.IsNClique n (Insert.insert a (erase s b)) := by
