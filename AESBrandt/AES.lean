@@ -5,7 +5,6 @@ Authors: John Talbot, Lian Bremner Tattersall
 -/
 import AESBrandt.Wheel
 import AESBrandt.Finite
-import AESBrandt.Coloring
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Algebra.BigOperators.Ring
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
