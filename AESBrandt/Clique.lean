@@ -1,9 +1,11 @@
-import AESBrandt.Operations
 import Mathlib.Combinatorics.SimpleGraph.Clique
 import Mathlib.Order.Minimal
 namespace SimpleGraph
 open Finset
 variable {α : Type*} {G : SimpleGraph α}  {n : ℕ} {s : Finset α} {v w : α}
+
+lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
+  fun h ↦ h ∅ <| isNClique_empty.mpr rfl
 
 section DecidableEq
 variable[DecidableEq α]
@@ -45,6 +47,25 @@ lemma IsNClique.exists_non_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.
   apply (hc.insert hf).not_cliqueFree h
 
 end DecidableEq
+
+/-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
+noncomputable def CompleteMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
+    [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V)
+    where
+  toFun := fun i ↦ ⟨i, Classical.arbitrary (V i)⟩
+  inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
+  map_rel_iff' := by simp
+
+theorem notCliqueFree_le_card_completeMultipartiteGraph {ι : Type*} [Fintype ι] (V : ι → Type*)
+    [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) : ¬ (completeMultipartiteGraph V).CliqueFree n :=
+  fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (CompleteMultipartiteGraph.topEmbedding V).comp
+    (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
+
+theorem notCliqueFree_completeMultipartiteGraph_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
+    [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
+  fun hf ↦ not_cliqueFree_of_top_embedding ((CompleteMultipartiteGraph.topEmbedding V).comp
+            <| Embedding.completeGraph <| (Fin.valEmbedding.trans (Infinite.natEmbedding ι))) hf
+
 section MaximalCliqueFree
 variable {x y : α} {n : ℕ}
 
@@ -56,7 +77,7 @@ abbrev MaximalCliqueFree (G : SimpleGraph α) (r : ℕ) : Prop :=
 protected lemma MaximalCliqueFree.sup_edge (h : G.MaximalCliqueFree n) (hne : x ≠ y) (hn : ¬G.Adj x y ) :
     ∃ t, (G ⊔ edge x y).IsNClique n t:=by
   rw [MaximalCliqueFree, maximal_iff_forall_gt] at h
-  convert h.2  <| G.lt_sup_edge hne hn
+  convert h.2  <| G.lt_sup_edge _ _ hne hn
   simp [CliqueFree, not_forall, not_not]
 
 variable [DecidableEq α]
@@ -81,7 +102,7 @@ lemma MaximalCliqueFree.exists_of_not_adj (h: G.MaximalCliqueFree (n + 1)) (hne:
   use (t.erase x).erase y, erase_right_comm (a:=x) ▸ (not_mem_erase _ _),not_mem_erase _ _
   rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
       insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
-  exact ⟨(edge_comm ▸ hc).erase_of_sup_edge_of_mem xym.2,hc.erase_of_sup_edge_of_mem xym.1⟩
+  exact ⟨(edge_comm _ _ ▸ hc).erase_of_sup_edge_of_mem xym.2,hc.erase_of_sup_edge_of_mem xym.1⟩
 
 end MaximalCliqueFree
 end SimpleGraph
