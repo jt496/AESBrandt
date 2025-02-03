@@ -63,7 +63,7 @@ theorem notCliqueFree_le_card_completeMultipartiteGraph {ι : Type*} [Fintype ι
 theorem notCliqueFree_completeMultipartiteGraph_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
     [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
   fun hf ↦ not_cliqueFree_of_top_embedding ((CompleteMultipartiteGraph.topEmbedding V).comp
-            <| Embedding.completeGraph <| (Fin.valEmbedding.trans (Infinite.natEmbedding ι))) hf
+            <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 
 section MaximalCliqueFree
 variable {x y : α} {n : ℕ}

@@ -73,12 +73,12 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
   | zero => simpa using hf
   | succ r =>
   -- First swap G for an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
-  obtain ⟨H,hmcfle,hmcf⟩:=exists_maximal_supergraph (fun H => H.CliqueFree (r + 2)) hf
+  obtain ⟨H,hmcfle,hmcf⟩ := exists_maximal_supergraph (fun H => H.CliqueFree (r + 2)) hf
   -- If we can (r + 1)-color H then we can (r + 1)-color G
   apply Colorable.mono_left hmcfle
   by_contra! hnotcol
   -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
-  have hncp : ¬H.IsCompletePartite := fun hc => hnotcol (hc.colorable_of_cliqueFree hmcf.1)
+  have hncp : ¬H.IsCompletePartite := fun hc => hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a maximal wheel
   obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_isWheel hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common

@@ -14,7 +14,7 @@ theorem CompleteMultipartiteGraph.chromaticNumber {ι : Type*} [Fintype ι] (V :
     [∀ i, Nonempty (V i)] : (completeMultipartiteGraph V).chromaticNumber = Fintype.card ι := by
   apply le_antisymm (CompleteMultipartiteGraph.colorable V).chromaticNumber_le
   by_contra! h
-  apply notCliqueFree_le_card_completeMultipartiteGraph V (le_rfl)
+  apply notCliqueFree_le_card_completeMultipartiteGraph V le_rfl
             <| cliqueFree_of_chromaticNumber_lt h
 
 theorem CompleteMultipartiteGraph.colorable_of_cliqueFree {ι : Type*} {V : ι → Type*}
@@ -26,7 +26,7 @@ theorem CompleteMultipartiteGraph.colorable_of_cliqueFree {ι : Type*} {V : ι �
   have : Fintype ι := fintypeOfNotInfinite
     fun hinf ↦ notCliqueFree_completeMultipartiteGraph_infinite V hc
   apply (CompleteMultipartiteGraph.coloring V).colorable.mono
-  have := notCliqueFree_le_card_completeMultipartiteGraph V (le_rfl)
+  have := notCliqueFree_le_card_completeMultipartiteGraph V le_rfl
   contrapose! this
   apply hc.mono this
 end SimpleGraph
