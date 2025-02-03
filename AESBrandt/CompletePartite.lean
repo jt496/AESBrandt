@@ -22,20 +22,11 @@ variable {α : Type u} {G : SimpleGraph α}
 
 /-- G is complete-partite iff non-adjacency is transitive -/
 abbrev IsCompletePartite (G : SimpleGraph α) : Prop :=
-  Transitive (fun u v ↦ ¬ G.Adj u v)
-
-namespace IsCompletePartite
-/-- If G is complete-partite then non-adjacency is an equivalence relation -/
-lemma equivalence (h : G.IsCompletePartite) : Equivalence (¬ G.Adj · · ) := by
-  constructor
-  · exact G.loopless
-  · intro _ _ h'; rwa [adj_comm] at h'
-  · apply h
+  Transitive (¬ G.Adj · ·)
 
 /-- The setoid given by non-adjacency -/
-abbrev setoid (h : G.IsCompletePartite) : Setoid α := ⟨_, h.equivalence⟩
-
-end IsCompletePartite
+abbrev IsCompletePartite.setoid (h : G.IsCompletePartite) : Setoid α :=
+    ⟨(¬ G.Adj · ·), ⟨G.loopless , fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
 
 /-- Any completeMultipartite graph is complete partite-/
 lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*) :
