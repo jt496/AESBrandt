@@ -140,10 +140,10 @@ to help build a bigger wheel -/
 lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
     ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
       ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
-  obtain ⟨a,ha,haj⟩:=hw.cliques.2.1.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨b,hb,hbj⟩:=hw.cliques.2.2.2.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨c,hc,hcj⟩:=hw.cliques.1.exists_non_adj_of_cliqueFree_succ h x
-  obtain ⟨d,hd,hdj⟩:=hw.cliques.2.2.1.exists_non_adj_of_cliqueFree_succ h x
+  obtain ⟨a,ha,haj⟩:=hw.cliques.2.1.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨b,hb,hbj⟩:=hw.cliques.2.2.2.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨c,hc,hcj⟩:=hw.cliques.1.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨d,hd,hdj⟩:=hw.cliques.2.2.1.exists_not_adj_of_cliqueFree_succ h x
   have :=hw.isP2Complement.edge.ne
   have :=hw.isP2Complement.ne
   have :=hw.disj'
@@ -248,7 +248,7 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
 lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
     1 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter (fun z => ¬ G.Adj  x z)):=by
   apply card_pos.2
-  obtain ⟨_,hz⟩:=hw.cliques.2.1.exists_non_adj_of_cliqueFree_succ hcf x
+  obtain ⟨_,hz⟩:=hw.cliques.2.1.exists_not_adj_of_cliqueFree_succ hcf x
   exact ⟨_,mem_filter.2 ⟨by aesop,hz.2⟩⟩
 
 /-- If G is Kᵣ₊₂-free and contains a maximal Wheel (in terms of the size of the

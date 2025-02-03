@@ -25,8 +25,8 @@ lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b �
     apply had w h.2 h.1
 
 /-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/
-lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNClique (n + 1) s)
-(hx : v ∈ s) : G.IsNClique n (s.erase v):=by
+lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNClique n s)
+(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v):=by
   constructor
   · intro u hu v hv huvne
     push_cast at *
@@ -34,14 +34,13 @@ lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNCl
     · exact h
     · simp only [edge_adj, Set.mem_singleton_iff, Sym2.eq, Sym2.rel_iff', Prod.mk.injEq,
         Prod.swap_prod_mk, ne_eq] at h
-      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h
+      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩ := h
       · exact hu.2 <| Set.mem_singleton _
       · exact hv.2 <| Set.mem_singleton _
-  · rw [card_erase_of_mem hx,hc.2]
-    rfl
+  · rw [card_erase_of_mem hx, hc.2]
 
-/-- If G is Kᵣ₊₁-free and s is an r-clique then every vertex is not adjacent to something in s -/
-lemma IsNClique.exists_non_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.CliqueFree (n + 1))
+/-- If G is Kₙ₊₁-free and s is an n-clique then every vertex is not adjacent to something in s -/
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.CliqueFree (n + 1))
 (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y:= by
   by_contra! hf
   apply (hc.insert hf).not_cliqueFree h
@@ -70,23 +69,24 @@ section MaximalCliqueFree
 variable {x y : α} {n : ℕ}
 
 /-- A graph G is maximally Kᵣ-free if it doesn't contain Kᵣ but any supergraph does contain Kᵣ -/
-abbrev MaximalCliqueFree (G : SimpleGraph α) (r : ℕ) : Prop :=
-  Maximal (fun H => H.CliqueFree r) G
+abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop :=
+  Maximal (fun H => H.CliqueFree n) G
 
+variable (h : G.MaximalCliqueFree n) include h
 /-- If we add a new edge to a maximally r-clique-free graph we get a clique -/
-protected lemma MaximalCliqueFree.sup_edge (h : G.MaximalCliqueFree n) (hne : x ≠ y) (hn : ¬G.Adj x y ) :
-    ∃ t, (G ⊔ edge x y).IsNClique n t:=by
+protected lemma MaximalCliqueFree.sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y ) :
+    ∃ t, (G ⊔ edge x y).IsNClique n t := by
   rw [MaximalCliqueFree, maximal_iff_forall_gt] at h
   convert h.2  <| G.lt_sup_edge _ _ hne hn
-  simp [CliqueFree, not_forall, not_not]
+  simp [CliqueFree, not_forall]
 
 variable [DecidableEq α]
-/-- If G is maximally Kᵣ₊₁-free and xy ∉ E(G) then there is a set s such that
-s ∪ {x} and s ∪ {y} are both (r + 1)-cliques -/
-lemma MaximalCliqueFree.exists_of_not_adj (h: G.MaximalCliqueFree (n + 1)) (hne: x ≠ y) (hn: ¬G.Adj x y):
- ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique n (insert x s) ∧ G.IsNClique n (insert y s) := by
-  obtain ⟨t,hc⟩:= h.sup_edge hne hn
-  have xym: x ∈ t ∧ y ∈ t:= by
+/-- If G is maximally K_n-free and xy ∉ E(G) then there is a set s such that
+s ∪ {x} and s ∪ {y} are both (n - 1)-cliques -/
+lemma MaximalCliqueFree.exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
+    ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
+  obtain ⟨t,hc⟩ := h.sup_edge hne hn
+  have xym: x ∈ t ∧ y ∈ t := by
     by_contra! hf
     apply h.1 t;
     constructor
@@ -102,7 +102,9 @@ lemma MaximalCliqueFree.exists_of_not_adj (h: G.MaximalCliqueFree (n + 1)) (hne:
   use (t.erase x).erase y, erase_right_comm (a:=x) ▸ (not_mem_erase _ _),not_mem_erase _ _
   rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
       insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
-  exact ⟨(edge_comm _ _ ▸ hc).erase_of_sup_edge_of_mem xym.2,hc.erase_of_sup_edge_of_mem xym.1⟩
-
+  cases n with
+  | zero => exfalso; exact not_cliqueFree_zero h.1
+  | succ n =>
+    exact ⟨(edge_comm _ _ ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
 end MaximalCliqueFree
 end SimpleGraph
