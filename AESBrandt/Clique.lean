@@ -25,12 +25,12 @@ lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b �
     apply had w h.2 h.1
 
 /-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/
-lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNClique n s)
-(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v):=by
+lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc : (G ⊔ edge v w).IsNClique n s)
+(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) := by
   constructor
   · intro u hu v hv huvne
     push_cast at *
-    obtain (h | h):= (hc.1 hu.1 hv.1 huvne)
+    obtain (h | h):= hc.1 hu.1 hv.1 huvne
     · exact h
     · simp only [edge_adj, Set.mem_singleton_iff, Sym2.eq, Sym2.rel_iff', Prod.mk.injEq,
         Prod.swap_prod_mk, ne_eq] at h
@@ -41,7 +41,7 @@ lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc: (G ⊔ edge v w).IsNCl
 
 /-- If G is Kₙ₊₁-free and s is an n-clique then every vertex is not adjacent to something in s -/
 lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.CliqueFree (n + 1))
-(x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y:= by
+(x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
   by_contra! hf
   apply (hc.insert hf).not_cliqueFree h
 
@@ -89,22 +89,22 @@ lemma MaximalCliqueFree.exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
   have xym: x ∈ t ∧ y ∈ t := by
     by_contra! hf
     apply h.1 t;
-    constructor
-    · intro u hu v hv hne
-      obtain (h | h):=(hc.1 hu hv hne)
-      · exact h
-      · simp only [edge_adj, ne_eq] at h
-        exfalso
-        obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩:=h
-        · apply hf hu hv
-        · apply hf hv hu
-    · exact hc.2
-  use (t.erase x).erase y, erase_right_comm (a:=x) ▸ (not_mem_erase _ _),not_mem_erase _ _
+    refine ⟨?_,hc.2⟩
+    intro _ hu _ hv hne
+    obtain (h | h) := hc.1 hu hv hne
+    · exact h
+    · rw [edge_adj, ne_eq] at h
+      exfalso
+      obtain ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, _⟩ := h
+      · apply hf hu hv
+      · apply hf hv hu
+  use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
   rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
       insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
   cases n with
   | zero => exfalso; exact not_cliqueFree_zero h.1
   | succ n =>
-    exact ⟨(edge_comm _ _ ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
+    exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
+
 end MaximalCliqueFree
 end SimpleGraph
