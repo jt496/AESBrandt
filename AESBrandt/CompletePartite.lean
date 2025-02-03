@@ -21,8 +21,7 @@ namespace SimpleGraph
 variable {α : Type u} {G : SimpleGraph α}
 
 /-- G is complete-partite iff non-adjacency is transitive -/
-abbrev IsCompletePartite (G : SimpleGraph α) : Prop :=
-  Transitive (¬ G.Adj · ·)
+abbrev IsCompletePartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
 
 /-- The setoid given by non-adjacency -/
 abbrev IsCompletePartite.setoid (h : G.IsCompletePartite) : Setoid α :=
@@ -34,20 +33,24 @@ lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*
   intro
   simp_all
 
+def IsCompletePartite.iso (h : G.IsCompletePartite) :
+    G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
+  toFun := fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩
+  invFun := fun ⟨_, x⟩ ↦  x.1
+  left_inv := fun v ↦ rfl
+  right_inv := fun ⟨_, x⟩ ↦ by
+    refine Sigma.subtype_ext ?_ rfl
+    rw [Quotient.mk_eq_iff_out]
+    exact h.setoid.symm x.2
+  map_rel_iff' := by
+    simp only [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
+    intros; change ¬¬ G.Adj _ _ ↔ _
+    rw [not_not]
+
 lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι → Type u)
   (_ : ∀ i, Nonempty (V i)), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
-  · let e : G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid)
-      ↦ { x // h.setoid.r c.out x}) :=
-      ⟨⟨fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩, fun ⟨_, x⟩ ↦  x.1, fun v ↦ rfl, fun ⟨c, x⟩ ↦ by
-        ext
-        · rw [Quotient.mk_eq_iff_out]
-          exact h.setoid.symm x.2
-        · rfl⟩, by
-        simp only [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
-        intros; change ¬¬ G.Adj _ _ ↔ _
-        rw [not_not]⟩
-    refine ⟨_, _, ?_, ⟨e⟩⟩
+  · refine ⟨_, _, ?_, ⟨h.iso⟩⟩
     intro i; use i.out
   · obtain ⟨_,_,_,⟨e⟩⟩ := h
     intro _ _ _ h1 h2
@@ -59,18 +62,8 @@ variable [Fintype α] [DecidableRel G.Adj]
 lemma exists_iso_of_isCompletePartite_of_fintype (h : G.IsCompletePartite) : ∃ (ι : Type u)
     (_ : Fintype ι) (V : ι → Type u) (_ : ∀ i, Nonempty (V i)),
     Nonempty (G ≃g (completeMultipartiteGraph V)) := by
-  let e : G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid)
-    ↦ { x // h.setoid.r c.out x}) :=
-    ⟨⟨fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩, fun ⟨_, x⟩ ↦  x.1,fun v ↦ rfl, fun ⟨c, x⟩ ↦ by
-      ext
-      · rw [Quotient.mk_eq_iff_out]
-        exact h.setoid.symm x.2
-      · rfl⟩, by
-      simp only [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
-      intros; change ¬¬ G.Adj _ _ ↔ _
-      rw [not_not]⟩
   have : DecidableRel h.setoid.r := inferInstanceAs <| DecidableRel (¬ G.Adj · ·)
-  exact ⟨_, inferInstance, _, fun i ↦ ⟨i.out, h.setoid.refl _⟩, ⟨e⟩⟩
+  exact ⟨_, inferInstance, _, fun i ↦ ⟨i.out, h.setoid.refl _⟩, ⟨h.iso⟩⟩
 
 lemma IsCompletePartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompletePartite)
     (hc : G.CliqueFree n) : G.Colorable (n - 1) := by
