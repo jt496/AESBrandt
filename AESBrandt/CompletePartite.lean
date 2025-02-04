@@ -50,8 +50,7 @@ def IsCompletePartite.iso (h : G.IsCompletePartite) :
 lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι → Type u)
   (_ : ∀ i, Nonempty (V i)), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
-  · refine ⟨_, _, ?_, ⟨h.iso⟩⟩
-    intro i; use i.out
+  · exact ⟨_, _,  fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
   · obtain ⟨_,_,_,⟨e⟩⟩ := h
     intro _ _ _ h1 h2
     rw [← e.map_rel_iff] at *
@@ -64,7 +63,7 @@ lemma isCompletePartite_iff_of_fintype : G.IsCompletePartite ↔ ∃ (ι : Type 
     Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
   · have : DecidableRel h.setoid.r := inferInstanceAs <| DecidableRel (¬ G.Adj · ·)
-    exact ⟨_, inferInstance, _, fun i ↦ ⟨i.out, h.setoid.refl _⟩, ⟨h.iso⟩⟩
+    exact ⟨_, inferInstance, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
   · obtain ⟨ι,_,V,_,⟨e⟩⟩ := h
     exact isCompletePartite_iff.mpr ⟨ι, V, inferInstance, ⟨e⟩⟩
 

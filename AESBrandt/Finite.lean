@@ -15,7 +15,7 @@ variable [Fintype V]
 /--If V is finite and `P G` holds then there exists a maximal supergraph H of G
 for which `P H` holds. -/
 lemma exists_maximal_supergraph (P : SimpleGraph V → Prop) (hG : P G) :
-    ∃ H, G ≤ H ∧ Maximal P H :=by
+    ∃ H, G ≤ H ∧ Maximal P H := by
   simp_rw [maximal_iff_forall_gt]
   classical
   revert hG
