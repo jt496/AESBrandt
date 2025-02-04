@@ -3,7 +3,7 @@ Copyright (c) 2024 John Talbot and Lian Bremner Tattersall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
-import AESBrandt.Wheel
+import AESBrandt.FiveWheel
 import AESBrandt.Finite
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Algebra.BigOperators.Ring
@@ -67,8 +67,8 @@ open Classical in
 /-- **Andrasfai-Erdos-Sos**
 If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorable
 e.g. K₃-free and δ(G) > 2n/5 then G is 2-colorable -/
-theorem colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
-    (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) : G.Colorable r:=by
+theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
+    (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) : G.Colorable r := by
   cases r with
   | zero => simpa using hf
   | succ r =>
@@ -80,11 +80,11 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf: G.CliqueFree (r + 1))
   -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
   have hncp : ¬H.IsCompletePartite := fun hc => hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a maximal wheel
-  obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_isWheel hmcf hncp
+  obtain ⟨v,w₁,w₂,s,t,hw,hmax⟩:= exists_max_isFiveWheel hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
--- and W which is simply all the vertices of the wheel
+-- and W which is simply all the vertices of the 5-wheel
   let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
 -- Any vertex in X has at least 3 non-neighbors in W (otherwise we can build a bigger wheel)
   have dXle: ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by

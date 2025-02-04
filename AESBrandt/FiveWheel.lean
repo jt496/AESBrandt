@@ -13,13 +13,13 @@ s ∪ {x} and s ∪ {y} are both r + 1 cliques.
 If G is not complete-partite graph then it contains an edge w₁w₂ and a vertex v such that vw₁ and
 vw₂ are non-edges. We call this three vertex graph with a single edge a `P₂-complement`.
 
-Putting these together gives the definition of a wheel-like subgraph which can be found in any
+Putting these together gives the definition of a 5-wheel-like subgraph which can be found in any
 maximally Kᵣ₊₂-free graph that is not complete-partite.
 
-Wheel-like subgraphs plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
+FiveWheel-like subgraphs plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 
 Main definition:
-* `SimpleGraph.IsWheel`: predicate for v w₁ w₂ s t to form a wheel-like subgraph of G with
+* `SimpleGraph.IsFiveWheel`: predicate for v w₁ w₂ s t to form a 5-wheel-like subgraph of G with
 r-sets s and t, and vertices v w₁ w₂ forming a P₂-complement.
 -/
 
@@ -57,29 +57,29 @@ private lemma IsNClique.insert_insert_erase (hs : IsNClique G r (Insert.insert a
   rw [erase_insert_of_ne]; rintro rfl; contradiction
 
 variable (G)
-/-- A IsWheel r structure in G is 3 vertices and two r-sets such that... -/
-structure IsWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
+/-- A IsFiveWheel r structure in G is 3 vertices and two r-sets such that... -/
+structure IsFiveWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
   isP2Complement : G.IsP2Complement v w₁ w₂ -- w₁w₂ ∈ E(G) but vw₁,vw₂ ∉ E(G)
   disj : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
   cliques : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
 
 variable {G}
-/-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a wheel like graph -/
-lemma exists_IsWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
-    ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t :=by
+/-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a 5-wheel like graph -/
+lemma exists_IsFiveWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
+    ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t :=by
   obtain ⟨v,w₁,w₂,h3⟩:=G.exists_isP2Complement_of_not_completePartite hnc
   obtain ⟨s,hvs,hw1s,hcsv,hcsw1⟩:=h.exists_of_not_adj h3.ne.1 h3.nonedge.1
   obtain ⟨t,hvt,hw2t,hctv,hctw2⟩:=h.exists_of_not_adj h3.ne.2 h3.nonedge.2
   exact ⟨v,w₁,w₂,s,t,h3,⟨hvs,hvt,hw1s,hw2t⟩,⟨hcsv,hcsw1,hctv,hctw2⟩⟩
 
-namespace IsWheel
-variable {x v w₁ w₂ : α} {s t : Finset α} (hw : G.IsWheel r v w₁ w₂ s t) include hw
-lemma symm :  G.IsWheel r v w₂ w₁ t s := by
+namespace IsFiveWheel
+variable {x v w₁ w₂ : α} {s t : Finset α} (hw : G.IsFiveWheel r v w₁ w₂ s t) include hw
+lemma symm :  G.IsFiveWheel r v w₂ w₁ t s := by
   obtain ⟨p2,⟨d1,d2,d3,d4⟩,⟨c1,c2,c3,c4⟩⟩:=hw
   exact ⟨p2.symm,⟨d2,d1,d4,d3⟩,⟨c3,c4,c1,c2⟩⟩
 
-/-- We automatically have w₁ ∉ t and w₂ ∉ s for any wheel -/
+/-- We automatically have w₁ ∉ t and w₂ ∉ s for any 5-wheel -/
 lemma disj' : w₁ ∉ t ∧ w₂ ∉ s:=by
   constructor <;> intro hf
   · apply hw.isP2Complement.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
@@ -94,9 +94,9 @@ lemma card_cliques : s.card = r ∧ t.card = r:=by
   · have :=hw.cliques.2.2.1.2
     rwa [card_insert_of_not_mem hw.disj.2.1,Nat.succ_inj] at this
 
-/-- A wheel consists of the 3 vertices v, w₁, w₂, and the r-sets s , t but the size will vary
+/-- A 5-wheel consists of the 3 vertices v, w₁, w₂, and the r-sets s , t but the size will vary
 depending on how large |s ∩ t| is, so a useful identity is
-#verts in Wheel =  |s ∪ t| + 3 = 2r + 3 - |s ∩ t|, which we express without subtraction -/
+#verts in FiveWheel =  |s ∪ t| + 3 = 2r + 3 - |s ∩ t|, which we express without subtraction -/
 lemma card_verts_add_inter  : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + #(s ∩ t) = 2 * r + 3:=by
   rw [card_insert_of_not_mem, add_comm, card_insert_of_not_mem,card_insert_of_not_mem]
   · simp only [←add_assoc,card_inter_add_card_union,two_mul,hw.card_cliques.1,hw.card_cliques.2]
@@ -108,7 +108,7 @@ lemma card_verts_add_inter  : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) 
     push_neg
     exact ⟨hw.isP2Complement.ne.1,hw.isP2Complement.ne.2, hw.disj.1,hw.disj.2.1⟩
 
-/-- Every wheel contains at least 3 vertices: v w₁ w₂-/
+/-- Every 5-wheel contains at least 3 vertices: v w₁ w₂-/
 lemma three_le_card_verts : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
   ⟨v,by simp,w₁,by simp,w₂,by simp,hw.isP2Complement.ne.1,hw.isP2Complement.ne.2,hw.isP2Complement.edge.ne⟩
 
@@ -121,13 +121,13 @@ lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
     hw.disj'.2 hw.isP2Complement.edge).not_cliqueFree
 
 omit hw in
-/-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal wheel -/
-lemma _root_.SimpleGraph.exists_max_isWheel (h: G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
-: ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t ∧ ∀ s' t', G.IsWheel r v w₁ w₂ s' t'
+/-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal 5-wheel -/
+lemma _root_.SimpleGraph.exists_max_isFiveWheel (h: G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite)
+: ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t ∧ ∀ s' t', G.IsFiveWheel r v w₁ w₂ s' t'
     → #(s' ∩ t') ≤ #(s ∩ t):= by
   classical
-  obtain ⟨v,w₁,w₂,s,t,hw⟩:=exists_IsWheel h hnc
-  let P : ℕ → Prop := fun k => ∃ s t, G.IsWheel r v w₁ w₂ s t ∧ #(s ∩ t) = k
+  obtain ⟨v,w₁,w₂,s,t,hw⟩:=exists_IsFiveWheel h hnc
+  let P : ℕ → Prop := fun k => ∃ s t, G.IsFiveWheel r v w₁ w₂ s t ∧ #(s ∩ t) = k
   have : P #(s ∩ t) := by use s,t
   have nler := (hw.card_clique_free h.1).le
   obtain ⟨s,t,hw⟩:= Nat.findGreatest_spec nler this
@@ -136,7 +136,7 @@ lemma _root_.SimpleGraph.exists_max_isWheel (h: G.MaximalCliqueFree (r + 2)) (hn
   apply (Nat.le_findGreatest (hw'.card_clique_free h.1).le (by use s',t')).trans (hw.2.symm.le)
 
 /--This is a warmup for the main lemma `bigger_wheel` where we use it with `card_eq_two_of_four`
-to help build a bigger wheel -/
+to help build a bigger 5-wheel -/
 lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
     ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
       ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
@@ -170,12 +170,12 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   · aesop
 
 open Classical
-/-- We can build a wheel with a larger common clique set if there is a core vertex that is
- adjacent to all but at most 2 of the vertices of the wheel -/
+/-- We can build a 5-wheel with a larger common clique set if there is a core vertex that is
+ adjacent to all but at most 2 of the vertices of the 5-wheel -/
 lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y)
 (hsmall : #((insert v (insert w₁ (insert w₂ (s ∪ t)))).filter (fun z => ¬ G.Adj x z)) ≤ 2) :
     ∃ a b, a ∉ t ∧ b ∉ s ∧
-    (G.IsWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
+    (G.IsFiveWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) :=by
   let W := (insert v (insert w₁ (insert w₂ (s ∪ t))))
   obtain ⟨a,b,c,d,ha,haj,hb,hbj,hc,hcj,hd,hdj,hab, had,hbc,hat,hbs⟩:= hw.exist_non_adj_core h hWc
   have ⟨vnew1,vnew2⟩:=hw.isP2Complement.ne
@@ -224,7 +224,7 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
       · rw [adj_comm] at hf
         exact ⟨hz,hf⟩
     apply Nat.lt_le_asymm gt2 hsmall
--- Below we prove that the new wheel is indeed a wheel by showing disjointedness and that
+-- Below we prove that the new 5-wheel is indeed a 5-wheel by showing disjointedness and that
 -- the 4 cliques exist
   refine ⟨a,b,hat,hbs,⟨hw.isP2Complement,?_,?_⟩⟩
 -- We first prove disj-ointedness,i.e. v w₁ w₂ are not in the various new cliques
@@ -244,18 +244,18 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     · apply habv.1.symm (hz.resolve_right hat)
     · apply haw2 (hz.resolve_right hat)
 
-/-- For any x there is a wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
+/-- For any x there is a 5-wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
 lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
     1 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter (fun z => ¬ G.Adj  x z)):=by
   apply card_pos.2
   obtain ⟨_,hz⟩:=hw.cliques.2.1.exists_not_adj_of_cliqueFree_succ hcf x
   exact ⟨_,mem_filter.2 ⟨by aesop,hz.2⟩⟩
 
-/-- If G is Kᵣ₊₂-free and contains a maximal Wheel (in terms of the size of the
+/-- If G is Kᵣ₊₂-free and contains a maximal FiveWheel (in terms of the size of the
 intersection of the cliques) then every vertex that is adjacent to  all of the common
 clique vertices is non-adjacent to at least 3 vertices in W -/
 lemma three_le_nonadj (hcf : G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y)
-(hmax: ∀ s' t', G.IsWheel r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t)) :
+(hmax: ∀ s' t', G.IsFiveWheel r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t)) :
     3 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter fun z => ¬ G.Adj x z) :=by
   by_contra! hc; change _ + 1 ≤ _ + 1 at hc
   obtain ⟨c,d,hw1,hw2,hbW⟩:= hw.bigger_wheel hcf hWc (Nat.succ_le_succ_iff.1 hc)
@@ -268,4 +268,4 @@ lemma three_le_nonadj (hcf : G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   · apply not_mem_mono inter_subset_left hw2
   · apply not_mem_mono (erase_subset ..) <| not_mem_mono inter_subset_right hw1
 
-end SimpleGraph.IsWheel
+end SimpleGraph.IsFiveWheel
