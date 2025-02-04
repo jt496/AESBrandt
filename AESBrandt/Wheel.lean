@@ -68,7 +68,7 @@ variable {G}
 /-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a wheel like graph -/
 lemma exists_IsWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
     ∃ v w₁ w₂ s t, G.IsWheel r v w₁ w₂ s t :=by
-  obtain ⟨v,w₁,w₂,h3⟩:=G.isP2Complement_of_not_completePartite hnc
+  obtain ⟨v,w₁,w₂,h3⟩:=G.exists_isP2Complement_of_not_completePartite hnc
   obtain ⟨s,hvs,hw1s,hcsv,hcsw1⟩:=h.exists_of_not_adj h3.ne.1 h3.nonedge.1
   obtain ⟨t,hvt,hw2t,hctv,hctw2⟩:=h.exists_of_not_adj h3.ne.2 h3.nonedge.2
   exact ⟨v,w₁,w₂,s,t,h3,⟨hvs,hvt,hw1s,hw2t⟩,⟨hcsv,hcsw1,hctv,hctw2⟩⟩

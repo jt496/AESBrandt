@@ -21,7 +21,7 @@ theorem CompleteMultipartiteGraph.colorable_of_cliqueFree {ι : Type*} {V : ι �
     [∀ i, Nonempty (V i)] (hc : (completeMultipartiteGraph V).CliqueFree n) :
     (completeMultipartiteGraph V).Colorable (n - 1) := by
   cases n with
-  | zero => apply False.elim <| not_cliqueFree_zero hc
+  | zero => apply absurd hc not_cliqueFree_zero
   | succ n =>
   have : Fintype ι := fintypeOfNotInfinite
     fun hinf ↦ notCliqueFree_completeMultipartiteGraph_infinite V hc

@@ -18,7 +18,7 @@ lemma IsNClique.erase_of_mem (hs : G.IsNClique n s) (ha : a ∈ s) :
 lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
     G.IsNClique n (Insert.insert a (erase s b)) := by
   cases n with
-  | zero => exact False.elim <| not_mem_empty _ (isNClique_zero.1 hs ▸ hb)
+  | zero => apply absurd (isNClique_zero.1 hs ▸ hb) <| not_mem_empty _
   | succ n =>
     apply (hs.erase_of_mem hb).insert
     intro w h; rw [mem_erase] at h
@@ -49,14 +49,14 @@ end DecidableEq
 
 /-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
 noncomputable def CompleteMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
-    [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V)
-    where
+    [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V) where
   toFun := fun i ↦ ⟨i, Classical.arbitrary (V i)⟩
   inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
   map_rel_iff' := by simp
 
 theorem notCliqueFree_le_card_completeMultipartiteGraph {ι : Type*} [Fintype ι] (V : ι → Type*)
-    [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) : ¬ (completeMultipartiteGraph V).CliqueFree n :=
+    [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) :
+    ¬ (completeMultipartiteGraph V).CliqueFree n :=
   fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (CompleteMultipartiteGraph.topEmbedding V).comp
     (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
 
