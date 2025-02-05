@@ -28,7 +28,7 @@ abbrev IsCompletePartite.setoid (h : G.IsCompletePartite) : Setoid α :=
     ⟨(¬ G.Adj · ·), ⟨G.loopless , fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
 
 /-- Any completeMultipartite graph is complete partite-/
-lemma completeMultipartiteGraph_isCompletePartite {ι : Type*} (V : ι → Type*) :
+lemma CompleteMultipartiteGraph.isCompletePartite {ι : Type*} (V : ι → Type*) :
     (completeMultipartiteGraph V).IsCompletePartite := by
   intro
   simp_all
@@ -54,7 +54,7 @@ lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι 
   · obtain ⟨_,_,_,⟨e⟩⟩ := h
     intro _ _ _ h1 h2
     rw [← e.map_rel_iff] at *
-    exact (completeMultipartiteGraph_isCompletePartite _) h1 h2
+    exact (CompleteMultipartiteGraph.isCompletePartite _) h1 h2
 
 section FinDecRel
 variable [Fintype α] [DecidableRel G.Adj]

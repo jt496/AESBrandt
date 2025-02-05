@@ -54,15 +54,15 @@ noncomputable def CompleteMultipartiteGraph.topEmbedding {ι : Type*} (V : ι �
   inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
   map_rel_iff' := by simp
 
-theorem notCliqueFree_le_card_completeMultipartiteGraph {ι : Type*} [Fintype ι] (V : ι → Type*)
+theorem CompleteMultipartiteGraph.notCliqueFree_le_card {ι : Type*} [Fintype ι] (V : ι → Type*)
     [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) :
     ¬ (completeMultipartiteGraph V).CliqueFree n :=
   fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (CompleteMultipartiteGraph.topEmbedding V).comp
     (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
 
-theorem notCliqueFree_completeMultipartiteGraph_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
+theorem CompleteMultipartiteGraph.notCliqueFree_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
     [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
-  fun hf ↦ not_cliqueFree_of_top_embedding ((CompleteMultipartiteGraph.topEmbedding V).comp
+  fun hf ↦ not_cliqueFree_of_top_embedding (CompleteMultipartiteGraph.topEmbedding V |>.comp
             <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 
 section MaximalCliqueFree
