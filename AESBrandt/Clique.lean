@@ -67,6 +67,15 @@ theorem CompleteMultipartiteGraph.notCliqueFree_infinite {ι : Type*} [Infinite 
 
 variable {x y : α} {n : ℕ}
 
+lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
+  constructor <;> intro h
+  · by_contra! hf
+    apply h; apply eq_top_iff.2
+    intro x y hxy ; exact hf _ _ hxy.ne
+  · contrapose! h
+    intro x y hne;
+    rw [h]; exact hne
+
 /-- A graph G is maximally Kᵣ-free if it doesn't contain Kᵣ but any supergraph does contain Kᵣ -/
 abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop := Maximal (fun H => H.CliqueFree n) G
 
@@ -91,6 +100,7 @@ lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
     contrapose! ht
     exact h.1.mono ht
   · exact h.le_iff_eq ((⊤ : SimpleGraph α).cliqueFree_of_card_lt h') |>.1 le_top
+
 
 /--
 If we add a new edge to a maximally r-clique-free graph we get an r-clique containing x and y -/
