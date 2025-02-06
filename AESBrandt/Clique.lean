@@ -73,31 +73,33 @@ abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop :=
   Maximal (fun H => H.CliqueFree n) G
 
 variable (h : G.MaximalCliqueFree n) include h
-/-- If we add a new edge to a maximally r-clique-free graph we get a clique -/
+/--
+If we add a new edge to a maximally r-clique-free graph we get an r-clique containing x and y -/
 protected lemma MaximalCliqueFree.sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y ) :
-    ∃ t, (G ⊔ edge x y).IsNClique n t := by
+   ∃ t, ((G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t) := by
   rw [MaximalCliqueFree, maximal_iff_forall_gt] at h
-  convert h.2  <| G.lt_sup_edge _ _ hne hn
-  simp [CliqueFree, not_forall]
+  have := h.2 <| G.lt_sup_edge _ _ hne hn
+  simp only [CliqueFree, not_forall, not_not] at this
+  obtain ⟨t, hc⟩ := this
+  use t, hc
+  by_contra! hf
+  apply h.1 t
+  refine ⟨?_, hc.2⟩
+  intro _ hu _ hv hne
+  obtain (h | h) := hc.1 hu hv hne
+  · exact h
+  · rw [edge_adj, ne_eq] at h
+    exfalso
+    obtain ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, _⟩ := h
+    · apply hf hu hv
+    · apply hf hv hu
 
 variable [DecidableEq α]
 /-- If G is maximally K_n-free and xy ∉ E(G) then there is a set s such that
 s ∪ {x} and s ∪ {y} are both (n - 1)-cliques -/
 lemma MaximalCliqueFree.exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
     ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
-  obtain ⟨t,hc⟩ := h.sup_edge hne hn
-  have xym: x ∈ t ∧ y ∈ t := by
-    by_contra! hf
-    apply h.1 t;
-    refine ⟨?_,hc.2⟩
-    intro _ hu _ hv hne
-    obtain (h | h) := hc.1 hu hv hne
-    · exact h
-    · rw [edge_adj, ne_eq] at h
-      exfalso
-      obtain ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, _⟩ := h
-      · apply hf hu hv
-      · apply hf hv hu
+  obtain ⟨t, hc, xym⟩ := h.sup_edge hne hn
   use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
   rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
       insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
