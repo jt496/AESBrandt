@@ -66,8 +66,8 @@ theorem CompleteMultipartiteGraph.notCliqueFree_infinite {ι : Type*} [Infinite 
             <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 
 variable {x y : α} {n : ℕ}
-
-lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
+variable (G)
+protected lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
   constructor <;> intro h
   · by_contra! hf
     apply h; apply eq_top_iff.2
@@ -76,6 +76,7 @@ lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
     intro x y hne;
     rw [h]; exact hne
 
+variable {G}
 /-- A graph G is maximally Kᵣ-free if it doesn't contain Kᵣ but any supergraph does contain Kᵣ -/
 abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop := Maximal (fun H => H.CliqueFree n) G
 
@@ -84,26 +85,28 @@ namespace MaximalCliqueFree
 lemma le_iff_eq (h : G.MaximalCliqueFree n) (hcf : H.CliqueFree n) : G ≤ H ↔ G = H :=
   ⟨fun hle ↦ h.eq_of_le hcf hle, le_of_eq⟩
 
-lemma _root_.SimpleGraph.maximalCliqueFree_of_isTuranMaximal [Fintype α] [DecidableRel G.Adj]
+lemma _root_.SimpleGraph.IsTuranMaximal.maximalCliqueFree [Fintype α] [DecidableRel G.Adj]
     (h : G.IsTuranMaximal n) : G.MaximalCliqueFree (n + 1) :=
   ⟨h.1, fun _ hcf hle ↦ h.le_iff_eq hcf |>.1 hle |>.symm.le⟩
 
 variable (h : G.MaximalCliqueFree n) include h
 
-lemma not_cliqueFree_of_gt  (hlt : G < H) : ¬ H.CliqueFree n :=
-  maximal_iff_forall_gt.1 h|>.2 hlt
+lemma not_cliqueFree_of_gt (h' : G < H) : ¬ H.CliqueFree n := h.not_prop_of_gt h'
+
+lemma not_gt_cliqueFree (h' : H.CliqueFree n) : ¬ G < H := h.not_gt h'
 
 lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
   constructor <;> intro h'
-  · subst_vars
-    have ht := (⊤ : SimpleGraph α).not_cliqueFree_card_of_top_embedding Embedding.refl
+  · have ht := (⊤ : SimpleGraph α).not_cliqueFree_card_of_top_embedding Embedding.refl
     contrapose! ht
-    exact h.1.mono ht
+    exact h' ▸ h.1.mono ht
   · exact h.le_iff_eq ((⊤ : SimpleGraph α).cliqueFree_of_card_lt h') |>.1 le_top
 
+lemma ne_top_iff [Fintype α] : G ≠ ⊤ ↔ n ≤ Fintype.card α := by
+  rw [ne_eq, h.eq_top_iff, Nat.not_lt]
 
 /--
-If we add a new edge to a maximally r-clique-free graph we get an r-clique containing x and y -/
+If we add a new edge to a maximally n-clique-free graph we get an n-clique containing x and y -/
 protected lemma sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y ) :
    ∃ t, (G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t := by
   have := h.not_cliqueFree_of_gt <| G.lt_sup_edge _ _ hne hn
@@ -136,14 +139,15 @@ lemma exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
   | succ n =>
     exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
 
-lemma not_cliqueFree_of_card_lt [Fintype α] (hlt : n ≤ Fintype.card α) : ¬ G.CliqueFree (n - 1) := by
-  have : G ≠ ⊤:= fun hf ↦ Nat.lt_le_asymm (h.eq_top_iff.1 hf) hlt
-  obtain ⟨x,y,hx,hy⟩: ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
-    contrapose! this
-    apply top_le_iff.1 fun _ _ h ↦ this _ _ h
-  obtain ⟨_,_,_,_,hs⟩ := h.exists_of_not_adj hx hy
-  exact hs.not_cliqueFree
+lemma exists_of_le_card [Fintype α] (h' : n ≤ Fintype.card α) : ∃ x y s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧
+  G.IsNClique (n - 1) (insert y s) := by
+  obtain ⟨x, y, hne, hna⟩ := G.ne_top_iff.1 (h.ne_top_iff.2 h')
+  use x, y
+  apply h.exists_of_not_adj hne hna
 
+lemma not_cliqueFree_of_le_card [Fintype α] (hle : n ≤ Fintype.card α) : ¬ G.CliqueFree (n - 1) :=
+  have ⟨_,_,_,_,_,hs,_⟩:= h.exists_of_le_card hle
+  hs.not_cliqueFree
 
 end MaximalCliqueFree
 end SimpleGraph
