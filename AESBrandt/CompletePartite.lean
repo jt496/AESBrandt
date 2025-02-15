@@ -56,6 +56,7 @@ lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι 
     rw [← e.map_rel_iff] at *
     exact (CompleteMultipartiteGraph.isCompletePartite _) h1 h2
 
+
 section FinDecRel
 variable [Fintype α] [DecidableRel G.Adj]
 lemma isCompletePartite_iff_of_fintype : G.IsCompletePartite ↔ ∃ (ι : Type u)
@@ -74,6 +75,7 @@ lemma IsCompletePartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteParti
             e.toEmbedding
 
 end FinDecRel
+variable (G)
 /--
 P2Complement is the graph on 3 vertices with one edge (i.e. the complement of path of length 2).
 It is a witness to not-complete-partiteness
@@ -84,7 +86,7 @@ structure IsP2Complement (v w₁ w₂ : α) : Prop where
 
 namespace IsP2Complement
 
-variable {v w₁ w₂ : α}
+variable {v w₁ w₂ : α} {G}
 lemma ne (p2 : G.IsP2Complement v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂ :=
   ⟨fun hvw1 ↦ p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 ↦ p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
 
@@ -94,6 +96,16 @@ lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= b
   exact ⟨ed.symm, ⟨n2, n1⟩⟩
 
 end IsP2Complement
+
+
+
+lemma exists_IsP2Complement_of_no_iso (h : ∀(ι : Type u) (V : ι → Type u) (_ : ∀ i, Nonempty (V i)), IsEmpty (G ≃g (completeMultipartiteGraph V))) :
+∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
+  
+  contrapose! h
+  simp only [not_isEmpty_iff]
+
+  sorry
 
 /-- If G is not complete-partite then it contains v w₁ w₂ such that
 G.IsP2Complement v w₁ w₂ -/

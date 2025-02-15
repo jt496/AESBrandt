@@ -31,8 +31,8 @@ lemma exists_maximal_supergraph (P : SimpleGraph V → Prop) (hG : P G) :
 
 /-- If there are no vertices then the minDegree is zero -/
 @[simp]
-lemma minDegree_eq_zero [DecidableRel G.Adj] [IsEmpty V] : G.minDegree = 0:= by
-  rw [minDegree,WithTop.untop'_eq_self_iff]
+lemma minDegree_of_isEmpty [DecidableRel G.Adj] [IsEmpty V] : G.minDegree = 0:= by
+  rw [minDegree,WithTop.untopD_eq_self_iff]
   right
   simp
 

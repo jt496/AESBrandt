@@ -36,9 +36,9 @@ private lemma card_le_two_of_four  (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ 
   · exact ⟨a,b,c,Or.inl rfl,Or.inr <| Or.inl rfl,Or.inr <| Or.inr <| Or.inl rfl,hab,hac,hbc⟩
 
 namespace SimpleGraph
-private lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
-(h2 : G.IsNClique r (Insert.insert b s)) (h2' : b ∉ s) (hadj : G.Adj a b) :
-    G.IsNClique (r + 1) (Insert.insert b ((Insert.insert a) s)) := by
+private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
+(h2 : G.IsNClique r (insert b s)) (h2' : b ∉ s) (hadj : G.Adj a b) :
+    G.IsNClique (r + 1) (insert b ((insert a) s)) := by
   apply h1.insert
   intro b hb
   obtain (rfl | h):=mem_insert.1 hb
@@ -48,13 +48,13 @@ private lemma IsNClique.insert_insert (h1 : G.IsNClique r (Insert.insert a s))
     · simp [h]
     · rintro rfl; contradiction
 
-private lemma IsNClique.insert_insert_erase (hs : IsNClique G r (Insert.insert a s))
-(hc : c ∈ s) (ha : a ∉ s) (had : ∀ w ∈ (Insert.insert a s), w ≠ c → G.Adj w b) :
-    IsNClique G r (Insert.insert a (Insert.insert b (erase s c))):= by
-  rw [insert_comm]
+private lemma IsNClique.insert_insert_erase (hs : IsNClique G r (insert a s))
+(hc : c ∈ s) (ha : a ∉ s) (had : ∀ w ∈ insert a s, w ≠ c → G.Adj w b) :
+    IsNClique G r (insert a (insert b (erase s c))):= by
+  have : a ≠ c:= by rintro rfl; contradiction
+  rw [insert_comm, ← erase_insert_of_ne this]
   simp_rw [adj_comm] at had
-  convert hs.insert_erase had (mem_insert_of_mem hc)
-  rw [erase_insert_of_ne]; rintro rfl; contradiction
+  exact hs.insert_erase (by aesop) (mem_insert_of_mem hc)
 
 variable (G)
 /-- A IsFiveWheel r structure in G is 3 vertices and two r-sets such that... -/

@@ -6,8 +6,8 @@ Authors: John Talbot, Lian Bremner Tattersall
 import AESBrandt.FiveWheel
 import AESBrandt.Finite
 import Mathlib.Combinatorics.SimpleGraph.Coloring
-import Mathlib.Algebra.BigOperators.Ring
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 /-!
@@ -50,7 +50,7 @@ variable [Fintype α] [DecidableEq α] {W X : Finset α}
 /-- Given lower bounds on non-degrees from W into X and into α we can bound degrees over W-/
 private lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
 (hy : ∀ y, j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
-    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) :=calc
+    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
       simp only [degree,card_eq_sum_ones]
       apply sum_comm'; intro x y; simp [and_comm,adj_comm]

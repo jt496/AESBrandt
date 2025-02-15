@@ -9,20 +9,6 @@ lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
 
 section DecidableEq
 variable[DecidableEq α]
-lemma IsNClique.erase_of_mem (hs : G.IsNClique n s) (ha : a ∈ s) :
-    G.IsNClique (n - 1) (s.erase a):=by
-  constructor
-  · apply hs.1.subset; simp
-  · rw [card_erase_of_mem ha, hs.2]
-
-lemma IsNClique.insert_erase (hs : G.IsNClique n s) (had: ∀ w ∈ s, w ≠ b → G.Adj a w) (hb : b ∈ s):
-    G.IsNClique n (Insert.insert a (erase s b)) := by
-  cases n with
-  | zero => apply absurd (isNClique_zero.1 hs ▸ hb) <| not_mem_empty _
-  | succ n =>
-    apply (hs.erase_of_mem hb).insert
-    intro w h; rw [mem_erase] at h
-    apply had w h.2 h.1
 
 /-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/
 lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc : (G ⊔ edge v w).IsNClique n s)
@@ -85,15 +71,9 @@ namespace MaximalCliqueFree
 lemma le_iff_eq (h : G.MaximalCliqueFree n) (hcf : H.CliqueFree n) : G ≤ H ↔ G = H :=
   ⟨fun hle ↦ h.eq_of_le hcf hle, le_of_eq⟩
 
-lemma _root_.SimpleGraph.IsTuranMaximal.maximalCliqueFree [Fintype α] [DecidableRel G.Adj]
-    (h : G.IsTuranMaximal n) : G.MaximalCliqueFree (n + 1) :=
-  ⟨h.1, fun _ hcf hle ↦ h.le_iff_eq hcf |>.1 hle |>.symm.le⟩
-
 variable (h : G.MaximalCliqueFree n) include h
 
 lemma not_cliqueFree_of_gt (h' : G < H) : ¬ H.CliqueFree n := h.not_prop_of_gt h'
-
-lemma not_gt_cliqueFree (h' : H.CliqueFree n) : ¬ G < H := h.not_gt h'
 
 lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
   constructor <;> intro h'
@@ -150,4 +130,15 @@ lemma not_cliqueFree_of_le_card [Fintype α] (hle : n ≤ Fintype.card α) : ¬ 
   hs.not_cliqueFree
 
 end MaximalCliqueFree
+
+section Turan
+variable [Fintype α] [DecidableRel G.Adj]
+lemma IsTuranMaximal.maximalCliqueFree (h : G.IsTuranMaximal n) : G.MaximalCliqueFree (n + 1) :=
+  ⟨h.1, fun _ hcf hle ↦ h.le_iff_eq hcf |>.1 hle |>.symm.le⟩
+
+variable [DecidableEq α]
+theorem not_cliqueFree_of_isTuranMaximal' (hn : r + 1 ≤ Fintype.card α) (hG : G.IsTuranMaximal r) :
+    ¬G.CliqueFree r := hG.maximalCliqueFree.not_cliqueFree_of_le_card hn
+
+end Turan
 end SimpleGraph
