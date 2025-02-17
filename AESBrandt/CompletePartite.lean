@@ -81,8 +81,8 @@ P2Complement is the graph on 3 vertices with one edge (i.e. the complement of pa
 It is a witness to not-complete-partiteness
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
-  edge : G.Adj w₁ w₂  -- w₁w₂ ∈ E(G)
-  nonedge : ¬ G.Adj v w₁ ∧ ¬ G.Adj v w₂ -- vw₁, vw₂ ∉ E(G)
+  edge : G.Adj w₁ w₂
+  nonedge : ¬ G.Adj v w₁ ∧ ¬ G.Adj v w₂
 
 namespace IsP2Complement
 
@@ -90,30 +90,20 @@ variable {v w₁ w₂ : α} {G}
 lemma ne (p2 : G.IsP2Complement v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂ :=
   ⟨fun hvw1 ↦ p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 ↦ p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
 
-/-- Can swap w₁ and w₂ in any IsP2Complement-/
+/-- Can swap `w₁` and `w₂` in any `IsP2Complement` -/
 lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= by
   obtain ⟨ed, ⟨n1, n2⟩⟩ := h
   exact ⟨ed.symm, ⟨n2, n1⟩⟩
 
 end IsP2Complement
 
-
-
-lemma exists_IsP2Complement_of_no_iso (h : ∀(ι : Type u) (V : ι → Type u) (_ : ∀ i, Nonempty (V i)), IsEmpty (G ≃g (completeMultipartiteGraph V))) :
-∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
-  
-  contrapose! h
-  simp only [not_isEmpty_iff]
-
-  sorry
-
-/-- If G is not complete-partite then it contains v w₁ w₂ such that
-G.IsP2Complement v w₁ w₂ -/
+/-- If `G` is not complete-partite then it contains `v, w₁, w₂` such that
+`G.IsP2Complement v w₁ w₂` -/
 lemma exists_isP2Complement_of_not_completePartite (h : ¬ IsCompletePartite G) :
     ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
   rw [IsCompletePartite, Transitive] at h
   push_neg at h
-  obtain ⟨w₁, v, w₂, h1, h2, h3⟩:=h
+  obtain ⟨w₁, v, w₂, h1, h2, h3⟩ := h
   rw [adj_comm] at h1
   exact ⟨v, w₁, w₂, h3, ⟨h1, h2⟩⟩
 

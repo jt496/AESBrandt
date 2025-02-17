@@ -1,6 +1,6 @@
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import AESBrandt.Clique
-
+-- NOTE this is all in PR #21479 aes_completeMultipartiteGraph
 namespace SimpleGraph
 /-- The canonical coloring of a completeMultiPartiteGraph. -/
 def CompleteMultipartiteGraph.coloring {ι : Type*} (V : ι → Type*) :
