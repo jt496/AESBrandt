@@ -22,3 +22,10 @@ lemma exists_maximal_supergraph (P : SimpleGraph V → Prop) (hG : P G) :
     use e, hd1.le.trans hle
 
 end SimpleGraph
+
+lemma exists_not_lt_of_fintype  [Fintype α] [Nonempty α] [Preorder α] :
+    ∃ b : α, ∀ c : α, ¬ b < c := by
+  by_contra! h
+  let f : ℕ → α := fun n ↦ Nat.rec Classical.ofNonempty (fun n fₙ ↦ (h fₙ).choose) n
+  exact not_injective_infinite_finite f
+    (strictMono_nat_of_lt_succ (fun n ↦ (h (f n)).choose_spec)).injective
