@@ -8,11 +8,12 @@ variable [Fintype V]
 for which `P H` holds. -/
 lemma exists_maximal_supergraph (P : SimpleGraph V → Prop) (hG : P G) :
     ∃ H, G ≤ H ∧ Maximal P H := by
-  have hwf : IsWellFounded (α := SimpleGraph V) (· > ·) := inferInstance
-  obtain ⟨H, hH, minH⟩ := WellFounded.has_min hwf.wf {H | G ≤ H ∧ P H } ⟨G, ⟨le_refl G, hG⟩⟩
-  use H, hH.1
-  rw [maximal_iff_forall_gt]
-  use hH.2, fun K hlt hf ↦ minH K ⟨(lt_of_le_of_lt hH.1 hlt).le, hf⟩ hlt
+  have hwf : IsWellFounded (SimpleGraph V) (· > ·) := inferInstance
+  obtain ⟨H, hH, minH⟩ := WellFounded.has_min hwf.wf {H | G ≤ H ∧ P H } ⟨_, ⟨le_rfl, hG⟩⟩
+  use H, hH.1, hH.2
+  intro K hk hf
+  by_contra! h
+  exact minH K ⟨hH.1.trans hf, hk⟩ <| lt_of_le_not_le hf h
 
 lemma exists_maximal_supergraph' (P : SimpleGraph V → Prop) (hG : P G) :
     ∃ H, G ≤ H ∧ Maximal P H := by
