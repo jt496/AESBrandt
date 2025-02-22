@@ -9,8 +9,8 @@ for which `P H` holds. -/
 lemma exists_maximal_supergraph (P : SimpleGraph V → Prop) (hG : P G) :
     ∃ H, G ≤ H ∧ Maximal P H := by
   have hwf : IsWellFounded (SimpleGraph V) (· > ·) := inferInstance
-  obtain ⟨H, h, minH⟩ := WellFounded.has_min hwf.wf {H | G ≤ H ∧ P H } ⟨_, ⟨le_rfl, hG⟩⟩
-  exact ⟨_,⟨h.1, h.2, fun _ hk hf ↦ (eq_of_ge_of_not_gt hf (minH _ ⟨h.1.trans hf, hk⟩)).le⟩⟩
+  obtain ⟨H, h, minH⟩ := WellFounded.has_min hwf.wf {H | G ≤ H ∧ P H} ⟨_, ⟨le_rfl, hG⟩⟩
+  exact ⟨_, ⟨h.1, h.2, fun _ hk hf ↦ (eq_of_ge_of_not_gt hf (minH _ ⟨h.1.trans hf, hk⟩)).le⟩⟩
 
 
 lemma exists_maximal_supergraph' (P : SimpleGraph V → Prop) (hG : P G) :
