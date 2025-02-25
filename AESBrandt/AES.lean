@@ -7,6 +7,7 @@ import AESBrandt.FiveWheel
 import Mathlib.Data.Fintype.Order
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Data.Fintype.Order
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
@@ -73,7 +74,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   | zero => simpa using hf
   | succ r =>
   -- First swap G for an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
-  obtain ⟨H, hmcfle, hmcf⟩ := Finite.exists_le_maximal (a := G) (p := fun H => H.CliqueFree (r + 2)) hf
+  obtain ⟨H, hmcfle, hmcf⟩ := exists_maximal_supergraph (fun H => H.CliqueFree (r + 2)) hf
   -- If we can (r + 1)-color H then we can (r + 1)-color G
   apply Colorable.mono_left hmcfle
   by_contra! hnotcol
