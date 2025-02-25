@@ -2,34 +2,38 @@ import Mathlib.Combinatorics.SimpleGraph.Turan
 import Mathlib.Order.Minimal
 namespace SimpleGraph
 open Finset
-variable {α : Type*} {G : SimpleGraph α}  {n : ℕ} {s : Finset α} {v w : α}
+variable {α : Type*} {G : SimpleGraph α}  {n : ℕ}
 
 lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
   fun h ↦ h ∅ <| isNClique_empty.mpr rfl
 
+lemma IsClique.sdiff_of_sup_edge {v w : α} {s : Set α} (hc : (G ⊔ edge v w).IsClique s) : G.IsClique (s \ {v}) := by
+  intro x hx y hy hxy
+  have := hc hx.1 hy.1 hxy
+  rw [sup_adj, edge_adj] at this
+  aesop
+
 section DecidableEq
 variable[DecidableEq α]
+lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} {s : Finset α} (hc : (G ⊔ edge v w).IsNClique n s)
+(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) where
+  isClique := coe_erase v _ ▸ hc.1.sdiff_of_sup_edge
+  card_eq  := by rw [card_erase_of_mem hx, hc.2]
 
-/-- If s is a clique in G ⊔ {xy} then s-{x} is a clique in G -/
-lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} (hc : (G ⊔ edge v w).IsNClique n s)
-(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) := by
-  constructor
-  · intro u hu v hv huvne
-    push_cast at *
-    obtain (h | h):= hc.1 hu.1 hv.1 huvne
-    · exact h
-    · simp only [edge_adj, Set.mem_singleton_iff, Sym2.eq, Sym2.rel_iff', Prod.mk.injEq,
-        Prod.swap_prod_mk, ne_eq] at h
-      exfalso; obtain ⟨⟨rfl,rfl⟩|⟨rfl,rfl⟩,_⟩ := h
-      · exact hu.2 <| Set.mem_singleton _
-      · exact hv.2 <| Set.mem_singleton _
-  · rw [card_erase_of_mem hx, hc.2]
+lemma CliqueFree.sup_edge' (h : G.CliqueFree n) (v w : α) :
+  (G ⊔ edge v w).CliqueFree (n + 1) := by
+  intro s hs
+  have := hs.1.sdiff_of_sup_edge
+  by_cases hv : v ∈ s
+  · exact (hs.erase_of_sup_edge_of_mem hv).not_cliqueFree h
+  · exact (h.mono (Nat.le_succ n)) (s \ {v}) ⟨by rwa [coe_sdiff, coe_singleton],
+      by rw [sdiff_eq_left.2 <| disjoint_singleton_right.2 hv, hs.2]⟩
 
 /-- If G is Kₙ₊₁-free and s is an n-clique then every vertex is not adjacent to something in s -/
 lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.CliqueFree (n + 1))
 (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
   by_contra! hf
-  apply (hc.insert hf).not_cliqueFree h
+  exact (hc.insert hf).not_cliqueFree h
 
 end DecidableEq
 section PR21479aes_completeMultipartiteGraph
