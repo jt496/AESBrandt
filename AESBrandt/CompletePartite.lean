@@ -50,12 +50,11 @@ def IsCompletePartite.iso (h : G.IsCompletePartite) :
 lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι → Type u)
   (_ : ∀ i, Nonempty (V i)), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
-  · exact ⟨_, _,  fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
-  · obtain ⟨_,_,_,⟨e⟩⟩ := h
+  · exact ⟨_, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
+  · obtain ⟨_, _, _, ⟨e⟩⟩ := h
     intro _ _ _ h1 h2
     rw [← e.map_rel_iff] at *
     exact (CompleteMultipartiteGraph.isCompletePartite _) h1 h2
-
 
 section FinDecRel
 variable [Fintype α] [DecidableRel G.Adj]
@@ -65,7 +64,7 @@ lemma isCompletePartite_iff_of_fintype : G.IsCompletePartite ↔ ∃ (ι : Type 
   constructor <;> intro h
   · have : DecidableRel h.setoid.r := inferInstanceAs <| DecidableRel (¬ G.Adj · ·)
     exact ⟨_, inferInstance, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
-  · obtain ⟨ι,_,V,_,⟨e⟩⟩ := h
+  · obtain ⟨ι, _, V, _, ⟨e⟩⟩ := h
     exact isCompletePartite_iff.mpr ⟨ι, V, inferInstance, ⟨e⟩⟩
 
 lemma IsCompletePartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompletePartite)
