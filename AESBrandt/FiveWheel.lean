@@ -60,7 +60,7 @@ variable (G)
 /-- A `IsFiveWheel r` structure in `G` is `3` vertices and two `r` - sets satisfying ... -/
 structure IsFiveWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
   isP2Complement : G.IsP2Complement v w₁ w₂ -- `w₁w₂ ∈ E(G)` but `vw₁, vw₂ ∉ E(G)`
-  disj : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
+  disjoint : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
   cliques : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
 
@@ -80,7 +80,7 @@ lemma symm :  G.IsFiveWheel r v w₂ w₁ t s :=
   ⟨p2.symm, ⟨d2, d1, d4, d3⟩, ⟨c3, c4, c1, c2⟩⟩
 
 /-- We automatically have w₁ ∉ t and w₂ ∉ s for any 5-wheel -/
-lemma disj' : w₁ ∉ t ∧ w₂ ∉ s:=by
+lemma disjoint' : w₁ ∉ t ∧ w₂ ∉ s:= by
   constructor <;> intro hf
   · apply hw.isP2Complement.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..) (mem_insert_of_mem hf)
        hw.isP2Complement.ne.1
@@ -90,9 +90,9 @@ lemma disj' : w₁ ∉ t ∧ w₂ ∉ s:=by
 lemma card_cliques : s.card = r ∧ t.card = r:=by
   constructor
   · have := hw.cliques.1.2
-    rwa [card_insert_of_not_mem hw.disj.1, Nat.succ_inj] at this
+    rwa [card_insert_of_not_mem hw.disjoint.1, Nat.succ_inj] at this
   · have := hw.cliques.2.2.1.2
-    rwa [card_insert_of_not_mem hw.disj.2.1, Nat.succ_inj] at this
+    rwa [card_insert_of_not_mem hw.disjoint.2.1, Nat.succ_inj] at this
 
 /-- A 5-wheel consists of the 3 vertices v, w₁, w₂, and the r-sets s , t but the size will vary
 depending on how large |s ∩ t| is, so a useful identity is
@@ -101,25 +101,25 @@ lemma card_verts_add_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) +
   rw [card_insert_of_not_mem, add_comm, card_insert_of_not_mem, card_insert_of_not_mem]
   · simp_rw [←add_assoc, card_inter_add_card_union, two_mul, hw.card_cliques.1, hw.card_cliques.2]
   · rw [mem_union, not_or]
-    exact ⟨hw.disj'.2, hw.disj.2.2.2⟩
+    exact ⟨hw.disjoint'.2, hw.disjoint.2.2.2⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isP2Complement.edge.ne, hw.disj.2.2.1,hw.disj'.1⟩
+    exact ⟨hw.isP2Complement.edge.ne, hw.disjoint.2.2.1,hw.disjoint'.1⟩
   · rw [mem_insert, mem_insert, mem_union]
     push_neg
-    exact ⟨hw.isP2Complement.ne.1, hw.isP2Complement.ne.2, hw.disj.1, hw.disj.2.1⟩
+    exact ⟨hw.isP2Complement.ne.1, hw.isP2Complement.ne.2, hw.disjoint.1, hw.disjoint.2.1⟩
 
 /-- Every 5-wheel contains at least 3 vertices: v w₁ w₂-/
 lemma three_le_card_verts : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
-  ⟨v, by simp, w₁, by simp, w₂, by simp, hw.isP2Complement.ne.1,
+  ⟨v, mem_insert_self .., w₁, by simp, w₂, by simp, hw.isP2Complement.ne.1,
     hw.isP2Complement.ne.2, hw.isP2Complement.edge.ne⟩
 
 /-- If s ∩ t contains an r-set then then s ∪ {w₁,w₂} is Kᵣ₊₂ so -/
-lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r:=by
+lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r := by
   contrapose! h
-  have hs : s ∩ t = s := eq_of_subset_of_card_le inter_subset_left (hw.card_cliques.1 ▸ h)
-  have ht : s ∩ t = t := eq_of_subset_of_card_le inter_subset_right (hw.card_cliques.2 ▸ h)
+  have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_cliques.1 ▸ h)
+  have ht := eq_of_subset_of_card_le inter_subset_right (hw.card_cliques.2 ▸ h)
   exact (hw.cliques.2.1.insert_insert (hs ▸ ht.symm ▸ hw.cliques.2.2.2)
-    hw.disj'.2 hw.isP2Complement.edge).not_cliqueFree
+    hw.disjoint'.2 hw.isP2Complement.edge).not_cliqueFree
 
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal 5-wheel -/
@@ -147,7 +147,7 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   obtain ⟨d, hd, hdj⟩ := hw.cliques.2.2.1.exists_not_adj_of_cliqueFree_succ h x
   have := hw.isP2Complement.edge.ne
   have := hw.isP2Complement.ne
-  have := hw.disj'
+  have := hw.disjoint'
   refine ⟨a, b, c, d, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
   <;> simp only [mem_insert] at ha hb hc hd;
   · aesop
@@ -155,17 +155,17 @@ lemma exist_non_adj_core (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
     obtain (rfl | ha) := ha;
     · obtain (rfl | hd ):= hd
       · apply  hw.isP2Complement.ne.1 rfl
-      · apply hw.disj'.1  hd
+      · apply hw.disjoint'.1  hd
     · obtain (rfl | hd ):= hd
-      ·  apply hw.disj.1 ha
+      ·  apply hw.disjoint.1 ha
       ·  apply haj <| hWc  <| mem_inter.2 ⟨ha, hd⟩
   · rintro rfl;
     obtain (rfl | hb) := hb;
     · obtain (rfl | hc ):= hc
       · apply  hw.isP2Complement.ne.2 rfl
-      · apply hw.disj'.2  hc
+      · apply hw.disjoint'.2  hc
     · obtain (rfl | hc ):= hc
-      ·  apply hw.disj.2.1 hb
+      ·  apply hw.disjoint.2.1 hb
       ·  apply hbj <| hWc  <| mem_inter.2 ⟨hc, hb⟩
   · aesop
   · aesop
@@ -176,14 +176,13 @@ open Classical
 lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.Adj x y)
 (hsmall : #((insert v (insert w₁ (insert w₂ (s ∪ t)))).filter (fun z ↦ ¬ G.Adj x z)) ≤ 2) :
     ∃ a b, a ∉ t ∧ b ∉ s ∧
-    (G.IsFiveWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b))) := by
-  let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
+    G.IsFiveWheel r v w₁ w₂ (insert x (s.erase a)) (insert x (t.erase b)) := by
+  let W := insert v <| insert w₁ <| insert w₂ (s ∪ t)
   obtain ⟨a, b, c, d, ha, haj, hb, hbj, hc, hcj, hd, hdj, hab, had, hbc, hat, hbs⟩ :=
     hw.exist_non_adj_core h hWc
-  have ⟨vnew1, vnew2⟩ := hw.isP2Complement.ne
-  have ac_bd : c = a ∧ d = b:= by
-    apply card_le_two_of_four hab had hbc
-    apply le_trans (card_le_card _) hsmall
+  have ⟨_,_⟩ := hw.isP2Complement.ne
+  have ac_bd : c = a ∧ d = b := by
+    apply card_le_two_of_four hab had hbc <| hsmall.trans' <| card_le_card _
     intro z; simp_rw [mem_filter, mem_insert, mem_singleton] at *
     aesop
   simp only [ac_bd.1, ac_bd.2, mem_insert] at ha hb hc hd
@@ -199,24 +198,24 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
       · contradiction
       · exact hd
     · exact hb
-  have habv: v ≠ a ∧ v ≠ b := ⟨fun hf ↦ hw.disj.1 (hf ▸ has),fun hf ↦ hw.disj.2.1 (hf ▸ hbt)⟩
-  have haw2: a ≠ w₂ := fun hf ↦ hw.disj'.2 (hf ▸ has)
-  have hbw1: b ≠ w₁ := fun hf ↦ hw.disj'.1 (hf ▸ hbt)
+  have habv : v ≠ a ∧ v ≠ b := ⟨fun hf ↦ hw.disjoint.1 (hf ▸ has),fun hf ↦ hw.disjoint.2.1 (hf ▸ hbt)⟩
+  have haw2 : a ≠ w₂ := fun hf ↦ hw.disjoint'.2 (hf ▸ has)
+  have hbw1 : b ≠ w₁ := fun hf ↦ hw.disjoint'.1 (hf ▸ hbt)
   have hxvw12 : x ≠ v ∧ x ≠ w₁ ∧ x ≠ w₂ := by
     refine ⟨?_, ?_, ?_⟩
     · by_cases hax : x = a <;> rintro rfl
-      · exact hw.disj.1 (hax ▸ has)
+      · exact hw.disjoint.1 (hax ▸ has)
       · exact haj <| hw.cliques.1.1 (mem_insert_self _ _) (mem_insert_of_mem has) hax
     · by_cases hax : x = a <;> rintro rfl
-      · exact hw.disj.2.2.1 (hax ▸ has)
+      · exact hw.disjoint.2.2.1 (hax ▸ has)
       · exact haj <| hw.cliques.2.1.1 (mem_insert_self ..) (mem_insert_of_mem has) hax
     · by_cases hbx : x = b <;> rintro rfl
-      · exact hw.disj.2.2.2 (hbx ▸ hbt)
+      · exact hw.disjoint.2.2.2 (hbx ▸ hbt)
       · exact hbj <| hw.cliques.2.2.2.1 (mem_insert_self ..) (mem_insert_of_mem hbt) hbx
-  have wadj: ∀ w ∈ W, w ≠ a → w ≠ b → G.Adj w x := by
+  have wadj : ∀ w ∈ W, w ≠ a → w ≠ b → G.Adj w x := by
     intro z hz haz hbz
     by_contra! hf
-    have gt2: 2 < #(W.filter (fun z ↦ ¬ G.Adj x z)) := by
+    have gt2 : 2 < #(W.filter (fun z ↦ ¬ G.Adj x z)) := by
       refine two_lt_card.2 ⟨a,?_,b ,?_ ,z ,?_ ,hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
       · aesop
       · aesop
@@ -228,15 +227,15 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
   refine ⟨a, b, hat, hbs, ⟨hw.isP2Complement, ?_, ?_⟩⟩
 -- We first prove disjointedness, i.e. v w₁ w₂ are not in the various new cliques
   · simp_rw [mem_insert, not_or]
-    exact ⟨⟨hxvw12.1.symm, fun hv ↦ hw.disj.1 (mem_erase.1 hv).2 ⟩,
-           ⟨hxvw12.1.symm, fun hv ↦ hw.disj.2.1 (mem_erase.1 hv).2⟩,
-           ⟨hxvw12.2.1.symm, fun hw1 ↦ hw.disj.2.2.1 (mem_erase.1 hw1).2⟩,
-           ⟨hxvw12.2.2.symm, fun hv ↦ hw.disj.2.2.2 (mem_erase.1 hv).2⟩⟩
+    exact ⟨⟨hxvw12.1.symm, fun hv ↦ hw.disjoint.1 (mem_erase.1 hv).2 ⟩,
+           ⟨hxvw12.1.symm, fun hv ↦ hw.disjoint.2.1 (mem_erase.1 hv).2⟩,
+           ⟨hxvw12.2.1.symm, fun hw1 ↦ hw.disjoint.2.2.1 (mem_erase.1 hw1).2⟩,
+           ⟨hxvw12.2.2.symm, fun hv ↦ hw.disjoint.2.2.2 (mem_erase.1 hv).2⟩⟩
 -- Finally we prove that the new cliques are indeed (r + 1)-cliques
-  · refine ⟨hw.cliques.1.insert_insert_erase has hw.disj.1 (fun z hz hz' ↦ wadj _ (by aesop) hz' ?_),
-      hw.cliques.2.1.insert_insert_erase has hw.disj.2.2.1 (fun z hz hz' ↦  wadj _ (by aesop) hz' ?_),
-      hw.cliques.2.2.1.insert_insert_erase hbt hw.disj.2.1 (fun z hz hz' ↦  wadj _ (by aesop)  ?_ hz'),
-      hw.cliques.2.2.2.insert_insert_erase hbt hw.disj.2.2.2 (fun z hz hz' ↦ wadj _ (by aesop) ?_ hz')⟩
+  · refine ⟨hw.cliques.1.insert_insert_erase has hw.disjoint.1 (fun z hz hz' ↦ wadj _ (by aesop) hz' ?_),
+      hw.cliques.2.1.insert_insert_erase has hw.disjoint.2.2.1 (fun z hz hz' ↦  wadj _ (by aesop) hz' ?_),
+      hw.cliques.2.2.1.insert_insert_erase hbt hw.disjoint.2.1 (fun z hz hz' ↦  wadj _ (by aesop)  ?_ hz'),
+      hw.cliques.2.2.2.insert_insert_erase hbt hw.disjoint.2.2.2 (fun z hz hz' ↦ wadj _ (by aesop) ?_ hz')⟩
     <;> rintro rfl <;> rw [mem_insert] at hz;
     · exact habv.2.symm (hz.resolve_right hbs)
     · exact hbw1 (hz.resolve_right hbs)
@@ -244,8 +243,8 @@ lemma bigger_wheel (h: G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t → G.
     · exact haw2 (hz.resolve_right hat)
 
 /-- For any x there is a 5-wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
-lemma one_le_non_adj  (hcf: G.CliqueFree (r + 2)) (x : α) :
-    1 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter (fun z ↦ ¬ G.Adj  x z)):=by
+lemma one_le_non_adj (hcf: G.CliqueFree (r + 2)) (x : α) :
+    1 ≤ #(((insert v (insert w₁ (insert w₂ (s ∪ t))))).filter (fun z ↦ ¬ G.Adj  x z)) := by
   apply card_pos.2
   obtain ⟨_, hz⟩ := hw.cliques.2.1.exists_not_adj_of_cliqueFree_succ hcf x
   exact ⟨_, mem_filter.2 ⟨by aesop, hz.2⟩⟩
@@ -262,9 +261,8 @@ lemma three_le_nonadj (hcf : G.CliqueFree (r + 2)) (hWc: ∀ {y}, y ∈ s ∩ t 
   apply Nat.not_succ_le_self #(s ∩ t)
   rw [Nat.succ_eq_add_one, ← card_insert_of_not_mem fun hx ↦ G.loopless x <| hWc hx] at *
   apply ((insert_inter_distrib _ _ x).symm ▸ hmax _ _ hbW).trans'
-  apply card_le_card
-  apply insert_subset_insert
+              <| card_le_card <| insert_subset_insert ..
   rw [erase_inter, inter_erase, erase_eq_of_not_mem <| not_mem_mono inter_subset_left hw2,
-    erase_eq_of_not_mem fun hf ↦ hw1 <| mem_of_mem_inter_right hf]
+        erase_eq_of_not_mem fun hf ↦ hw1 <| mem_of_mem_inter_right hf]
 
 end SimpleGraph.IsFiveWheel
