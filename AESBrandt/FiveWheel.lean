@@ -67,11 +67,11 @@ structure IsFiveWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop wher
 variable {G}
 /-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a 5-wheel like graph -/
 lemma exists_IsFiveWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
-    ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t := by
-  obtain ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_isCompletePartite hnc
-  obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.nonedge.1
-  obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.nonedge.2
-  exact ⟨v, w₁, w₂, s, t, h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩
+    ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t :=
+  let ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_isCompletePartite hnc
+  let ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.nonedge.1
+  let ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.nonedge.2
+  ⟨v, w₁, w₂, s, t, h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩
 
 namespace IsFiveWheel
 variable {x v w₁ w₂ : α} {s t : Finset α} (hw : G.IsFiveWheel r v w₁ w₂ s t) include hw
