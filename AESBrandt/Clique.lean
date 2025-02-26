@@ -7,35 +7,35 @@ variable {α : Type*} {G : SimpleGraph α}  {n : ℕ}
 lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
   fun h ↦ h ∅ <| isNClique_empty.mpr rfl
 
-lemma IsClique.sdiff_of_sup_edge {v w : α} {s : Set α} (hc : (G ⊔ edge v w).IsClique s) : G.IsClique (s \ {v}) := by
+lemma IsClique.sdiff_of_sup_edge {v w : α} {s : Set α} (hc : (G ⊔ edge v w).IsClique s) :
+    G.IsClique (s \ {v}) := by
   intro x hx y hy hxy
   have := hc hx.1 hy.1 hxy
   rw [sup_adj, edge_adj] at this
   aesop
 
-section DecidableEq
-variable[DecidableEq α]
-lemma IsNClique.erase_of_sup_edge_of_mem  {v w : α} {s : Finset α} (hc : (G ⊔ edge v w).IsNClique n s)
-(hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) where
+lemma CliqueFree.mem_of_sup_edge_isNClique {t : Finset α} {n : ℕ} (h : G.CliqueFree n)
+    (hc : (G ⊔ edge x y).IsNClique n t) : x ∈ t := by
+  by_contra! hf
+  classical
+  have ht : (t : Set α) \ {x} = t := sdiff_eq_left.mpr <| Set.disjoint_singleton_right.mpr hf
+  exact h t ⟨ht ▸ hc.1.sdiff_of_sup_edge, hc.2⟩
+
+lemma IsNClique.erase_of_sup_edge_of_mem [DecidableEq α] {v w : α} {s : Finset α}
+    (hc : (G ⊔ edge v w).IsNClique n s) (hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) where
   isClique := coe_erase v _ ▸ hc.1.sdiff_of_sup_edge
   card_eq  := by rw [card_erase_of_mem hx, hc.2]
 
-lemma CliqueFree.sup_edge' (h : G.CliqueFree n) (v w : α) :
-  (G ⊔ edge v w).CliqueFree (n + 1) := by
-  intro s hs
-  have := hs.1.sdiff_of_sup_edge
-  by_cases hv : v ∈ s
-  · exact (hs.erase_of_sup_edge_of_mem hv).not_cliqueFree h
-  · exact (h.mono (Nat.le_succ n)) (s \ {v}) ⟨by rwa [coe_sdiff, coe_singleton],
-      by rw [sdiff_eq_left.2 <| disjoint_singleton_right.2 hv, hs.2]⟩
+open Classical in
+lemma CliqueFree.sup_edge' (h : G.CliqueFree n) (v w : α) : (G ⊔ edge v w).CliqueFree (n + 1) :=
+    fun _ hs ↦ (hs.erase_of_sup_edge_of_mem <|
+        (h.mono (Nat.le_succ n)).mem_of_sup_edge_isNClique hs).not_cliqueFree h
 
-/-- If G is Kₙ₊₁-free and s is an n-clique then every vertex is not adjacent to something in s -/
-lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s) (h : G.CliqueFree (n + 1))
-(x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ [DecidableEq α] (hc : G.IsNClique n s)
+    (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
   by_contra! hf
   exact (hc.insert hf).not_cliqueFree h
 
-end DecidableEq
 section PR21479aes_completeMultipartiteGraph
 /-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
 noncomputable def CompleteMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
@@ -76,7 +76,7 @@ variable (h : G.MaximalCliqueFree n) include h
 
 lemma not_cliqueFree_of_gt (h' : G < H) : ¬ H.CliqueFree n := h.not_prop_of_gt h'
 
-lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
+protected lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
   constructor <;> intro h'
   · have ht := (⊤ : SimpleGraph α).not_cliqueFree_card_of_top_embedding Embedding.refl
     contrapose! ht
@@ -86,29 +86,15 @@ lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
 protected lemma ne_top_iff [Fintype α] : G ≠ ⊤ ↔ n ≤ Fintype.card α := by
   rw [ne_eq, h.eq_top_iff, Nat.not_lt]
 
-/--
-If we add a new edge to a maximally n-clique-free graph we get an n-clique containing x and y -/
 protected lemma sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y) :
    ∃ t, (G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t := by
   have := h.not_cliqueFree_of_gt <| G.lt_sup_edge _ _ hne hn
   simp only [CliqueFree, not_forall, not_not] at this
   obtain ⟨t, hc⟩ := this
   use t, hc
-  by_contra! hf
-  apply h.1 t
-  refine ⟨?_, hc.2⟩
-  intro _ hu _ hv hne
-  obtain (h | h) := hc.1 hu hv hne
-  · exact h
-  · rw [edge_adj, ne_eq] at h
-    exfalso
-    obtain ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, _⟩ := h
-    · apply hf hu hv
-    · apply hf hv hu
+  exact ⟨h.1.mem_of_sup_edge_isNClique hc, h.1.mem_of_sup_edge_isNClique (edge_comm _ _ ▸ hc)⟩
 
 variable [DecidableEq α]
-/-- If G is maximally K_n-free and xy ∉ E(G) then there is a set s such that
-s ∪ {x} and s ∪ {y} are both (n - 1)-cliques -/
 lemma exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
     ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
   obtain ⟨t, hc, xym⟩ := h.sup_edge hne hn
@@ -122,9 +108,8 @@ lemma exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
 
 lemma exists_of_le_card [Fintype α] (h' : n ≤ Fintype.card α) : ∃ x y s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧
   G.IsNClique (n - 1) (insert y s) := by
-  obtain ⟨x, y, hne, hna⟩ := G.ne_top_iff.1 (h.ne_top_iff.2 h')
-  use x, y
-  apply h.exists_of_not_adj hne hna
+  obtain ⟨_, _, hne, hna⟩ := G.ne_top_iff.1 <| h.ne_top_iff.2 h'
+  exact ⟨_, _, h.exists_of_not_adj hne hna⟩
 
 lemma not_cliqueFree_of_le_card [Fintype α] (hle : n ≤ Fintype.card α) : ¬ G.CliqueFree (n - 1) :=
   have ⟨_,_,_,_,_,hs,_⟩ := h.exists_of_le_card hle
