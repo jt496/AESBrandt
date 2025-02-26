@@ -26,15 +26,18 @@ lemma IsNClique.erase_of_sup_edge_of_mem [DecidableEq α] {v w : α} {s : Finset
   isClique := coe_erase v _ ▸ hc.1.sdiff_of_sup_edge
   card_eq  := by rw [card_erase_of_mem hx, hc.2]
 
-open Classical in
+section classical
+open Classical
 lemma CliqueFree.sup_edge' (h : G.CliqueFree n) (v w : α) : (G ⊔ edge v w).CliqueFree (n + 1) :=
     fun _ hs ↦ (hs.erase_of_sup_edge_of_mem <|
         (h.mono (Nat.le_succ n)).mem_of_sup_edge_isNClique hs).not_cliqueFree h
 
-lemma IsNClique.exists_not_adj_of_cliqueFree_succ [DecidableEq α] (hc : G.IsNClique n s)
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
     (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
   by_contra! hf
   exact (hc.insert hf).not_cliqueFree h
+
+end classical
 
 section PR21479aes_completeMultipartiteGraph
 /-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
