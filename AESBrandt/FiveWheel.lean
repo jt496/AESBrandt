@@ -57,9 +57,9 @@ private lemma IsNClique.insert_insert_erase (hs : IsNClique G r (insert a s)) (h
   exact hs.insert_erase (by aesop) (mem_insert_of_mem hc)
 
 variable (G)
-/-- A IsFiveWheel r structure in G is 3 vertices and two r-sets such that... -/
+/-- A `IsFiveWheel r` structure in `G` is `3` vertices and two `r` - sets satisfying ... -/
 structure IsFiveWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
-  isP2Complement : G.IsP2Complement v w₁ w₂ -- w₁w₂ ∈ E(G) but vw₁,vw₂ ∉ E(G)
+  isP2Complement : G.IsP2Complement v w₁ w₂ -- `w₁w₂ ∈ E(G)` but `vw₁, vw₂ ∉ E(G)`
   disj : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
   cliques : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
@@ -68,7 +68,7 @@ variable {G}
 /-- If G contains a IsP2Complement and is maximal Kᵣ₊₂-free then we have a 5-wheel like graph -/
 lemma exists_IsFiveWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
     ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t := by
-  obtain ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_completePartite hnc
+  obtain ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_isCompletePartite hnc
   obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.nonedge.1
   obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.nonedge.2
   exact ⟨v, w₁, w₂, s, t, h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩

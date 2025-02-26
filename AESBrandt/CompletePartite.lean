@@ -31,7 +31,7 @@ abbrev IsCompletePartite.setoid (h : G.IsCompletePartite) : Setoid α :=
 lemma CompleteMultipartiteGraph.isCompletePartite {ι : Type*} (V : ι → Type*) :
     (completeMultipartiteGraph V).IsCompletePartite := by
   intro
-  simp_all
+  aesop
 
 def IsCompletePartite.iso (h : G.IsCompletePartite) :
     G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
@@ -76,8 +76,8 @@ lemma IsCompletePartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteParti
 end FinDecRel
 variable (G)
 /--
-P2Complement is the graph on 3 vertices with one edge (i.e. the complement of path of length 2).
-It is a witness to not-complete-partiteness
+The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
+present between these three vertices. It is a witness to not-complete-partiteness of `G`
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂
@@ -89,7 +89,6 @@ variable {v w₁ w₂ : α} {G}
 lemma ne (p2 : G.IsP2Complement v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂ :=
   ⟨fun hvw1 ↦ p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 ↦ p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
 
-/-- Can swap `w₁` and `w₂` in any `IsP2Complement` -/
 lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= by
   obtain ⟨ed, ⟨n1, n2⟩⟩ := h
   exact ⟨ed.symm, ⟨n2, n1⟩⟩
@@ -98,7 +97,7 @@ end IsP2Complement
 
 /-- If `G` is not complete-partite then it contains `v, w₁, w₂` such that
 `G.IsP2Complement v w₁ w₂` -/
-lemma exists_isP2Complement_of_not_completePartite (h : ¬ IsCompletePartite G) :
+lemma exists_isP2Complement_of_not_isCompletePartite (h : ¬ IsCompletePartite G) :
     ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
   rw [IsCompletePartite, Transitive] at h
   push_neg at h
