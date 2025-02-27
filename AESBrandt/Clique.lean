@@ -89,18 +89,14 @@ protected lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by
 protected lemma ne_top_iff [Fintype α] : G ≠ ⊤ ↔ n ≤ Fintype.card α := by
   rw [ne_eq, h.eq_top_iff, Nat.not_lt]
 
-protected lemma sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y) :
-   ∃ t, (G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t := by
-  have := h.not_cliqueFree_of_gt <| G.lt_sup_edge _ _ hne hn
-  simp only [CliqueFree, not_forall, not_not] at this
-  obtain ⟨t, hc⟩ := this
-  use t, hc
-  exact ⟨h.1.mem_of_sup_edge_isNClique hc, h.1.mem_of_sup_edge_isNClique (edge_comm _ _ ▸ hc)⟩
+lemma exists_isNClique_sup_edge (hne : x ≠ y) (hn : ¬ G.Adj x y) :
+   ∃ t, (G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t :=
+  let ⟨t, hc⟩ := not_forall_not.1 <| h.not_cliqueFree_of_gt <| G.lt_sup_edge _ _ hne hn
+  ⟨t, hc, ⟨h.1.mem_of_sup_edge_isNClique hc, h.1.mem_of_sup_edge_isNClique (edge_comm _ _ ▸ hc)⟩⟩
 
-variable [DecidableEq α]
-lemma exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
+lemma exists_of_not_adj [DecidableEq α] (hne : x ≠ y) (hn : ¬ G.Adj x y) :
     ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
-  obtain ⟨t, hc, xym⟩ := h.sup_edge hne hn
+  obtain ⟨t, hc, xym⟩ := h.exists_isNClique_sup_edge hne hn
   use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
   rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
       insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
@@ -109,14 +105,20 @@ lemma exists_of_not_adj (hne : x ≠ y) (hn : ¬ G.Adj x y) :
   | succ n =>
     exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
 
-lemma exists_of_le_card [Fintype α] (h' : n ≤ Fintype.card α) : ∃ x y s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧
-  G.IsNClique (n - 1) (insert y s) := by
-  obtain ⟨_, _, hne, hna⟩ := G.ne_top_iff.1 <| h.ne_top_iff.2 h'
-  exact ⟨_, _, h.exists_of_not_adj hne hna⟩
-
-lemma not_cliqueFree_of_le_card [Fintype α] (hle : n ≤ Fintype.card α) : ¬ G.CliqueFree (n - 1) :=
-  have ⟨_,_,_,_,_,hs,_⟩ := h.exists_of_le_card hle
-  hs.not_cliqueFree
+lemma not_cliqueFree_of_le_card [Fintype α] (hle : n - 1 ≤ Fintype.card α) :
+    ¬ G.CliqueFree (n - 1) := by
+  classical
+  cases n with
+  | zero => exact not_cliqueFree_zero
+  | succ n =>
+  cases hle.lt_or_eq with
+  | inl hlt =>
+    intro hf
+    obtain ⟨_,_, hne, hn⟩ := G.ne_top_iff.1 <| h.ne_top_iff.2 hlt
+    exact (h.not_cliqueFree_of_gt <| G.lt_sup_edge _ _ hne hn) <| hf.sup_edge _ _
+  | inr heq =>
+    exact heq ▸ (h.eq_top_iff.2 (Nat.lt_succ.2 heq.symm.le) ▸
+                 (⊤ : SimpleGraph α).not_cliqueFree_card_of_top_embedding Embedding.refl)
 
 end MaximalCliqueFree
 
@@ -126,7 +128,7 @@ lemma IsTuranMaximal.maximalCliqueFree (h : G.IsTuranMaximal n) : G.MaximalCliqu
   ⟨h.1, fun _ hcf hle ↦ h.le_iff_eq hcf |>.1 hle |>.symm.le⟩
 
 variable [DecidableEq α]
-theorem not_cliqueFree_of_isTuranMaximal' (hn : r + 1 ≤ Fintype.card α) (hG : G.IsTuranMaximal r) :
+theorem not_cliqueFree_of_isTuranMaximal' (hn : r ≤ Fintype.card α) (hG : G.IsTuranMaximal r) :
     ¬G.CliqueFree r := hG.maximalCliqueFree.not_cliqueFree_of_le_card hn
 
 end Turan
