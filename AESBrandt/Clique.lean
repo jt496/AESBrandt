@@ -67,7 +67,7 @@ protected lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := 
   · exact fun _ _ hne ↦ h ▸ hne
 
 variable {G} {n : ℕ}
-/-- A graph G is maximally Kᵣ-free if it doesn't contain Kᵣ but any supergraph does contain Kᵣ -/
+/-- A graph `G` is `MaximalCliqueFree n` if it is maximal wrt to not containing an `n`-clique -/
 abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop := Maximal (fun H => H.CliqueFree n) G
 
 namespace MaximalCliqueFree
