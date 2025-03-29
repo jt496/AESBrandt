@@ -38,20 +38,17 @@ lemma completeMultipartiteGraph.isCompleteMultipartite {ι : Type*} (V : ι → 
 `completeMultipartiteGraph` -/
 def IsCompleteMultipartite.iso (h : G.IsCompleteMultipartite) :
     G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
-  toFun := fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩
+  toFun := fun v ↦ ⟨_, ⟨v, Quotient.mk_out v⟩⟩
   invFun := fun ⟨_, x⟩ ↦  x.1
-  left_inv := fun v ↦ rfl
-  right_inv := fun ⟨_, x⟩ ↦ by
-    refine Sigma.subtype_ext ?_ rfl
-    rw [Quotient.mk_eq_iff_out]
-    exact h.setoid.symm x.2
+  left_inv := fun _ ↦ rfl
+  right_inv := fun ⟨_, x⟩ ↦ Sigma.subtype_ext (Quotient.mk_eq_iff_out.2 <| h.setoid.symm x.2) rfl
   map_rel_iff' := by
     simp_rw [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
     intros; change ¬¬ G.Adj _ _ ↔ _
     rw [not_not]
 
 lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u) (V : ι → Type u)
-  (_ : ∀ i, Nonempty (V i)), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
+  (_ : ∀ i, (Nonempty (V i))), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
   · exact ⟨_, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
   · obtain ⟨_, _, _, ⟨e⟩⟩ := h
@@ -60,12 +57,11 @@ lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u
     exact (completeMultipartiteGraph.isCompleteMultipartite _) h1 h2
 
 lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteMultipartite)
-    (hc : G.CliqueFree n) : G.Colorable (n - 1) := by
-  obtain ⟨ι,V,_,⟨e⟩⟩ := isCompleteMultipartite_iff.mp h
-  exact (completeMultipartiteGraph.colorable_of_cliqueFree (fun i ↦ Classical.arbitrary (V i))
-          <| hc.comap e.symm).of_embedding e.toEmbedding
+    (hc : G.CliqueFree n) : G.Colorable (n - 1) :=
+    (completeMultipartiteGraph.colorable_of_cliqueFree (fun _ ↦ ⟨_, h.setoid.refl _⟩)
+          <| hc.comap h.iso.symm).of_embedding h.iso.toEmbedding
 
-variable (G)
+variable (G) in
 /--
 The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
 present between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
@@ -76,8 +72,8 @@ structure IsP2Complement (v w₁ w₂ : α) : Prop where
 
 namespace IsP2Complement
 
-variable {v w₁ w₂ : α} {G}
-lemma ne (p2 : G.IsP2Complement v w₁ w₂): v ≠ w₁ ∧ v ≠ w₂ :=
+variable {v w₁ w₂ : α}
+lemma ne (p2 : G.IsP2Complement v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
   ⟨fun hvw1 ↦ p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 ↦ p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
 
 lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= by
