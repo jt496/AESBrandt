@@ -21,7 +21,7 @@ universe u
 namespace SimpleGraph
 variable {α : Type u} {G : SimpleGraph α}
 
-/-- G is complete-partite iff non-adjacency is transitive -/
+/-- G is complete-multipartite iff non-adjacency is transitive -/
 abbrev IsCompleteMultipartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
 
 /-- The setoid given by non-adjacency -/
@@ -34,6 +34,8 @@ lemma completeMultipartiteGraph.isCompleteMultipartite {ι : Type*} (V : ι → 
   intro
   aesop
 
+/-- The graph isomorphism from a graph `G` that `IsCompleteMultipartite` to the corresponding
+`completeMultipartiteGraph` -/
 def IsCompleteMultipartite.iso (h : G.IsCompleteMultipartite) :
     G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
   toFun := fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩
@@ -57,28 +59,16 @@ lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u
     rw [← e.map_rel_iff] at *
     exact (completeMultipartiteGraph.isCompleteMultipartite _) h1 h2
 
-section FinDecRel
-variable [Fintype α] [DecidableRel G.Adj]
-lemma isCompleteMultipartite_iff_of_fintype : G.IsCompleteMultipartite ↔ ∃ (ι : Type u)
-    (_ : Fintype ι) (V : ι → Type u) (_ : ∀ i, Nonempty (V i)),
-    Nonempty (G ≃g (completeMultipartiteGraph V)) := by
-  constructor <;> intro h
-  · have : DecidableRel h.setoid.r := inferInstanceAs <| DecidableRel (¬ G.Adj · ·)
-    exact ⟨_, inferInstance, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
-  · obtain ⟨ι, _, V, _, ⟨e⟩⟩ := h
-    exact isCompleteMultipartite_iff.mpr ⟨ι, V, inferInstance, ⟨e⟩⟩
-
 lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteMultipartite)
     (hc : G.CliqueFree n) : G.Colorable (n - 1) := by
-  obtain ⟨ι,_,V,hn,⟨e⟩⟩ := isCompleteMultipartite_iff_of_fintype.mp h
+  obtain ⟨ι,V,_,⟨e⟩⟩ := isCompleteMultipartite_iff.mp h
   exact (completeMultipartiteGraph.colorable_of_cliqueFree (fun i ↦ Classical.arbitrary (V i))
           <| hc.comap e.symm).of_embedding e.toEmbedding
 
-end FinDecRel
 variable (G)
 /--
 The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
-present between these three vertices. It is a witness to not-complete-partiteness of `G`
+present between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
   edge : G.Adj w₁ w₂
@@ -105,5 +95,10 @@ lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMult
   obtain ⟨w₁, v, w₂, h1, h2, h3⟩ := h
   rw [adj_comm] at h1
   exact ⟨v, w₁, w₂, h3, ⟨h1, h2⟩⟩
+
+lemma not_isCompleteMultipartite_iff_exists_isP2Complement :
+  ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
+  exact ⟨fun h ↦ G.exists_isP2Complement_of_not_isCompleteMultipartite h,
+        fun ⟨v, w₁, w₂, e, m, n⟩ ↦ (fun h ↦ h (by rwa [adj_comm] at m) n e)⟩
 
 end SimpleGraph
