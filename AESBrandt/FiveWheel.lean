@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import AESBrandt.Clique
-import AESBrandt.CompletePartite
+import AESBrandt.CompleteMultipartite
 
 /-!
 If G is maximally Kᵣ₊₂-free and xy is a non-edge then there exists an r-set such that
@@ -64,9 +64,9 @@ structure IsFiveWheel (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop wher
 
 variable {G}
 /-- If G is maximal Kᵣ₊₂-free and not complete-partite then it contains a 5-wheel-like graph -/
-lemma exists_IsFiveWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompletePartite) :
+lemma exists_IsFiveWheel (h : G.MaximalCliqueFree (r + 2)) (hnc : ¬ G.IsCompleteMultipartite) :
     ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t :=
-  let ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_isCompletePartite hnc
+  let ⟨v, w₁, w₂, h3⟩ := G.exists_isP2Complement_of_not_isCompleteMultipartite hnc
   let ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.nonedge.1
   let ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.nonedge.2
   ⟨v, w₁, w₂, s, t, h3, ⟨hvs, hvt, hw1s, hw2t⟩, ⟨hcsv, hcsw1, hctv, hctw2⟩⟩
@@ -96,11 +96,11 @@ depending on how large |s ∩ t| is, so a useful identity is
 #verts in FiveWheel =  |s ∪ t| + 3 = 2r + 3 - |s ∩ t|, which we express without subtraction -/
 lemma card_verts_add_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + #(s ∩ t) = 2 * r + 3 := by
   rw [card_insert_of_not_mem, add_comm, card_insert_of_not_mem, card_insert_of_not_mem]
-  · simp_rw [←add_assoc, card_inter_add_card_union, two_mul, hw.card_cliques.1, hw.card_cliques.2]
+  · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_cliques.1, hw.card_cliques.2]
   · rw [mem_union, not_or]
     exact ⟨hw.notin'.2, hw.notin.2.2.2⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isP2Complement.edge.ne, hw.notin.2.2.1,hw.notin'.1⟩
+    exact ⟨hw.isP2Complement.edge.ne, hw.notin.2.2.1, hw.notin'.1⟩
   · rw [mem_insert, mem_insert, mem_union]
     push_neg
     exact ⟨hw.isP2Complement.ne.1, hw.isP2Complement.ne.2, hw.notin.1, hw.notin.2.1⟩
@@ -121,7 +121,7 @@ lemma card_clique_free (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r := by
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete partite then it contains a maximal 5-wheel -/
 lemma _root_.SimpleGraph.exists_max_isFiveWheel (h : G.MaximalCliqueFree (r + 2))
-    (hnc : ¬ G.IsCompletePartite) : ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t ∧ ∀ s' t',
+    (hnc : ¬ G.IsCompleteMultipartite) : ∃ v w₁ w₂ s t, G.IsFiveWheel r v w₁ w₂ s t ∧ ∀ s' t',
     G.IsFiveWheel r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t) := by
   classical
   obtain ⟨v, w₁, w₂, s, t, hw⟩ := exists_IsFiveWheel h hnc

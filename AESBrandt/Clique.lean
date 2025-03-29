@@ -7,31 +7,8 @@ variable {α : Type*} {G : SimpleGraph α}  {n : ℕ}
 lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
   fun h ↦ h ∅ <| isNClique_empty.mpr rfl
 
-lemma IsClique.sdiff_of_sup_edge {v w : α} {s : Set α} (hc : (G ⊔ edge v w).IsClique s) :
-    G.IsClique (s \ {v}) := by
-  intro x hx y hy hxy
-  have := hc hx.1 hy.1 hxy
-  rw [sup_adj, edge_adj] at this
-  aesop
-
-lemma CliqueFree.mem_of_sup_edge_isNClique {t : Finset α} {n : ℕ} (h : G.CliqueFree n)
-    (hc : (G ⊔ edge x y).IsNClique n t) : x ∈ t := by
-  by_contra! hf
-  classical
-  have ht : (t : Set α) \ {x} = t := sdiff_eq_left.mpr <| Set.disjoint_singleton_right.mpr hf
-  exact h t ⟨ht ▸ hc.1.sdiff_of_sup_edge, hc.2⟩
-
-lemma IsNClique.erase_of_sup_edge_of_mem [DecidableEq α] {v w : α} {s : Finset α}
-    (hc : (G ⊔ edge v w).IsNClique n s) (hx : v ∈ s) : G.IsNClique (n - 1) (s.erase v) where
-  isClique := coe_erase v _ ▸ hc.1.sdiff_of_sup_edge
-  card_eq  := by rw [card_erase_of_mem hx, hc.2]
-
 section classical
 open Classical
-lemma CliqueFree.sup_edge' (h : G.CliqueFree n) (v w : α) : (G ⊔ edge v w).CliqueFree (n + 1) :=
-    fun _ hs ↦ (hs.erase_of_sup_edge_of_mem <|
-        (h.mono (Nat.le_succ n)).mem_of_sup_edge_isNClique hs).not_cliqueFree h
-
 lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
     (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
   by_contra! hf
@@ -40,23 +17,43 @@ lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
 end classical
 
 section PR21479aes_completeMultipartiteGraph
-/-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
-noncomputable def CompleteMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
-    [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V) where
-  toFun := fun i ↦ ⟨i, Classical.arbitrary (V i)⟩
-  inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
+
+/-- Embedding of the complete graph on `ι` into `completeMultipartiteGraph` on `ι` nonempty parts.-/
+def completeMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*) (f : ∀ (i : ι), V i) :
+    (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V) where
+  toFun := fun i ↦ ⟨i, f i⟩
+  inj' := fun _ _ h ↦ (Sigma.mk.inj_iff.1 h).1
   map_rel_iff' := by simp
 
-theorem CompleteMultipartiteGraph.notCliqueFree_le_card {ι : Type*} [Fintype ι] (V : ι → Type*)
-    [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) :
+theorem completeMultipartiteGraph.not_CliqueFree_le_card {ι : Type*} [Fintype ι] (V : ι → Type*)
+    (f : ∀ (i : ι), V i) (hc : n ≤ Fintype.card ι ) :
     ¬ (completeMultipartiteGraph V).CliqueFree n :=
-  fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (CompleteMultipartiteGraph.topEmbedding V).comp
-    (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
+  fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <|
+    (completeMultipartiteGraph.topEmbedding V f).comp
+      (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
 
-theorem CompleteMultipartiteGraph.notCliqueFree_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
-    [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
-  fun hf ↦ not_cliqueFree_of_top_embedding (CompleteMultipartiteGraph.topEmbedding V |>.comp
+theorem completeMultipartiteGraph.not_CliqueFree_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
+    (f : ∀ (i : ι), V i) : ¬ (completeMultipartiteGraph V).CliqueFree n :=
+  fun hf ↦ not_cliqueFree_of_top_embedding (completeMultipartiteGraph.topEmbedding V f |>.comp
             <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
+
+-- /-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
+-- noncomputable def completeMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
+--     [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V) where
+--   toFun := fun i ↦ ⟨i, Classical.arbitrary (V i)⟩
+--   inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
+--   map_rel_iff' := by simp
+
+-- theorem completeMultipartiteGraph.not_CliqueFree_le_card {ι : Type*} [Fintype ι] (V : ι → Type*)
+--     [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) :
+--     ¬ (completeMultipartiteGraph V).CliqueFree n :=
+--   fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (completeMultipartiteGraph.topEmbedding V).comp
+--     (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
+
+-- theorem completeMultipartiteGraph.not_CliqueFree_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
+--     [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
+--   fun hf ↦ not_cliqueFree_of_top_embedding (completeMultipartiteGraph.topEmbedding V |>.comp
+--            <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 end PR21479aes_completeMultipartiteGraph
 
 variable {x y : α} (G)
@@ -127,8 +124,7 @@ variable [Fintype α] [DecidableRel G.Adj]
 lemma IsTuranMaximal.maximalCliqueFree (h : G.IsTuranMaximal n) : G.MaximalCliqueFree (n + 1) :=
   ⟨h.1, fun _ hcf hle ↦ h.le_iff_eq hcf |>.1 hle |>.symm.le⟩
 
-variable [DecidableEq α]
-theorem not_cliqueFree_of_isTuranMaximal' (hn : r ≤ Fintype.card α) (hG : G.IsTuranMaximal r) :
+theorem not_cliqueFree_of_isTuranMaximal' {r} (hn : r ≤ Fintype.card α) (hG : G.IsTuranMaximal r) :
     ¬G.CliqueFree r := hG.maximalCliqueFree.not_cliqueFree_of_le_card hn
 
 end Turan

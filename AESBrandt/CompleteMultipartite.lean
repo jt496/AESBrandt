@@ -7,12 +7,13 @@ import Mathlib.Combinatorics.SimpleGraph.Coloring
 import AESBrandt.Coloring
 
 /-!
-# Complete Multi-Partite Graphs
-A graph is complete (multi)-partite iff non-adjacency is transitive.
+# Complete Multipartite Graphs
+
+A graph is complete multipartite iff non-adjacency is transitive.
 
 ## Main declarations
-* `SimpleGraph.IsCompletePartite`: predicate for a graph to be complete-partite.
-* `SimpleGraph.IsCompletePartite.setoid`: the Setoid given by non-adjacency.
+* `SimpleGraph.IsCompleteMultipartite`: predicate for a graph to be complete-partite.
+* `SimpleGraph.IsCompleteMultipartite.setoid`: the Setoid given by non-adjacency.
 * `SimpleGraph.IsP2Complement`: predicate for 3 vertices to be a witness to not-complete-partiteness
    of a graph G
 -/
@@ -21,19 +22,19 @@ namespace SimpleGraph
 variable {α : Type u} {G : SimpleGraph α}
 
 /-- G is complete-partite iff non-adjacency is transitive -/
-abbrev IsCompletePartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
+abbrev IsCompleteMultipartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
 
 /-- The setoid given by non-adjacency -/
-abbrev IsCompletePartite.setoid (h : G.IsCompletePartite) : Setoid α :=
+abbrev IsCompleteMultipartite.setoid (h : G.IsCompleteMultipartite) : Setoid α :=
     ⟨(¬ G.Adj · ·), ⟨G.loopless , fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
 
 /-- Any completeMultipartite graph is complete partite-/
-lemma CompleteMultipartiteGraph.isCompletePartite {ι : Type*} (V : ι → Type*) :
-    (completeMultipartiteGraph V).IsCompletePartite := by
+lemma completeMultipartiteGraph.isCompleteMultipartite {ι : Type*} (V : ι → Type*) :
+    (completeMultipartiteGraph V).IsCompleteMultipartite := by
   intro
   aesop
 
-def IsCompletePartite.iso (h : G.IsCompletePartite) :
+def IsCompleteMultipartite.iso (h : G.IsCompleteMultipartite) :
     G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
   toFun := fun v ↦ ⟨⟦v⟧, ⟨v, Quotient.mk_out v⟩⟩
   invFun := fun ⟨_, x⟩ ↦  x.1
@@ -47,31 +48,31 @@ def IsCompletePartite.iso (h : G.IsCompletePartite) :
     intros; change ¬¬ G.Adj _ _ ↔ _
     rw [not_not]
 
-lemma isCompletePartite_iff : G.IsCompletePartite ↔ ∃ (ι : Type u) (V : ι → Type u)
+lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u) (V : ι → Type u)
   (_ : ∀ i, Nonempty (V i)), Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
   · exact ⟨_, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
   · obtain ⟨_, _, _, ⟨e⟩⟩ := h
     intro _ _ _ h1 h2
     rw [← e.map_rel_iff] at *
-    exact (CompleteMultipartiteGraph.isCompletePartite _) h1 h2
+    exact (completeMultipartiteGraph.isCompleteMultipartite _) h1 h2
 
 section FinDecRel
 variable [Fintype α] [DecidableRel G.Adj]
-lemma isCompletePartite_iff_of_fintype : G.IsCompletePartite ↔ ∃ (ι : Type u)
+lemma isCompleteMultipartite_iff_of_fintype : G.IsCompleteMultipartite ↔ ∃ (ι : Type u)
     (_ : Fintype ι) (V : ι → Type u) (_ : ∀ i, Nonempty (V i)),
     Nonempty (G ≃g (completeMultipartiteGraph V)) := by
   constructor <;> intro h
   · have : DecidableRel h.setoid.r := inferInstanceAs <| DecidableRel (¬ G.Adj · ·)
     exact ⟨_, inferInstance, _, fun _ ↦ ⟨_, h.setoid.refl _⟩, ⟨h.iso⟩⟩
   · obtain ⟨ι, _, V, _, ⟨e⟩⟩ := h
-    exact isCompletePartite_iff.mpr ⟨ι, V, inferInstance, ⟨e⟩⟩
+    exact isCompleteMultipartite_iff.mpr ⟨ι, V, inferInstance, ⟨e⟩⟩
 
-lemma IsCompletePartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompletePartite)
+lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteMultipartite)
     (hc : G.CliqueFree n) : G.Colorable (n - 1) := by
-  obtain ⟨ι,_,V,hn,⟨e⟩⟩ := isCompletePartite_iff_of_fintype.mp h
-  exact (CompleteMultipartiteGraph.colorable_of_cliqueFree <| hc.comap e.symm).of_embedding
-            e.toEmbedding
+  obtain ⟨ι,_,V,hn,⟨e⟩⟩ := isCompleteMultipartite_iff_of_fintype.mp h
+  exact (completeMultipartiteGraph.colorable_of_cliqueFree (fun i ↦ Classical.arbitrary (V i))
+          <| hc.comap e.symm).of_embedding e.toEmbedding
 
 end FinDecRel
 variable (G)
@@ -97,9 +98,9 @@ end IsP2Complement
 
 /-- If `G` is not complete-partite then it contains `v, w₁, w₂` such that
 `G.IsP2Complement v w₁ w₂` -/
-lemma exists_isP2Complement_of_not_isCompletePartite (h : ¬ IsCompletePartite G) :
+lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMultipartite G) :
     ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
-  rw [IsCompletePartite, Transitive] at h
+  rw [IsCompleteMultipartite, Transitive] at h
   push_neg at h
   obtain ⟨w₁, v, w₂, h1, h2, h3⟩ := h
   rw [adj_comm] at h1

@@ -79,8 +79,8 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   apply Colorable.mono_left hmcfle
   by_contra! hnotcol
   -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
-  have hncp : ¬H.IsCompletePartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
--- Since H is maximally Kᵣ₊₂-free and not complete-partite it contains a maximal wheel
+  have hncp : ¬H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
+-- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel
   obtain ⟨v, w₁, w₂, s, t, hw, hmax⟩ := exists_max_isFiveWheel hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t
