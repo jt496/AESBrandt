@@ -46,7 +46,7 @@ def IsCompleteMultipartite.iso (h : G.IsCompleteMultipartite) :
     rw [Quotient.mk_eq_iff_out]
     exact h.setoid.symm x.2
   map_rel_iff' := by
-    simp only [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
+    simp_rw [Equiv.coe_fn_mk, comap_adj, top_adj, ne_eq, Quotient.eq]
     intros; change ¬¬ G.Adj _ _ ↔ _
     rw [not_not]
 
@@ -94,11 +94,11 @@ lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMult
   push_neg at h
   obtain ⟨w₁, v, w₂, h1, h2, h3⟩ := h
   rw [adj_comm] at h1
-  exact ⟨v, w₁, w₂, h3, ⟨h1, h2⟩⟩
+  exact ⟨v, w₁, w₂, h3, h1, h2⟩
 
 lemma not_isCompleteMultipartite_iff_exists_isP2Complement :
   ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
   exact ⟨fun h ↦ G.exists_isP2Complement_of_not_isCompleteMultipartite h,
-        fun ⟨v, w₁, w₂, e, m, n⟩ ↦ (fun h ↦ h (by rwa [adj_comm] at m) n e)⟩
+        fun ⟨v, w₁, w₂, e, m, n⟩ ↦ fun h ↦ h (by rwa [adj_comm] at m) n e⟩
 
 end SimpleGraph
