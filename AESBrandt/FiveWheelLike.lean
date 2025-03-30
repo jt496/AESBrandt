@@ -25,7 +25,7 @@ Main definition:
 open Finset
 variable {α : Type*}{a b c d : α} {G : SimpleGraph α} {r : ℕ} {s : Finset α} [DecidableEq α]
 /-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
-private lemma card_le_two_of_four  (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c) (hc2 : #{a, b, c, d} ≤ 2) :
+private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c) (hc2 : #{a, b, c, d} ≤ 2) :
     c = a ∧ d = b := by
   by_contra! hf
   apply (#{a, b, c, d}).le_lt_asymm hc2 <| two_lt_card_iff.2 _
@@ -129,8 +129,8 @@ lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : G.MaximalCliqueFree (r 
   intro s' t' hw'
   exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s', t')).trans hw.2.symm.le
 
-/--This is a warmup for the main lemma `bigger_wheel` where we use it with `card_eq_two_of_four`
-to help build a bigger 5-wheel -/
+/-- This is a warmup for the main lemma `exists_isFiveWheelLike_of_not_adj_le_two` where we use it with
+`eq_of_card_le_two_of_ne` to help build a bigger 5-wheel -/
 lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
     ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
       ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
@@ -188,7 +188,7 @@ lemma exists_isFiveWheelLike_of_not_adj_le_two (h : G.CliqueFree (r + 2)) (hWc :
   let W := insert v <| insert w₁ <| insert w₂ (s ∪ t)
   have ⟨_,_⟩ := hw.isP2Complement.ne
   have ac_bd : c = a ∧ d = b := by
-    apply card_le_two_of_four hab had hbc <| hsmall.trans' <| card_le_card _
+    apply eq_of_card_le_two_of_ne hab had hbc <| hsmall.trans' <| card_le_card _
     intro z; simp_rw [mem_filter, mem_insert, mem_singleton] at *
     aesop
   simp_rw [ac_bd.1, ac_bd.2, mem_insert] at *
