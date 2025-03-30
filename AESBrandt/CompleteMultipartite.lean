@@ -12,30 +12,31 @@ import AESBrandt.Coloring
 A graph is complete multipartite iff non-adjacency is transitive.
 
 ## Main declarations
-* `SimpleGraph.IsCompleteMultipartite`: predicate for a graph to be complete-partite.
+* `SimpleGraph.IsCompleteMultipartite`: predicate for a graph to be complete-multi-partite.
 * `SimpleGraph.IsCompleteMultipartite.setoid`: the Setoid given by non-adjacency.
-* `SimpleGraph.IsP2Complement`: predicate for 3 vertices to be a witness to not-complete-partiteness
-   of a graph G
+* `SimpleGraph.IsP2Complement`: predicate for 3 vertices to be a witness to
+   non-complete-multi-partiteness of a graph G
 -/
+
 universe u
 namespace SimpleGraph
 variable {α : Type u} {G : SimpleGraph α}
 
-/-- G is complete-multipartite iff non-adjacency is transitive -/
+/-- `G` is `IsCompleteMultipartite` iff non-adjacency is transitive. -/
 abbrev IsCompleteMultipartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
 
 /-- The setoid given by non-adjacency -/
 abbrev IsCompleteMultipartite.setoid (h : G.IsCompleteMultipartite) : Setoid α :=
     ⟨(¬ G.Adj · ·), ⟨G.loopless , fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
 
-/-- Any completeMultipartite graph is complete partite-/
+/-- Any `completeMultipartiteGraph V` `IsCompleteMultipartite` -/
 lemma completeMultipartiteGraph.isCompleteMultipartite {ι : Type*} (V : ι → Type*) :
     (completeMultipartiteGraph V).IsCompleteMultipartite := by
   intro
   aesop
 
 /-- The graph isomorphism from a graph `G` that `IsCompleteMultipartite` to the corresponding
-`completeMultipartiteGraph` -/
+`completeMultipartiteGraph`. -/
 def IsCompleteMultipartite.iso (h : G.IsCompleteMultipartite) :
     G ≃g completeMultipartiteGraph (fun (c : Quotient h.setoid) ↦ { x // h.setoid.r c.out x}) where
   toFun := fun v ↦ ⟨_, ⟨v, Quotient.mk_out v⟩⟩
@@ -82,7 +83,7 @@ lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= b
 
 end IsP2Complement
 
-/-- If `G` is not complete-partite then it contains `v, w₁, w₂` such that
+/-- If `G` is not complete-multipartite then it contains `v, w₁, w₂` such that
 `G.IsP2Complement v w₁ w₂` -/
 lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMultipartite G) :
     ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by

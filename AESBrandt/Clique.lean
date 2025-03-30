@@ -55,7 +55,6 @@ theorem completeMultipartiteGraph.not_CliqueFree_infinite {ι : Type*} [Infinite
 --   fun hf ↦ not_cliqueFree_of_top_embedding (completeMultipartiteGraph.topEmbedding V |>.comp
 --            <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 end PR21479aes_completeMultipartiteGraph
-
 variable {x y : α} (G)
 /-- `G` is not complete iff there exist distinct non-adjacent vertices -/
 protected lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := by
@@ -63,7 +62,7 @@ protected lemma ne_top_iff : G ≠ ⊤ ↔ ∃ x y, x ≠ y ∧ ¬ G.Adj x y := 
   · exact eq_top_iff.2 fun _ _ hxy ↦ h _ _ hxy.ne
   · exact fun _ _ hne ↦ h ▸ hne
 
-variable {G} {n : ℕ}
+variable {G} {n : ℕ} {H : SimpleGraph α}
 /-- A graph `G` is `MaximalCliqueFree n` if it is maximal wrt to not containing an `n`-clique -/
 abbrev MaximalCliqueFree (G : SimpleGraph α) (n : ℕ) : Prop := Maximal (fun H => H.CliqueFree n) G
 
@@ -73,7 +72,6 @@ lemma le_iff_eq (h : G.MaximalCliqueFree n) (hcf : H.CliqueFree n) : G ≤ H ↔
   ⟨fun hle ↦ h.eq_of_le hcf hle, le_of_eq⟩
 
 variable (h : G.MaximalCliqueFree n) include h
-
 lemma not_cliqueFree_of_gt (h' : G < H) : ¬ H.CliqueFree n := h.not_prop_of_gt h'
 
 protected lemma eq_top_iff [Fintype α] : G = ⊤ ↔ Fintype.card α < n := by

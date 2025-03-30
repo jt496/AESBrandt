@@ -3,8 +3,7 @@ Copyright (c) 2024 John Talbot and Lian Bremner Tattersall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
-import AESBrandt.FiveWheel
-import Mathlib.Data.Fintype.Order
+import AESBrandt.FiveWheelLike
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.Order
@@ -81,7 +80,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
   have hncp : ¬H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel
-  obtain ⟨v, w₁, w₂, s, t, hw, hmax⟩ := exists_max_isFiveWheel hmcf hncp
+  obtain ⟨v, w₁, w₂, s, t, hw, hmax⟩ := exists_max_isFiveWheelLike hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
@@ -91,11 +90,11 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
-    exact hw.three_le_nonadj hmcf.1 hx hmax
+    exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hmax
 -- Every vertex has at least 1 non-neighbor in W
 -- So we have a bound on the degree sum over W
 -- ∑ w ∈ W, d_H(w) ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
-  have boundW := sum_degree_le_of_le_non_adj dXle <| hw.one_le_non_adj hmcf.1
+  have boundW := sum_degree_le_of_le_non_adj dXle <| hw.one_le_not_adj_of_cliqueFree hmcf.1
 -- Since X consists of all vertices adjacent to all of s ∩ t, so x ∈ Xᶜ → x
 -- has at least one non-neighbour in X
   have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s ∩ t).filter fun z ↦ ¬ H.Adj  x z) := by
@@ -114,14 +113,14 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
 -- Now just some inequalities...
   have krle: (2 * r + k) * ‖α‖ / (2 * r + k + 3) ≤ (3 * r - 1) * ‖α‖ / (3 * r + 2):= by
     cases r with
-    | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_clique_free hmcf.1
-    | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_clique_free hmcf.1
+    | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1
+    | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
 -- Now complete the proof by contradiction
   apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd
                          <| G.minDegree_le_minDegree hmcfle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
-  have Wc : #W + k = 2 * r + 3 := hw.card_verts_add_inter
-  have w3 : 3 ≤ #W := hw.three_le_card_verts
+  have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
+  have w3 : 3 ≤ #W := hw.three_le_card
 --- Two cases: s ∩ t = ∅ or not
   by_cases hst : k = 0
   · rw [hst, add_zero] at Wc ⊢
