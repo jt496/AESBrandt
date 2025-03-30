@@ -13,9 +13,15 @@ A graph is complete multipartite iff non-adjacency is transitive.
 
 ## Main declarations
 * `SimpleGraph.IsCompleteMultipartite`: predicate for a graph to be complete-multi-partite.
+
 * `SimpleGraph.IsCompleteMultipartite.setoid`: the Setoid given by non-adjacency.
-* `SimpleGraph.IsP2Complement`: predicate for 3 vertices to be a witness to
-   non-complete-multi-partiteness of a graph G
+
+* `SimpleGraph.IsCompleteMultipartite.iso`: the graph isomorphism from a graph that
+  `IsCompleteMultipartite` to the corresponding `completeMultipartiteGraph`.
+
+* `SimpleGraph.IsP2Complement`: predicate for three vertices to be a witness to
+   non-complete-multi-partiteness of a graph G.
+(The name refers to the fact that the three vertices form the complement of a path of length two.)
 -/
 
 universe u
