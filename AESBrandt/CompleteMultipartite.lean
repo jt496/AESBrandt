@@ -70,18 +70,18 @@ lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsComplete
 
 variable (G) in
 /--
-The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
+The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only adj
 present between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
-  edge : G.Adj w₁ w₂
-  nonedge : ¬ G.Adj v w₁ ∧ ¬ G.Adj v w₂
+  adj : G.Adj w₁ w₂
+  not_adj : ¬ G.Adj v w₁ ∧ ¬ G.Adj v w₂
 
 namespace IsP2Complement
 
 variable {v w₁ w₂ : α}
 lemma ne (p2 : G.IsP2Complement v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
-  ⟨fun hvw1 ↦ p2.nonedge.2 (hvw1.symm ▸ p2.edge),fun hvw2 ↦ p2.nonedge.1 (hvw2 ▸ p2.edge.symm)⟩
+  ⟨fun hvw1 ↦ p2.not_adj.2 (hvw1.symm ▸ p2.adj),fun hvw2 ↦ p2.not_adj.1 (hvw2 ▸ p2.adj.symm)⟩
 
 lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁:= by
   obtain ⟨ed, ⟨n1, n2⟩⟩ := h

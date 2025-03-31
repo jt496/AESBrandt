@@ -70,9 +70,9 @@ lemma symm :  G.IsFiveWheelLike r v w₂ w₁ t s :=
   ⟨p2.symm, ⟨d2, d1, d4, d3⟩, ⟨c3, c4, c1, c2⟩⟩
 
 lemma not_mem' : w₁ ∉ t ∧ w₂ ∉ s :=
-  ⟨fun hf ↦ hw.isP2Complement.nonedge.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..)
+  ⟨fun hf ↦ hw.isP2Complement.not_adj.1 <| hw.cliques.2.2.1.1 (mem_insert_self ..)
     (mem_insert_of_mem hf) hw.isP2Complement.ne.1,
-   fun hf ↦ hw.isP2Complement.nonedge.2 <| hw.cliques.1.1 (mem_insert_self ..)
+   fun hf ↦ hw.isP2Complement.not_adj.2 <| hw.cliques.1.1 (mem_insert_self ..)
     (mem_insert_of_mem hf) hw.isP2Complement.ne.2⟩
 
 lemma card_cliques : s.card = r ∧ t.card = r :=by
@@ -91,7 +91,7 @@ lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + 
   · rw [mem_union, not_or]
     exact ⟨hw.not_mem'.2, hw.not_mem.2.2.2⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isP2Complement.edge.ne, hw.not_mem.2.2.1, hw.not_mem'.1⟩
+    exact ⟨hw.isP2Complement.adj.ne, hw.not_mem.2.2.1, hw.not_mem'.1⟩
   · rw [mem_insert, mem_insert, mem_union]
     push_neg
     exact ⟨hw.isP2Complement.ne.1, hw.isP2Complement.ne.2, hw.not_mem.1, hw.not_mem.2.1⟩
@@ -99,7 +99,7 @@ lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + 
 /-- Every 5-wheel contains at least 3 vertices: v w₁ w₂-/
 lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
   ⟨v, mem_insert_self .., w₁, by simp, w₂, by simp, hw.isP2Complement.ne.1,
-    hw.isP2Complement.ne.2, hw.isP2Complement.edge.ne⟩
+    hw.isP2Complement.ne.2, hw.isP2Complement.adj.ne⟩
 
 /-- If s ∩ t contains an r-set then then s ∪ {w₁,w₂} is Kᵣ₊₂ so -/
 lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r := by
@@ -107,7 +107,7 @@ lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r :=
   have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_cliques.1 ▸ h)
   have ht := eq_of_subset_of_card_le inter_subset_right (hw.card_cliques.2 ▸ h)
   exact (hw.cliques.2.1.insert_insert (hs ▸ ht.symm ▸ hw.cliques.2.2.2)
-    hw.not_mem'.2 hw.isP2Complement.edge).not_cliqueFree
+    hw.not_mem'.2 hw.isP2Complement.adj).not_cliqueFree
 
 omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete-multi-partite then it contains
@@ -118,8 +118,8 @@ lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : G.MaximalCliqueFree (r 
     G.IsFiveWheelLike r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t) := by
   classical
   obtain ⟨v, w₁, w₂, h3⟩ := exists_isP2Complement_of_not_isCompleteMultipartite hnc
-  obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.nonedge.1
-  obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.nonedge.2
+  obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.not_adj.1
+  obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.not_adj.2
   let hw : G.IsFiveWheelLike r v w₁ w₂ s t :=  ⟨h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩
   let P : ℕ → Prop := fun k ↦ ∃ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ #(s ∩ t) = k
   have : P #(s ∩ t) := by use s, t
@@ -138,7 +138,7 @@ lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   obtain ⟨b, hb, hbj⟩ := hw.cliques.2.2.2.exists_not_adj_of_cliqueFree_succ h x
   obtain ⟨c, hc, hcj⟩ := hw.cliques.1.exists_not_adj_of_cliqueFree_succ h x
   obtain ⟨d, hd, hdj⟩ := hw.cliques.2.2.1.exists_not_adj_of_cliqueFree_succ h x
-  have := hw.isP2Complement.edge.ne
+  have := hw.isP2Complement.adj.ne
   have := hw.isP2Complement.ne
   have := hw.not_mem'
   refine ⟨a, b, c, d, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
