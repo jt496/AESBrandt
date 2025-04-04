@@ -113,13 +113,13 @@ omit hw in
 /-- If G is maximally Kᵣ₊₂-free and not complete-multi-partite then it contains
    5-wheel-like structure that is maximal in the sense that the intersection of their
    cliques has maximum size. -/
-lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : G.MaximalCliqueFree (r + 2))
+lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : Maximal (fun H => H.CliqueFree (r + 2)) G)
     (hnc : ¬ G.IsCompleteMultipartite) : ∃ v w₁ w₂ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ ∀ s' t',
     G.IsFiveWheelLike r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t) := by
   classical
   obtain ⟨v, w₁, w₂, h3⟩ := exists_isP2Complement_of_not_isCompleteMultipartite hnc
-  obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := h.exists_of_not_adj h3.ne.1 h3.not_adj.1
-  obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := h.exists_of_not_adj h3.ne.2 h3.not_adj.2
+  obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := exists_of_max_cliqueFree_not_adj h h3.ne.1 h3.not_adj.1
+  obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := exists_of_max_cliqueFree_not_adj h h3.ne.2 h3.not_adj.2
   let hw : G.IsFiveWheelLike r v w₁ w₂ s t :=  ⟨h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩
   let P : ℕ → Prop := fun k ↦ ∃ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ #(s ∩ t) = k
   have : P #(s ∩ t) := by use s, t
