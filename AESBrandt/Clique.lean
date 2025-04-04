@@ -7,14 +7,15 @@ variable {α : Type*} {G : SimpleGraph α}  {n : ℕ}
 lemma not_cliqueFree_zero : ¬ G.CliqueFree 0 :=
   fun h ↦ h ∅ <| isNClique_empty.mpr rfl
 
-section classical
-open Classical
-lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
+section DecEq
+
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ {s : Finset α} (hc : G.IsNClique n s)
     (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
+  classical
   by_contra! hf
   exact (hc.insert hf).not_cliqueFree h
 
-end classical
+end DecEq
 
 section PR21479aes_completeMultipartiteGraph
 
@@ -37,23 +38,6 @@ theorem completeMultipartiteGraph.not_CliqueFree_infinite {ι : Type*} [Infinite
   fun hf ↦ not_cliqueFree_of_top_embedding (completeMultipartiteGraph.topEmbedding V f |>.comp
             <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 
--- /-- Embedding of the complete graph on ι into completeMultipartite graph on ι nonempty parts-/
--- noncomputable def completeMultipartiteGraph.topEmbedding {ι : Type*} (V : ι → Type*)
---     [∀ i, Nonempty (V i)] : (⊤ : SimpleGraph ι) ↪g (completeMultipartiteGraph V) where
---   toFun := fun i ↦ ⟨i, Classical.arbitrary (V i)⟩
---   inj' := fun i j h ↦ (Sigma.mk.inj_iff.1 h).1
---   map_rel_iff' := by simp
-
--- theorem completeMultipartiteGraph.not_CliqueFree_le_card {ι : Type*} [Fintype ι] (V : ι → Type*)
---     [∀ i, Nonempty (V i)] (hc : n ≤ Fintype.card ι ) :
---     ¬ (completeMultipartiteGraph V).CliqueFree n :=
---   fun hf ↦ (cliqueFree_iff.1 <| hf.mono hc).elim' <| (completeMultipartiteGraph.topEmbedding V).comp
---     (Iso.completeGraph (Fintype.equivFin ι).symm).toEmbedding
-
--- theorem completeMultipartiteGraph.not_CliqueFree_infinite {ι : Type*} [Infinite ι] (V : ι → Type*)
---     [∀ i, Nonempty (V i)] : ¬ (completeMultipartiteGraph V).CliqueFree n :=
---   fun hf ↦ not_cliqueFree_of_top_embedding (completeMultipartiteGraph.topEmbedding V |>.comp
---            <| Embedding.completeGraph <| Fin.valEmbedding.trans <| Infinite.natEmbedding ι) hf
 end PR21479aes_completeMultipartiteGraph
 variable {x y : α} (G)
 /-- `G` is not complete iff there exist distinct non-adjacent vertices -/

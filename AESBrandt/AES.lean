@@ -72,17 +72,17 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   cases r with
   | zero => simpa using hf
   | succ r =>
-  -- First swap G for an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
-  obtain ⟨H, hmcfle, hmcf⟩ := Finite.exists_le_maximal (a := G) (p := fun H ↦ H.CliqueFree (r + 2)) hf
+  -- There is an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
+  obtain ⟨H, hmcfle, hmcf⟩ := @Finite.exists_le_maximal _ _ G (fun H ↦ H.CliqueFree (r + 2)) _ hf
   -- If we can (r + 1)-color H then we can (r + 1)-color G
   apply Colorable.mono_left hmcfle
   by_contra! hnotcol
-  -- If H is complete-partite and not (r + 1)-colorable then H contains Kᵣ₊₂
+  -- If H is complete-multipartite and Kᵣ₊₁-free then it is (r + 1)-colorable
   have hncp : ¬H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
--- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel
+-- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel-like
   obtain ⟨v, w₁, w₂, s, t, hw, hmax⟩ := exists_max_isFiveWheelLike hmcf hncp
 -- The two key sets of vertices are X, consisting of all vertices that are common
--- neighbours of all of s ∩ t
+-- neighbours of all of s ∩ t,
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
 -- and W which is simply all the vertices of the 5-wheel
   let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
@@ -91,11 +91,11 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
     exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hmax
--- Every vertex has at least 1 non-neighbor in W
+-- Every vertex has at least 1 non-neighbor in W.
 -- So we have a bound on the degree sum over W
--- ∑ w ∈ W, d_H(w) ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
+-- ∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
   have boundW := sum_degree_le_of_le_non_adj dXle <| hw.one_le_not_adj_of_cliqueFree hmcf.1
--- Since X consists of all vertices adjacent to all of s ∩ t, so x ∈ Xᶜ → x
+-- Since X consists of all vertices adjacent to all of s ∩ t, so if x ∈ Xᶜ then x
 -- has at least one non-neighbour in X
   have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s ∩ t).filter fun z ↦ ¬ H.Adj  x z) := by
     intro x hx
@@ -105,8 +105,8 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
       rw [mem_compl, not_not, Set.mem_toFinset]
       exact hx _
     exact ⟨_, mem_filter.2 hy⟩
--- So we also have a bound on degree sum over s ∩ t
--- ∑ w ∈ s ∩ t, d_H(w) ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|
+-- So we also have a bound on the degree sum over s ∩ t
+-- ∑ w ∈ s ∩ t, H.degree w ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|
   have boundX := sum_degree_le_of_le_non_adj xcle (fun x ↦ Nat.zero_le _)
   rw [compl_compl, tsub_zero, add_comm] at boundX
   let k := #(s ∩ t)
@@ -115,7 +115,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     cases r with
     | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
--- Now complete the proof by contradiction
+-- Complete the proof by contradiction by showing that `H.minDegree` is too small
   apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd
                          <| G.minDegree_le_minDegree hmcfle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
@@ -134,12 +134,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     rw [card_eq_sum_ones, mul_sum, mul_one]
     exact sum_le_sum (fun i _ ↦ H.minDegree_le_degree i)
 --- s ∩ t ≠ ∅
-  · have hap:  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k:= by
-      rw [mul_tsub, tsub_add_tsub_comm, tsub_add_eq_add_tsub w3]
-      · rfl
-      · exact w3.trans' (by decide)
-      · exact Nat.mul_le_mul_left _ <| Nat.pos_of_ne_zero hst
-    -- Now a calc block to the end...
+  · have hap :  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k := by omega
     calc
     minDegree H * (2 * r + k + 3) ≤  ∑ w ∈ W, H.degree w +  2 * ∑ w ∈ s ∩ t, H.degree w := by
         rw [add_assoc, add_comm k, ← add_assoc, ← Wc, add_assoc, ← two_mul, mul_add]
