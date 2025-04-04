@@ -23,7 +23,7 @@ Main definition:
 `r`-sets `s` and `t`, and vertices `v w₁ w₂` forming an `IsP2Complement`. -/
 
 open Finset
-variable {α : Type*}{a b c d : α} {G : SimpleGraph α} {r : ℕ} {s : Finset α} [DecidableEq α]
+variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r n : ℕ} {s : Finset α} [DecidableEq α]
 /-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
 private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c) (hc2 : #{a, b, c, d} ≤ 2) :
     c = a ∧ d = b := by
@@ -35,6 +35,27 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
   · exact ⟨a, b, c, Or.inl rfl, Or.inr <| Or.inl rfl, Or.inr <| Or.inr <| Or.inl rfl, hab, hac, hbc⟩
 
 namespace SimpleGraph
+
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
+    (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
+  classical
+  by_contra! hf
+  exact (hc.insert hf).not_cliqueFree h
+
+lemma exists_of_max_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree n) G) (hne : x ≠ y)
+    (hn : ¬ G.Adj x y) :
+    ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
+  obtain ⟨t, hc, xym⟩: ∃ t, (G ⊔ edge x y).IsNClique n t ∧ x ∈ t ∧ y ∈ t :=
+    let ⟨t, hc⟩ := not_forall_not.1 <| h.not_prop_of_gt <| G.lt_sup_edge _ _ hne hn
+    ⟨t, hc, ⟨h.1.mem_of_sup_edge_isNClique hc, h.1.mem_of_sup_edge_isNClique (edge_comm _ _ ▸ hc)⟩⟩
+  use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
+  rw [insert_erase (mem_erase_of_ne_of_mem hne.symm xym.2), erase_right_comm,
+      insert_erase (mem_erase_of_ne_of_mem hne xym.1)]
+  cases n with
+  | zero => exact False.elim <| not_cliqueFree_zero h.1
+  | succ n =>
+    exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem xym.2, hc.erase_of_sup_edge_of_mem xym.1⟩
+
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
     (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (hadj : G.Adj a b) :
     G.IsNClique (r + 1) (insert b ((insert a) s)) := by
@@ -54,7 +75,8 @@ private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (h
 
 variable (G)
 /-- A `IsFiveWheelLike r` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets `s` and `t`
-such that `v w₁ w₂` form an `IsP2Complement`  -/
+such that: `v w₁ w₂` form an `IsP2Complement`; `v, w₁, w₂ ∉ s ∪ t` and
+`v ∪ s, v ∪ t, w₁ ∪ s, w₂ ∪ t` are `(r + 1)`- cliques. -/
 structure IsFiveWheelLike (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
   isP2Complement : G.IsP2Complement v w₁ w₂
   not_mem   : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
@@ -63,7 +85,7 @@ structure IsFiveWheelLike (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop 
 
 namespace IsFiveWheelLike
 
-variable {x v w₁ w₂ : α} {G} {s t : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s t) include hw
+variable {v w₁ w₂ : α} {G} {t : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s t) include hw
 
 lemma symm :  G.IsFiveWheelLike r v w₂ w₁ t s :=
   let ⟨p2, ⟨d1, d2, d3, d4⟩, ⟨c1, c2, c3, c4⟩⟩ := hw
@@ -82,9 +104,8 @@ lemma card_cliques : s.card = r ∧ t.card = r :=by
   · have := hw.cliques.2.2.1.2
     rwa [card_insert_of_not_mem hw.not_mem.2.1, Nat.succ_inj] at this
 
-/-- A 5-wheel consists of the 3 vertices v, w₁, w₂, and the r-sets s , t but the size will vary
-depending on how large |s ∩ t| is, so a useful identity is
-#verts in FiveWheel =  |s ∪ t| + 3 = 2r + 3 - |s ∩ t|, which we express without subtraction -/
+/-- The size of a 5-wheel-like strucutre will vary depending on how large |s ∩ t| is, so a useful
+identity is  `|{v, w₁, w₂} ∪ s ∪ t| = 2r + 3 - |s ∩ t|`, which we express as follows .-/
 lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + #(s ∩ t) = 2 * r + 3 := by
   rw [card_insert_of_not_mem, add_comm, card_insert_of_not_mem, card_insert_of_not_mem]
   · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_cliques.1, hw.card_cliques.2]
@@ -110,8 +131,8 @@ lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r :=
     hw.not_mem'.2 hw.isP2Complement.adj).not_cliqueFree
 
 omit hw in
-/-- If G is maximally Kᵣ₊₂-free and not complete-multi-partite then it contains
-   5-wheel-like structure that is maximal in the sense that the intersection of their
+/-- If G is maximally Kᵣ₊₂-free and not complete-multi-partite then it contains a
+   5-wheel-like structure that is maximal in the sense that the intersection of its
    cliques has maximum size. -/
 lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : Maximal (fun H => H.CliqueFree (r + 2)) G)
     (hnc : ¬ G.IsCompleteMultipartite) : ∃ v w₁ w₂ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ ∀ s' t',
@@ -120,17 +141,16 @@ lemma _root_.SimpleGraph.exists_max_isFiveWheelLike (h : Maximal (fun H => H.Cli
   obtain ⟨v, w₁, w₂, h3⟩ := exists_isP2Complement_of_not_isCompleteMultipartite hnc
   obtain ⟨s, hvs, hw1s, hcsv, hcsw1⟩ := exists_of_max_cliqueFree_not_adj h h3.ne.1 h3.not_adj.1
   obtain ⟨t, hvt, hw2t, hctv, hctw2⟩ := exists_of_max_cliqueFree_not_adj h h3.ne.2 h3.not_adj.2
-  let hw : G.IsFiveWheelLike r v w₁ w₂ s t :=  ⟨h3, ⟨hvs, hvt, hw1s, hw2t⟩,⟨hcsv, hcsw1, hctv, hctw2⟩⟩
+  let hw : G.IsFiveWheelLike r v w₁ w₂ s t :=  ⟨h3, ⟨hvs, hvt, hw1s, hw2t⟩, ⟨hcsv, hcsw1, hctv, hctw2⟩⟩
   let P : ℕ → Prop := fun k ↦ ∃ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ #(s ∩ t) = k
   have : P #(s ∩ t) := by use s, t
-  have nler := (hw.card_inter_lt_of_cliqueFree h.1).le
-  obtain ⟨s, t, hw⟩ := Nat.findGreatest_spec nler this
+  obtain ⟨s, t, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le this
   use v, w₁, w₂, s, t, hw.1
   intro s' t' hw'
   exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s', t')).trans hw.2.symm.le
 
 /-- This is a warmup for the main lemma `exists_isFiveWheelLike_of_not_adj_le_two` where we use it with
-`eq_of_card_le_two_of_ne` to help build a bigger 5-wheel -/
+`eq_of_card_le_two_of_ne` to help build a bigger 5-wheel. -/
 lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
     ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
       ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
@@ -141,7 +161,7 @@ lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   have := hw.isP2Complement.adj.ne
   have := hw.isP2Complement.ne
   have := hw.not_mem'
-  refine ⟨a, b, c, d, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨_, _, _, _, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
   <;> rw [mem_insert] at *
   · rintro rfl
     obtain (rfl | ha) := ha
@@ -158,7 +178,7 @@ lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
       · exact hw.not_mem'.1  hd
     · obtain (rfl | hd ) := hd
       · exact hw.not_mem.1 ha
-      · exact haj <| hWc <| mem_inter.2 ⟨ha, hd⟩
+      · exact haj <| hWc <| mem_inter_of_mem ha hd
   · rintro rfl;
     obtain (rfl | hb) := hb
     · obtain (rfl | hc ) := hc
@@ -166,7 +186,7 @@ lemma exist_non_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
       · exact hw.not_mem'.2  hc
     · obtain (rfl | hc ) := hc
       ·  exact hw.not_mem.2.1 hb
-      ·  exact hbj <| hWc <| mem_inter.2 ⟨hc, hb⟩
+      ·  exact hbj <| hWc <|  mem_inter_of_mem hc hb
   · intro hat
     obtain (rfl | ha) := ha
     · exact this.1 hat
@@ -187,11 +207,11 @@ lemma exists_isFiveWheelLike_of_not_adj_le_two (h : G.CliqueFree (r + 2)) (hWc :
     hw.exist_non_adj_of_adj_inter h hWc
   let W := insert v <| insert w₁ <| insert w₂ (s ∪ t)
   have ⟨_,_⟩ := hw.isP2Complement.ne
-  have ac_bd : c = a ∧ d = b := by
+  have ca_db : c = a ∧ d = b := by
     apply eq_of_card_le_two_of_ne hab had hbc <| hsmall.trans' <| card_le_card _
     intro z; simp_rw [mem_filter, mem_insert, mem_singleton] at *
     aesop
-  simp_rw [ac_bd.1, ac_bd.2, mem_insert] at *
+  simp_rw [ca_db.1, ca_db.2, mem_insert] at *
   have has : a ∈ s := by
     obtain (rfl | ha) := ha
     · obtain (rfl | hc) := hc <;> trivial
@@ -200,7 +220,7 @@ lemma exists_isFiveWheelLike_of_not_adj_le_two (h : G.CliqueFree (r + 2)) (hWc :
     obtain (rfl | hb) := hb;
     · obtain (rfl | hd) := hd <;> trivial
     · exact hb
-  have habv : v ≠ a ∧ v ≠ b := ⟨fun hf ↦ hw.not_mem.1 (hf ▸ has),fun hf ↦ hw.not_mem.2.1 (hf ▸ hbt)⟩
+  have habv : v ≠ a ∧ v ≠ b := ⟨fun hf ↦ hw.not_mem.1 (hf ▸ has), fun hf ↦ hw.not_mem.2.1 (hf ▸ hbt)⟩
   have haw2 : a ≠ w₂ := fun hf ↦ hw.not_mem'.2 (hf ▸ has)
   have hbw1 : b ≠ w₁ := fun hf ↦ hw.not_mem'.1 (hf ▸ hbt)
   have hxvw12 : x ≠ v ∧ x ≠ w₁ ∧ x ≠ w₂ := by

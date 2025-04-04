@@ -21,6 +21,7 @@ A graph is complete multipartite iff non-adjacency is transitive.
 
 * `SimpleGraph.IsP2Complement`: predicate for three vertices to be a witness to
    non-complete-multi-partiteness of a graph G.
+   
 (The name refers to the fact that the three vertices form the complement of a path of length two.)
 -/
 

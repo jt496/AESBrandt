@@ -28,9 +28,9 @@ If G is Kᵣ₊₁-free and δ(G) > (3r - 4)n/(3r - 1) then G is (r + 1)-colorab
   https://doi.org/10.1007/s00493-003-0042-z
 -/
 local notation "‖" x "‖" => Fintype.card x
-variable {k r n i j: ℕ}
+variable {k r n i j : ℕ}
 private lemma kr_bound (hk : k ≤ r) :
-    (2 * r + 2 + k) * n / (2 * r + 2 + k + 3) ≤ (3 * r + 2) *n / (3 * r + 5):=by
+    (2 * r + 2 + k) * n / (2 * r + 2 + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
   apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
       <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
   rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
@@ -40,8 +40,8 @@ private lemma kr_bound (hk : k ≤ r) :
 open Finset SimpleGraph
 variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α}
 /-- Transform lower bound on non-edges into upper bound on edges -/
-private lemma card_adj_of_card_non_adj {s : Finset α} (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)):
-    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i :=by
+private lemma card_adj_of_card_non_adj {s : Finset α} (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
+    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
   rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z)]
   rw [add_tsub_assoc_of_le hx]
   apply Nat.le_add_right
@@ -53,7 +53,7 @@ private lemma sum_degree_le_of_le_non_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.fi
     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
       simp only [degree, card_eq_sum_ones]
-      apply sum_comm'; intro x y; simp [and_comm,adj_comm]
+      apply sum_comm'; intro x y; simp [and_comm, adj_comm]
    _ ≤ _ := by
     rw [← union_compl X, sum_union disjoint_compl_right]
     simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
