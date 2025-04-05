@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.Coloring
+import Mathlib.Combinatorics.SimpleGraph.Path
 
 namespace SimpleGraph
 #check SimpleGraph.completeMultipartiteGraph
@@ -48,3 +49,22 @@ lemma blowupGraph_colorable_iff  {ι : Type*} {n : ℕ} (H : SimpleGraph ι) (V 
   constructor <;> intro ⟨c⟩
   · exact ⟨fun x ↦ c x.fst, fun h1 h2 ↦ c.valid h1 h2⟩
   · exact ⟨fun x ↦ c ⟨x, f x⟩, by intro a b had; exact c.valid (by rwa [blowupGraph_adj])⟩
+
+
+variable {α : Type*} {n : ℕ} {G : SimpleGraph α}
+theorem colorable_iff_forall_connectedComponents :
+    G.Colorable n ↔ ∀ c : G.ConnectedComponent, (G.induce c.supp).Colorable n := by
+  constructor
+  · intro ⟨C⟩ c
+    exact ⟨fun v ↦ C v.1, by intro a b ; apply C.valid⟩
+  · intro h
+    rw [ConnectedComponent.forall] at h
+    exact ⟨fun v ↦ Classical.choice (h v) ⟨v, rfl⟩, by
+      simp_rw [top_adj]
+      intro a b hab heq
+      have := ConnectedComponent.connectedComponentMk_eq_of_adj hab
+      have hadj : (G.induce (G.connectedComponentMk a).supp).Adj ⟨a, rfl⟩
+         ⟨b, ((G.connectedComponentMk a).mem_supp_congr_adj hab).1 rfl⟩ := by simpa using hab
+      apply (Classical.choice (h a)).valid hadj (by convert heq)⟩
+
+end SimpleGraph
