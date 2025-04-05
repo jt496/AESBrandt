@@ -51,13 +51,15 @@ lemma blowupGraph_colorable_iff  {ι : Type*} {n : ℕ} (H : SimpleGraph ι) (V 
   · exact ⟨fun x ↦ c x.fst, fun h1 h2 ↦ c.valid h1 h2⟩
   · exact ⟨fun x ↦ c ⟨x, f x⟩, by intro a b had; exact c.valid (by rwa [blowupGraph_adj])⟩
 
+open ConnectedComponent Subgraph
+
 def coloringOfComponents {α β: Type*} {G : SimpleGraph α}
     (h : ∀ (c : G.ConnectedComponent), (G.induce c.supp).Coloring β) :
     G.Coloring β := by
   exact ⟨fun v ↦ h (G.connectedComponentMk v) ⟨v, rfl⟩, by
     simp only [top_adj]
     intro a b hab heq
-    have := ConnectedComponent.connectedComponentMk_eq_of_adj hab
+    have := connectedComponentMk_eq_of_adj hab
     have hadj : (G.induce (G.connectedComponentMk a).supp).Adj ⟨a, rfl⟩
        ⟨b, ((G.connectedComponentMk a).mem_supp_congr_adj hab).1 rfl⟩ := by simpa using hab
     exact (h _).valid hadj (by convert heq)⟩
@@ -67,8 +69,7 @@ theorem colorable_iff_forall_connectedComponents  :
     G.Colorable n ↔ ∀ c : G.ConnectedComponent, (G.induce c.supp).Colorable n :=
   ⟨fun ⟨C⟩ _ ↦ ⟨fun v ↦ C v.1, fun h h1 ↦ C.valid h h1⟩,
      fun h ↦ ⟨coloringOfComponents (fun c ↦ (h c).some)⟩⟩
-     
-open ConnectedComponent Subgraph
+
 /-- `G` is `n`-colorable if all its induced connected subgraphs are `n`-colorable-/
 theorem colorable_iff_induced_connected :
     (∀ s, (G.induce s).Connected → (G.induce s).Colorable n) ↔ G.Colorable n := by
