@@ -5,6 +5,7 @@ Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Combinatorics.SimpleGraph.Path
+import Mathlib.Combinatorics.SimpleGraph.Connectivity.Subgraph
 
 namespace SimpleGraph
 #check SimpleGraph.completeMultipartiteGraph
@@ -51,7 +52,7 @@ lemma blowupGraph_colorable_iff  {ι : Type*} {n : ℕ} (H : SimpleGraph ι) (V 
   · exact ⟨fun x ↦ c ⟨x, f x⟩, by intro a b had; exact c.valid (by rwa [blowupGraph_adj])⟩
 
 def coloringOfComponents {α β: Type*} {G : SimpleGraph α}
-    (h : ∀ (c : G.ConnectedComponent), (G.induce c.supp).Coloring β):
+    (h : ∀ (c : G.ConnectedComponent), (G.induce c.supp).Coloring β) :
     G.Coloring β := by
   exact ⟨fun v ↦ h (G.connectedComponentMk v) ⟨v, rfl⟩, by
     simp only [top_adj]
@@ -61,9 +62,39 @@ def coloringOfComponents {α β: Type*} {G : SimpleGraph α}
        ⟨b, ((G.connectedComponentMk a).mem_supp_congr_adj hab).1 rfl⟩ := by simpa using hab
     exact (h _).valid hadj (by convert heq)⟩
 
-theorem colorable_iff_forall_connectedComponents {α : Type*} {n : ℕ} {G : SimpleGraph α} :
+variable {α : Type*} {n : ℕ} {G : SimpleGraph α}
+theorem colorable_iff_forall_connectedComponents  :
     G.Colorable n ↔ ∀ c : G.ConnectedComponent, (G.induce c.supp).Colorable n :=
   ⟨fun ⟨C⟩ _ ↦ ⟨fun v ↦ C v.1, fun h h1 ↦ C.valid h h1⟩,
      fun h ↦ ⟨coloringOfComponents (fun c ↦ (h c).some)⟩⟩
+
+/-- `G` is `n`-colorable if all its induced connected subgraphs are `n`-colorable-/
+theorem colorable_iff_induced_connected :
+    (∀ s, (G.induce s).Connected → (G.induce s).Colorable n) ↔ G.Colorable n := by
+  constructor <;> intro h
+  · rw [colorable_iff_forall_connectedComponents]
+    intro c
+    apply h
+    rw [connected_induce_iff, Subgraph.connected_iff_forall_exists_walk_subgraph]
+    refine ⟨c.nonempty_supp,?_⟩
+    intro u v hu hv
+    simp_rw [Subgraph.induce_verts, ConnectedComponent.mem_supp_iff] at hu hv
+    have : G.connectedComponentMk u = G.connectedComponentMk v := by
+      rw [hv, hu]
+    obtain ⟨w⟩ := ConnectedComponent.exact this
+    use w
+    induction w with
+    | nil => simpa
+    | cons h p ih =>
+      simp_rw [Walk.toSubgraph, sup_le_iff]
+      constructor
+      · apply subgraphOfAdj_le_of_adj
+        simpa using ⟨hu, hu.symm ▸ ConnectedComponent.connectedComponentMk_eq_of_adj h.symm, h⟩
+      · exact ih (hu.symm ▸ ConnectedComponent.connectedComponentMk_eq_of_adj h.symm)
+                hv (ConnectedComponent.sound ⟨p⟩)
+  · intro s _
+    obtain ⟨C⟩ := h
+    exact ⟨fun v ↦ (C v.1), fun a ↦ Hom.map_adj C a⟩
+
 
 end SimpleGraph
