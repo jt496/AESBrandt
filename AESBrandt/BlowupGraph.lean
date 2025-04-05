@@ -67,7 +67,8 @@ theorem colorable_iff_forall_connectedComponents  :
     G.Colorable n ↔ ∀ c : G.ConnectedComponent, (G.induce c.supp).Colorable n :=
   ⟨fun ⟨C⟩ _ ↦ ⟨fun v ↦ C v.1, fun h h1 ↦ C.valid h h1⟩,
      fun h ↦ ⟨coloringOfComponents (fun c ↦ (h c).some)⟩⟩
-
+     
+open ConnectedComponent Subgraph
 /-- `G` is `n`-colorable if all its induced connected subgraphs are `n`-colorable-/
 theorem colorable_iff_induced_connected :
     (∀ s, (G.induce s).Connected → (G.induce s).Colorable n) ↔ G.Colorable n := by
@@ -75,10 +76,10 @@ theorem colorable_iff_induced_connected :
   · rw [colorable_iff_forall_connectedComponents]
     intro c
     apply h
-    rw [connected_induce_iff, Subgraph.connected_iff_forall_exists_walk_subgraph]
+    rw [connected_induce_iff, connected_iff_forall_exists_walk_subgraph]
     refine ⟨c.nonempty_supp,?_⟩
     intro u v hu hv
-    simp_rw [Subgraph.induce_verts, ConnectedComponent.mem_supp_iff] at hu hv
+    simp_rw [induce_verts, mem_supp_iff] at hu hv
     have : G.connectedComponentMk u = G.connectedComponentMk v := by
       rw [hv, hu]
     obtain ⟨w⟩ := ConnectedComponent.exact this
@@ -89,8 +90,8 @@ theorem colorable_iff_induced_connected :
       simp_rw [Walk.toSubgraph, sup_le_iff]
       constructor
       · apply subgraphOfAdj_le_of_adj
-        simpa using ⟨hu, hu.symm ▸ ConnectedComponent.connectedComponentMk_eq_of_adj h.symm, h⟩
-      · exact ih (hu.symm ▸ ConnectedComponent.connectedComponentMk_eq_of_adj h.symm)
+        simpa using ⟨hu, hu.symm ▸ connectedComponentMk_eq_of_adj h.symm, h⟩
+      · exact ih (hu.symm ▸ connectedComponentMk_eq_of_adj h.symm)
                 hv (ConnectedComponent.sound ⟨p⟩)
   · intro s _
     obtain ⟨C⟩ := h
