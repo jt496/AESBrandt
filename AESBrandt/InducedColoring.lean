@@ -49,5 +49,21 @@ theorem colorable_iff_forall_induced_connected :
     obtain ⟨C⟩ := h
     exact ⟨fun v ↦ (C v.1), fun a ↦ Hom.map_adj C a⟩
 
+lemma colorable_iff_spanningCoe (s : Set α) :
+    (G.induce s).Colorable (n + 1) ↔ (G.induce s).spanningCoe.Colorable (n + 1) := by
+  classical
+  constructor <;> intro ⟨C⟩
+  · exact ⟨fun v ↦ if h : v ∈ s then (C ⟨v, h⟩) else 0, by
+      simp only [map_adj, comap_adj, Function.Embedding.subtype_apply, Subtype.exists,
+        exists_and_left, exists_prop, existsAndEq, and_true, true_and, top_adj, ne_eq, and_imp]
+      intro a b h ha hb he
+      split_ifs at he
+      apply C.valid _ he
+      simpa⟩
+  · exact ⟨fun v ↦ (C v.1), by
+      simp only [comap_adj, Function.Embedding.subtype_apply, top_adj, ne_eq, Subtype.forall]
+      intro a ha b hb h
+      apply C.valid
+      simpa using ⟨h,ha,hb⟩⟩
 
 end SimpleGraph
