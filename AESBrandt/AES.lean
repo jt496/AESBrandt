@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import AESBrandt.FiveWheelLike
-import Mathlib.Combinatorics.SimpleGraph.Coloring
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.Order
 import Mathlib.Algebra.BigOperators.Ring.Finset
@@ -73,14 +72,14 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   | zero => simpa using hf
   | succ r =>
   -- There is an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
-  obtain ⟨H, hmcfle, hmcf⟩ := @Finite.exists_le_maximal _ _ G (fun H ↦ H.CliqueFree (r + 2)) _ hf
+  obtain ⟨H, hle, hmcf⟩ := @Finite.exists_le_maximal _ _ G (fun H ↦ H.CliqueFree (r + 2)) _ hf
   -- If we can (r + 1)-color H then we can (r + 1)-color G
-  apply Colorable.mono_left hmcfle
+  apply Colorable.mono_left hle
   by_contra! hnotcol
   -- If H is complete-multipartite and Kᵣ₊₁-free then it is (r + 1)-colorable
-  have hncp : ¬H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
+  have hn : ¬H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel-like
-  obtain ⟨v, w₁, w₂, s, t, hw, hmax⟩ := exists_max_isFiveWheelLike hmcf hncp
+  obtain ⟨v, w₁, w₂, s, t, hw, hm⟩ := exists_maximal_isFiveWheelLike_of_maximal_cliqueFree hmcf hn
 -- The two key sets of vertices are X, consisting of all vertices that are common
 -- neighbours of all of s ∩ t,
   let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
@@ -90,7 +89,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
-    exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hmax
+    exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hm
 -- Every vertex has at least 1 non-neighbor in W.
 -- So we have a bound on the degree sum over W
 -- ∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)
@@ -117,7 +116,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
 -- Complete the proof by contradiction by showing that `H.minDegree` is too small
   apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd
-                         <| G.minDegree_le_minDegree hmcfle
+                         <| G.minDegree_le_minDegree hle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := hw.three_le_card

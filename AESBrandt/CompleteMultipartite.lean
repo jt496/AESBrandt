@@ -81,8 +81,9 @@ structure IsP2Complement (v w₁ w₂ : α) : Prop where
 namespace IsP2Complement
 
 variable {v w₁ w₂ : α}
-lemma ne (p2 : G.IsP2Complement v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
-  ⟨fun h ↦ p2.not_adj.2 (h.symm ▸ p2.adj), fun h ↦ p2.not_adj.1 (h ▸ p2.adj.symm)⟩
+
+lemma ne (h2 : G.IsP2Complement v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
+  ⟨fun h ↦ h2.not_adj.2 (h.symm ▸ h2.adj), fun h ↦ h2.not_adj.1 (h ▸ h2.adj.symm)⟩
 
 lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁ := by
   obtain ⟨h1, ⟨h2, h3⟩⟩ := h
