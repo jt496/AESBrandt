@@ -3,7 +3,6 @@ Copyright (c) 2024 John Talbot and Lian Bremner Tattersall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
-import AESBrandt.Clique
 import AESBrandt.CompleteMultipartite
 
 /-!

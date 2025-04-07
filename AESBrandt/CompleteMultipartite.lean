@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.Coloring
-import AESBrandt.Coloring
 
 /-!
 # Complete Multipartite Graphs
@@ -21,7 +20,7 @@ A graph is complete multipartite iff non-adjacency is transitive.
 
 * `SimpleGraph.IsP2Complement`: predicate for three vertices to be a witness to
    non-complete-multi-partiteness of a graph G.
-   
+
 (The name refers to the fact that the three vertices form the complement of a path of length two.)
 -/
 
@@ -66,12 +65,12 @@ lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u
 
 lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteMultipartite)
     (hc : G.CliqueFree n) : G.Colorable (n - 1) :=
-    (completeMultipartiteGraph.colorable_of_cliqueFree (fun _ ↦ ⟨_, h.setoid.refl _⟩)
-          <| hc.comap h.iso.symm).of_embedding h.iso.toEmbedding
+    (completeMultipartiteGraph.colorable_of_cliqueFree _ (fun _ ↦ ⟨_, h.setoid.refl _⟩)
+          <| hc.comap h.iso.symm.toEmbedding).of_embedding h.iso.toEmbedding
 
 variable (G) in
 /--
-The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only adj
+The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
 present between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
