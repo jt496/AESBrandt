@@ -14,13 +14,13 @@ A graph is complete multipartite iff non-adjacency is transitive.
 
 * `SimpleGraph.IsCompleteMultipartite`: predicate for a graph to be complete-multi-partite.
 
-* `SimpleGraph.IsCompleteMultipartite.setoid`: the Setoid given by non-adjacency.
+* `SimpleGraph.IsCompleteMultipartite.setoid`: the `Setoid` given by non-adjacency.
 
 * `SimpleGraph.IsCompleteMultipartite.iso`: the graph isomorphism from a graph that
   `IsCompleteMultipartite` to the corresponding `completeMultipartiteGraph`.
 
 * `SimpleGraph.IsP2Complement`: predicate for three vertices to be a witness to
-   non-complete-multi-partiteness of a graph G. (The name refers to the fact that the three
+   non-complete-multi-partite-ness of a graph G. (The name refers to the fact that the three
    vertices form the complement of a path of length two.)
 -/
 
@@ -71,8 +71,8 @@ lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsComplete
 
 variable (G) in
 /--
-The vertices `v, w₁, w₂` form an `IsP2Complement` in the graph `G` iff `w₁w₂` is the only edge
-present between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
+The vertices `v, w₁, w₂` form an `IsP2Complement` in `G` iff `w₁w₂` is the only edge present between
+these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
 -/
 structure IsP2Complement (v w₁ w₂ : α) : Prop where
   adj : G.Adj w₁ w₂
@@ -95,9 +95,9 @@ lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMult
     ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
   rw [IsCompleteMultipartite, Transitive] at h
   push_neg at h
-  obtain ⟨w₁, v, w₂, h1, h2, h3⟩ := h
+  obtain ⟨_, _, _, h1, h2, h3⟩ := h
   rw [adj_comm] at h1
-  exact ⟨v, w₁, w₂, h3, h1, h2⟩
+  exact ⟨_, _, _, h3, h1, h2⟩
 
 lemma not_isCompleteMultipartite_iff_exists_isP2Complement :
     ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
