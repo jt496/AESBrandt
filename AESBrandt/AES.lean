@@ -42,11 +42,11 @@ private lemma kr_bound (hk : k ≤ r) :
 open Finset SimpleGraph
 variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α} {s : Finset α}
 /-- Transform lower bound on non-edges into upper bound on edges -/
-private lemma card_adj_le_of_le_card_not_adj (hx: i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
+private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
     #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
   rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z)]
   rw [add_tsub_assoc_of_le hx]
-  apply Nat.le_add_right
+  exact Nat.le_add_right ..
 
 variable [Fintype α] [DecidableEq α] {W X : Finset α}
 /--
@@ -57,11 +57,11 @@ private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.fi
     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
       simp only [degree, card_eq_sum_ones]
-      apply sum_comm'; intro x y; simp [and_comm, adj_comm]
+      exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
    _ ≤ _ := by
     rw [← union_compl X, sum_union disjoint_compl_right]
     simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
-      card_eq_sum_ones Xᶜ, sum_mul,one_mul]
+      card_eq_sum_ones Xᶜ, sum_mul, one_mul]
     apply add_le_add <;> apply sum_le_sum <;> intro x hx1
     · exact card_adj_le_of_le_card_not_adj <| hx x hx1
     · exact card_adj_le_of_le_card_not_adj <| hy x
@@ -91,7 +91,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
 -- and `W` which is consists of all vertices of the 5-wheel.
   let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
 -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we can build a bigger wheel)
-  have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z):= by
+  have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z) := by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
     exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hm
@@ -114,13 +114,13 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   have boundX := sum_degree_le_of_le_not_adj xcle (fun x ↦ Nat.zero_le _)
   rw [compl_compl, tsub_zero, add_comm] at boundX
   let k := #(s ∩ t)
-  have krle: (2 * r + k) * ‖α‖ / (2 * r + k + 3) ≤ (3 * r - 1) * ‖α‖ / (3 * r + 2):= by
+  have krle: (2 * r + k) * ‖α‖ / (2 * r + k + 3) ≤ (3 * r - 1) * ‖α‖ / (3 * r + 2) := by
     cases r with
     | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
 -- Complete the proof by contradiction by showing that `H.minDegree` is too small
   apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd
-                         <| G.minDegree_le_minDegree hle
+        <| G.minDegree_le_minDegree hle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := hw.three_le_card
@@ -149,7 +149,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
           add_le_add boundW <| Nat.mul_le_mul_left _ boundX
     _ = #X * (#W - 3 + 2 * k) + #Xᶜ * ((#W - 1) + 2 * (k - 1)) := by ring_nf
     _ ≤ (2 * r + k) * ‖α‖ := by
-        rw [hap, ←add_mul, card_compl, add_tsub_cancel_of_le (card_le_univ _), mul_comm]
+        rw [hap, ← add_mul, card_compl, add_tsub_cancel_of_le (card_le_univ _), mul_comm]
         apply Nat.mul_le_mul_right
         rw [two_mul, ← add_assoc]
         apply Nat.add_le_add_right
