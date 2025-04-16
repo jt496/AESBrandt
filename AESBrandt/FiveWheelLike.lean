@@ -23,7 +23,7 @@ Main definition:
   with `r`-sets `s` and `t`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
 
 open Finset
-variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r n : ℕ} {s : Finset α} [DecidableEq α]
+variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r : ℕ} {s : Finset α} [DecidableEq α]
 /-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
 private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c)
     (hc2 : #{a, b, c, d} ≤ 2) : c = a ∧ d = b := by
@@ -36,20 +36,20 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
 
 namespace SimpleGraph
 
-lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique n s)
-    (h : G.CliqueFree (n + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬G.Adj x y := by
+lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique r s)
+    (h : G.CliqueFree (r + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬ G.Adj x y := by
   classical
   by_contra! hf
   exact (hc.insert hf).not_cliqueFree h
 
-lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree n) G) (hne : x ≠ y)
+lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree r) G) (hne : x ≠ y)
     (hn : ¬ G.Adj x y) :
-    ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (n - 1) (insert x s) ∧ G.IsNClique (n - 1) (insert y s) := by
+    ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique (r - 1) (insert x s) ∧ G.IsNClique (r - 1) (insert y s) := by
   obtain ⟨t, hc⟩ := not_forall_not.1 <| h.not_prop_of_gt <| G.lt_sup_edge _ _ hne hn
   use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
-  cases n with
+  cases r with
   | zero => exact False.elim <| not_cliqueFree_zero h.1
-  | succ n =>
+  | succ r =>
     have h1 := h.1.mem_of_sup_edge_isNClique hc
     have h2 := h.1.mem_of_sup_edge_isNClique (edge_comm .. ▸ hc)
     rw [insert_erase <| mem_erase_of_ne_of_mem hne.symm h2, erase_right_comm,
@@ -57,12 +57,12 @@ lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree 
     exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem h2, hc.erase_of_sup_edge_of_mem h1⟩
 
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
-    (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (hadj : G.Adj a b) :
-    G.IsNClique (r + 1) (insert b ((insert a) s)) := by
+    (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (ha : G.Adj a b) :
+    G.IsNClique (r + 1) (insert b (insert a s)) := by
   apply h1.insert
   intro b hb
   obtain (rfl | h) := mem_insert.1 hb
-  · exact hadj.symm
+  · exact ha.symm
   · exact h2.1 (mem_insert_self _ s) (mem_insert_of_mem h) <| fun h' ↦ False.elim <| h3 (h' ▸ h)
 
 private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (hc : c ∈ s)
@@ -71,7 +71,7 @@ private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (h
   have : a ≠ c := fun h ↦ False.elim <| ha (h ▸ hc)
   rw [insert_comm, ← erase_insert_of_ne this]
   simp_rw [adj_comm, ← not_mem_singleton] at hd
-  exact hs.insert_erase (fun x h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
+  exact hs.insert_erase (fun _ h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
 
 /-- A `IsFiveWheelLike r v w₁ w₂ s t` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets
  `s` and `t` such that `v w₁ w₂` form an `IsPathGraph3Compl`; `v, w₁, w₂ ∉ s ∪ t` and
@@ -86,50 +86,45 @@ namespace IsFiveWheelLike
 
 variable {v w₁ w₂ : α} {t : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s t) include hw
 
-lemma symm :  G.IsFiveWheelLike r v w₂ w₁ t s :=
+lemma symm : G.IsFiveWheelLike r v w₂ w₁ t s :=
   let ⟨p2, ⟨d1, d2, d3, d4⟩, ⟨c1, c2, c3, c4⟩⟩ := hw
   ⟨p2.symm, ⟨d2, d1, d4, d3⟩, ⟨c3, c4, c1, c2⟩⟩
 
-lemma not_mem' : w₁ ∉ t ∧ w₂ ∉ s :=
-  ⟨fun hf ↦ hw.isPathGraph3Compl.not_adj.1 <| hw.isNClique.2.2.1.1 (mem_insert_self ..)
-    (mem_insert_of_mem hf) hw.isPathGraph3Compl.ne.1,
-   fun hf ↦ hw.isPathGraph3Compl.not_adj.2 <| hw.isNClique.1.1 (mem_insert_self ..)
-    (mem_insert_of_mem hf) hw.isPathGraph3Compl.ne.2⟩
+lemma not_mem' : w₁ ∉ t :=
+  fun h ↦ hw.isPathGraph3Compl.not_adj.1 <| hw.isNClique.2.2.1.1 (mem_insert_self ..)
+  (mem_insert_of_mem h) hw.isPathGraph3Compl.ne.1
 
-lemma card_isNClique_erase : s.card = r ∧ t.card = r :=by
-  constructor
-  · have := hw.isNClique.1.2
-    rwa [card_insert_of_not_mem hw.not_mem.1, Nat.succ_inj] at this
-  · have := hw.isNClique.2.2.1.2
-    rwa [card_insert_of_not_mem hw.not_mem.2.1, Nat.succ_inj] at this
+lemma card_isNClique_erase : s.card = r := by
+  have := hw.isNClique.1.2
+  rwa [card_insert_of_not_mem hw.not_mem.1, Nat.succ_inj] at this
 
 lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + #(s ∩ t) = 2 * r + 3 := by
-  rw [card_insert_of_not_mem, add_comm, card_insert_of_not_mem, card_insert_of_not_mem]
-  · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_isNClique_erase.1,
-        hw.card_isNClique_erase.2]
+  rw [add_comm, card_insert_of_not_mem, card_insert_of_not_mem, card_insert_of_not_mem]
+  · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_isNClique_erase,
+    hw.symm.card_isNClique_erase]
   · rw [mem_union, not_or]
-    exact ⟨hw.not_mem'.2, hw.not_mem.2.2.2⟩
+    exact ⟨hw.symm.not_mem', hw.not_mem.2.2.2⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isPathGraph3Compl.adj.ne, hw.not_mem.2.2.1, hw.not_mem'.1⟩
-  · rw [mem_insert, mem_insert, mem_union]
+    exact ⟨hw.isPathGraph3Compl.adj.ne, hw.not_mem.2.2.1, hw.not_mem'⟩
+  · simp_rw [mem_insert, mem_union]
     push_neg
     exact ⟨hw.isPathGraph3Compl.ne.1, hw.isPathGraph3Compl.ne.2, hw.not_mem.1, hw.not_mem.2.1⟩
 
-lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
-  ⟨v, mem_insert_self .., w₁, by simp, w₂, by simp, hw.isPathGraph3Compl.ne.1,
-    hw.isPathGraph3Compl.ne.2, hw.isPathGraph3Compl.adj.ne⟩
+lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) :=
+  two_lt_card.2 ⟨_, mem_insert_self .., _, by simp, _, by simp, hw.isPathGraph3Compl.ne.1,
+                hw.isPathGraph3Compl.ne.2, hw.isPathGraph3Compl.adj.ne⟩
 
 lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r := by
   contrapose! h
-  have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_isNClique_erase.1 ▸ h)
-  have ht := eq_of_subset_of_card_le inter_subset_right (hw.card_isNClique_erase.2 ▸ h)
+  have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_isNClique_erase ▸ h)
+  have ht := eq_of_subset_of_card_le inter_subset_right (hw.symm.card_isNClique_erase ▸ h)
   exact (hw.isNClique.2.1.insert_insert (hs ▸ ht.symm ▸ hw.isNClique.2.2.2)
-    hw.not_mem'.2 hw.isPathGraph3Compl.adj).not_cliqueFree
+    hw.symm.not_mem' hw.isPathGraph3Compl.adj).not_cliqueFree
 
 omit hw in
 lemma _root_.SimpleGraph.exists_maximal_isFiveWheelLike_of_maximal_cliqueFree
-    (h : Maximal (fun H => H.CliqueFree (r + 2)) G)
-    (hnc : ¬ G.IsCompleteMultipartite) : ∃ v w₁ w₂ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ ∀ s' t',
+    (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
+    ∃ v w₁ w₂ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ ∀ s' t',
     G.IsFiveWheelLike r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t) := by
   classical
   obtain ⟨v, w₁, w₂, h3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
@@ -144,52 +139,50 @@ lemma _root_.SimpleGraph.exists_maximal_isFiveWheelLike_of_maximal_cliqueFree
   exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s', t')).trans
             hw.2.symm.le
 
-lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s ∩ t → G.Adj x y ) :
-    ∃ a b c d, a ∈ insert w₁ s ∧ ¬G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬G.Adj x b ∧ c ∈ insert v s ∧
-      ¬G.Adj x c ∧ d ∈ insert v t ∧ ¬G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
-  obtain ⟨a, ha, haj⟩ := hw.isNClique.2.1.exists_not_adj_of_cliqueFree_succ h x
-  obtain ⟨b, hb, hbj⟩ := hw.isNClique.2.2.2.exists_not_adj_of_cliqueFree_succ h x
-  obtain ⟨c, hc, hcj⟩ := hw.isNClique.1.exists_not_adj_of_cliqueFree_succ h x
-  obtain ⟨d, hd, hdj⟩ := hw.isNClique.2.2.1.exists_not_adj_of_cliqueFree_succ h x
-  have := hw.isPathGraph3Compl.adj.ne
-  have := hw.isPathGraph3Compl.ne
-  have := hw.not_mem'
+lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s ∩ t → G.Adj x y) :
+    ∃ a b c d, a ∈ insert w₁ s ∧ ¬ G.Adj x a ∧ b ∈ insert w₂ t ∧ ¬ G.Adj x b ∧ c ∈ insert v s ∧
+      ¬ G.Adj x c ∧ d ∈ insert v t ∧ ¬ G.Adj x d ∧ a ≠ b ∧ a ≠ d ∧ b ≠ c ∧ a ∉ t ∧ b ∉ s := by
+  obtain ⟨_, ha, haj⟩ := hw.isNClique.2.1.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨_, hb, hbj⟩ := hw.isNClique.2.2.2.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨_, hc, hcj⟩ := hw.isNClique.1.exists_not_adj_of_cliqueFree_succ h x
+  obtain ⟨_, hd, hdj⟩ := hw.isNClique.2.2.1.exists_not_adj_of_cliqueFree_succ h x
   refine ⟨_, _, _, _, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
   <;> rw [mem_insert] at *
   · rintro rfl
     obtain (rfl | ha) := ha
     · obtain (rfl | hb) := hb
-      · contradiction
-      · exact this.1 hb
+      · exact hw.isPathGraph3Compl.adj.ne rfl
+      · exact hw.not_mem' hb
     · obtain (rfl | hb) := hb
-      · exact this.2 ha
-      · exact haj (hWc <| mem_inter_of_mem ha hb)
+      · exact hw.symm.not_mem' ha
+      · exact haj <| hWc <| mem_inter_of_mem ha hb
   · rintro rfl
     obtain (rfl | ha) := ha
     · obtain (rfl | hd) := hd
       · exact hw.isPathGraph3Compl.ne.1 rfl
-      · exact hw.not_mem'.1  hd
-    · obtain (rfl | hd ) := hd
+      · exact hw.not_mem'  hd
+    · obtain (rfl | hd) := hd
       · exact hw.not_mem.1 ha
       · exact haj <| hWc <| mem_inter_of_mem ha hd
   · rintro rfl;
     obtain (rfl | hb) := hb
-    · obtain (rfl | hc ) := hc
+    · obtain (rfl | hc) := hc
       · exact hw.isPathGraph3Compl.ne.2 rfl
-      · exact hw.not_mem'.2  hc
-    · obtain (rfl | hc ) := hc
+      · exact hw.symm.not_mem'  hc
+    · obtain (rfl | hc) := hc
       ·  exact hw.not_mem.2.1 hb
       ·  exact hbj <| hWc <| mem_inter_of_mem hc hb
   · intro hat
     obtain (rfl | ha) := ha
-    · exact this.1 hat
-    · exact haj (hWc <| mem_inter_of_mem ha hat)
+    · exact hw.not_mem' hat
+    · exact haj <| hWc <| mem_inter_of_mem ha hat
   · intro hbs
     obtain (rfl | hb) := hb
-    · exact this.2 hbs
-    · exact hbj (hWc <| mem_inter_of_mem hbs hb)
+    · exact hw.symm.not_mem' hbs
+    · exact hbj <| hWc <| mem_inter_of_mem hbs hb
 
 variable [DecidableRel G.Adj]
+
 lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
     (hWc : ∀ {y}, y ∈ s ∩ t → G.Adj x y)
     (hsmall : #((insert v (insert w₁ (insert w₂ (s ∪ t)))).filter (fun z ↦ ¬ G.Adj x z)) ≤ 2) :
@@ -213,13 +206,13 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
     · obtain (rfl | hd) := hd <;> trivial
     · exact hb
   have habv : v ≠ a ∧ v ≠ b := ⟨fun hf ↦ hw.not_mem.1 (hf ▸ has), fun hf ↦ hw.not_mem.2.1 (hf ▸ hbt)⟩
-  have haw2 : a ≠ w₂ := fun hf ↦ hw.not_mem'.2 (hf ▸ has)
-  have hbw1 : b ≠ w₁ := fun hf ↦ hw.not_mem'.1 (hf ▸ hbt)
+  have haw2 : a ≠ w₂ := fun hf ↦ hw.symm.not_mem' (hf ▸ has)
+  have hbw1 : b ≠ w₁ := fun hf ↦ hw.not_mem' (hf ▸ hbt)
   have hxvw12 : x ≠ v ∧ x ≠ w₁ ∧ x ≠ w₂ := by
     refine ⟨?_, ?_, ?_⟩
     · by_cases hax : x = a <;> rintro rfl
       · exact hw.not_mem.1 (hax ▸ has)
-      · exact haj <| hw.isNClique.1.1 (mem_insert_self _ _) (mem_insert_of_mem has) hax
+      · exact haj <| hw.isNClique.1.1 (mem_insert_self ..) (mem_insert_of_mem has) hax
     · by_cases hax : x = a <;> rintro rfl
       · exact hw.not_mem.2.2.1 (hax ▸ has)
       · exact haj <| hw.isNClique.2.1.1 (mem_insert_self ..) (mem_insert_of_mem has) hax
@@ -230,34 +223,31 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
     intro z hz haz hbz
     by_contra! hf
     have gt2 : 2 < #(W.filter (fun z ↦ ¬ G.Adj x z)) := by
-      refine two_lt_card.2 ⟨a, ?_, b , ?_, z, ?_, hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
+      refine two_lt_card.2 ⟨a, ?_, b, ?_, z, ?_, hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
       · exact ⟨by aesop, hcj⟩
       · exact ⟨by aesop, hdj⟩
-      · rw [adj_comm] at hf
-        exact ⟨hz, hf⟩
-    apply Nat.lt_le_asymm gt2 hsmall
--- Below we prove that the new 5-wheel is indeed a 5-wheel
-  refine ⟨a, b, hat, hbs, ⟨hw.isPathGraph3Compl, ?_, ?_⟩⟩
--- We first prove `v w₁ w₂` are not in the various new isNClique
+      · exact ⟨hz, by rwa [adj_comm] at hf⟩
+    exact Nat.lt_le_asymm gt2 hsmall
+-- We now prove that the new 5-wheel is indeed a 5-wheel
+  refine ⟨_, _, hat, hbs, ⟨hw.isPathGraph3Compl, ?_, ?_⟩⟩
   · simp_rw [mem_insert, not_or]
     exact ⟨⟨hxvw12.1.symm, fun hv ↦ hw.not_mem.1 (mem_erase.1 hv).2 ⟩,
            ⟨hxvw12.1.symm, fun hv ↦ hw.not_mem.2.1 (mem_erase.1 hv).2⟩,
            ⟨hxvw12.2.1.symm, fun hw1 ↦ hw.not_mem.2.2.1 (mem_erase.1 hw1).2⟩,
            ⟨hxvw12.2.2.symm, fun hv ↦ hw.not_mem.2.2.2 (mem_erase.1 hv).2⟩⟩
--- Finally we prove that the new isNClique are indeed (r + 1)-isNClique
   · refine ⟨hw.isNClique.1.insert_insert_erase has hw.not_mem.1
                       fun z hz hZ ↦ wadj _ (by aesop) hZ ?_,
             hw.isNClique.2.1.insert_insert_erase has hw.not_mem.2.2.1
-                      fun z hz hZ ↦  wadj _ (by aesop) hZ ?_,
+                      fun z hz hZ ↦ wadj _ (by aesop) hZ ?_,
             hw.isNClique.2.2.1.insert_insert_erase hbt hw.not_mem.2.1
-                      fun z hz hZ ↦  wadj _ (by aesop)  ?_ hZ,
+                      fun z hz hZ ↦ wadj _ (by aesop) ?_ hZ,
             hw.isNClique.2.2.2.insert_insert_erase hbt hw.not_mem.2.2.2
                       fun z hz hZ ↦ wadj _ (by aesop) ?_ hZ⟩
     <;> rintro rfl <;> rw [mem_insert] at hz
-    · exact habv.2.symm (hz.resolve_right hbs)
-    · exact hbw1 (hz.resolve_right hbs)
-    · exact habv.1.symm (hz.resolve_right hat)
-    · exact haw2 (hz.resolve_right hat)
+    · exact habv.2.symm <| hz.resolve_right hbs
+    · exact hbw1 <| hz.resolve_right hbs
+    · exact habv.1.symm <| hz.resolve_right hat
+    · exact haw2 <| hz.resolve_right hat
 
 /-- For any x there is a 5-wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
 lemma one_le_not_adj_of_cliqueFree (hcf : G.CliqueFree (r + 2)) (x : α) :

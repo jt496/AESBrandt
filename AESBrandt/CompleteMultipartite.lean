@@ -125,8 +125,8 @@ def IsPathGraph3Compl.pathGraph3ComplEmbedding {v w₁ w₂ : α} (h : G.IsPathG
     simp_rw [Function.Embedding.coeFn_mk, compl_adj, ne_eq, pathGraph_adj, not_or]
     have := h.adj
     have := h.adj.symm
-    have ⟨h1, h2⟩ := h.not_adj
-    have ⟨_, _⟩ : ¬ G.Adj w₁ v ∧ ¬ G.Adj w₂ v := by rw [adj_comm] at h1 h2; exact ⟨h1, h2⟩
+    have h' := h.not_adj
+    have := by rwa [adj_comm, adj_comm _ v] at h'
     aesop
 
 /-- Embedding of `pathGraph 3` in `G` that is not complete-multipartite. -/
