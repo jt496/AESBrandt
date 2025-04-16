@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.Coloring
+import Mathlib.Combinatorics.SimpleGraph.Hasse
 
 /-!
 # Complete Multipartite Graphs
@@ -103,5 +104,47 @@ lemma not_isCompleteMultipartite_iff_exists_isP2Complement :
     ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
   exact ⟨fun h ↦ G.exists_isP2Complement_of_not_isCompleteMultipartite h,
         fun ⟨_, _, _, h1, h2, h3⟩ ↦ fun h ↦ h (by rwa [adj_comm] at h2) h3 h1⟩
+
+/-
+Any `IsP2Complement` in `G` gives rise to a graph embedding of the complement of the path graph
+-/
+def IsP2Complement.pathGraph3ComplEmbedding {v w₁ w₂ : α} (h : G.IsP2Complement v w₁ w₂) :
+    (pathGraph 3)ᶜ ↪g G where
+  toFun := fun x ↦
+    match x with
+    | 0 => w₁
+    | 1 => v
+    | 2 => w₂
+  inj' := by
+    intro x y _
+    have := h.ne
+    have := h.adj.ne
+    aesop
+  map_rel_iff' := by
+    intro x y
+    simp_rw [Function.Embedding.coeFn_mk, compl_adj, ne_eq, pathGraph_adj, not_or]
+    have h1 := h.adj
+    have ⟨h2, h3⟩ := h.not_adj
+    have ⟨h4, h5⟩: ¬ G.Adj w₁ v ∧ ¬ G.Adj w₂ v := by rw [adj_comm] at h2 h3; exact ⟨h2, h3⟩
+    have h6 := h1.symm
+    aesop
+
+noncomputable def pathGraph3ComplEmbeddingOf (h : ¬ G.IsCompleteMultipartite) : (pathGraph 3)ᶜ ↪g G :=
+  IsP2Complement.pathGraph3ComplEmbedding
+    (exists_isP2Complement_of_not_isCompleteMultipartite h).choose_spec.choose_spec.choose_spec
+
+lemma not_isCompleteMultipartite_of_pathGraph3ComplEmbedding (e : (pathGraph 3)ᶜ ↪g G) :
+    ¬ IsCompleteMultipartite G := by
+  intro h
+  have h0 : ¬ G.Adj (e 0) (e 1) := by simp [pathGraph_adj]
+  have h1 : ¬ G.Adj (e 1) (e 2) := by simp [pathGraph_adj]
+  have h2 : G.Adj (e 0) (e 2) := by simp [pathGraph_adj]
+  exact h h0 h1 h2
+
+/-- If a graph is complete-multipartite, any graph that embeds into it is also complete-multipartite. -/
+theorem IsCompleteMultipartite.comap {β : Type*} {H : SimpleGraph β} (f : H ↪g G) :
+    G.IsCompleteMultipartite → H.IsCompleteMultipartite := by
+  intro h; contrapose h
+  exact not_isCompleteMultipartite_of_pathGraph3ComplEmbedding <| f.comp (pathGraph3ComplEmbeddingOf h)
 
 end SimpleGraph
