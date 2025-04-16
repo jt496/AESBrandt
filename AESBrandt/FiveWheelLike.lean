@@ -9,7 +9,7 @@ import AESBrandt.CompleteMultipartite
 If `G` is maximally `Kᵣ₊₂`-free and `¬ G.Adj x y` (with `x ≠ y`) then there exists an `r`-set
  such that `s ∪ {x}` and `s ∪ {y}` are both `r + 1`-cliques.
 
-If `¬ G.IsCompleteMultipartite` then it contains a `G.IsP2Complement v w₁ w₂` consisting of
+If `¬ G.IsCompleteMultipartite` then it contains a `G.IsPathGraph3Compl v w₁ w₂` consisting of
 an edge `w₁w₂` and a vertex `v` such that `vw₁` and `vw₂` are non-edges.
 
 Putting these together gives the definition of an `IsFiveWheelLike` structure
@@ -20,7 +20,7 @@ These plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 Main definition:
 
 * `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s t` to form a 5-wheel-like subgraph of `G`
-  with `r`-sets `s` and `t`, and vertices `v w₁ w₂` forming an `IsP2Complement`. -/
+  with `r`-sets `s` and `t`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
 
 open Finset
 variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r n : ℕ} {s : Finset α} [DecidableEq α]
@@ -74,10 +74,10 @@ private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (h
   exact hs.insert_erase (fun x h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
 
 /-- A `IsFiveWheelLike r v w₁ w₂ s t` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets
- `s` and `t` such that `v w₁ w₂` form an `IsP2Complement`; `v, w₁, w₂ ∉ s ∪ t` and
+ `s` and `t` such that `v w₁ w₂` form an `IsPathGraph3Compl`; `v, w₁, w₂ ∉ s ∪ t` and
   `s ∪ {v}, t ∪ {v}, s ∪ {w₁}, t ∪ {w₂}` are all `(r + 1)`- cliques. -/
 structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s t : Finset α) : Prop where
-  isP2Complement : G.IsP2Complement v w₁ w₂
+  isPathGraph3Compl : G.IsPathGraph3Compl v w₁ w₂
   not_mem   : v ∉ s ∧ v ∉ t ∧ w₁ ∉ s ∧ w₂ ∉ t
   isNClique : G.IsNClique (r + 1) (insert v s) ∧ G.IsNClique (r + 1) (insert w₁ s)
               ∧ G.IsNClique (r + 1) (insert v t) ∧ G.IsNClique (r + 1) (insert w₂ t)
@@ -91,10 +91,10 @@ lemma symm :  G.IsFiveWheelLike r v w₂ w₁ t s :=
   ⟨p2.symm, ⟨d2, d1, d4, d3⟩, ⟨c3, c4, c1, c2⟩⟩
 
 lemma not_mem' : w₁ ∉ t ∧ w₂ ∉ s :=
-  ⟨fun hf ↦ hw.isP2Complement.not_adj.1 <| hw.isNClique.2.2.1.1 (mem_insert_self ..)
-    (mem_insert_of_mem hf) hw.isP2Complement.ne.1,
-   fun hf ↦ hw.isP2Complement.not_adj.2 <| hw.isNClique.1.1 (mem_insert_self ..)
-    (mem_insert_of_mem hf) hw.isP2Complement.ne.2⟩
+  ⟨fun hf ↦ hw.isPathGraph3Compl.not_adj.1 <| hw.isNClique.2.2.1.1 (mem_insert_self ..)
+    (mem_insert_of_mem hf) hw.isPathGraph3Compl.ne.1,
+   fun hf ↦ hw.isPathGraph3Compl.not_adj.2 <| hw.isNClique.1.1 (mem_insert_self ..)
+    (mem_insert_of_mem hf) hw.isPathGraph3Compl.ne.2⟩
 
 lemma card_isNClique_erase : s.card = r ∧ t.card = r :=by
   constructor
@@ -110,21 +110,21 @@ lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s ∪ t)))) + 
   · rw [mem_union, not_or]
     exact ⟨hw.not_mem'.2, hw.not_mem.2.2.2⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isP2Complement.adj.ne, hw.not_mem.2.2.1, hw.not_mem'.1⟩
+    exact ⟨hw.isPathGraph3Compl.adj.ne, hw.not_mem.2.2.1, hw.not_mem'.1⟩
   · rw [mem_insert, mem_insert, mem_union]
     push_neg
-    exact ⟨hw.isP2Complement.ne.1, hw.isP2Complement.ne.2, hw.not_mem.1, hw.not_mem.2.1⟩
+    exact ⟨hw.isPathGraph3Compl.ne.1, hw.isPathGraph3Compl.ne.2, hw.not_mem.1, hw.not_mem.2.1⟩
 
 lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s ∪ t)))) := two_lt_card.2
-  ⟨v, mem_insert_self .., w₁, by simp, w₂, by simp, hw.isP2Complement.ne.1,
-    hw.isP2Complement.ne.2, hw.isP2Complement.adj.ne⟩
+  ⟨v, mem_insert_self .., w₁, by simp, w₂, by simp, hw.isPathGraph3Compl.ne.1,
+    hw.isPathGraph3Compl.ne.2, hw.isPathGraph3Compl.adj.ne⟩
 
 lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s ∩ t) < r := by
   contrapose! h
   have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_isNClique_erase.1 ▸ h)
   have ht := eq_of_subset_of_card_le inter_subset_right (hw.card_isNClique_erase.2 ▸ h)
   exact (hw.isNClique.2.1.insert_insert (hs ▸ ht.symm ▸ hw.isNClique.2.2.2)
-    hw.not_mem'.2 hw.isP2Complement.adj).not_cliqueFree
+    hw.not_mem'.2 hw.isPathGraph3Compl.adj).not_cliqueFree
 
 omit hw in
 lemma _root_.SimpleGraph.exists_maximal_isFiveWheelLike_of_maximal_cliqueFree
@@ -132,7 +132,7 @@ lemma _root_.SimpleGraph.exists_maximal_isFiveWheelLike_of_maximal_cliqueFree
     (hnc : ¬ G.IsCompleteMultipartite) : ∃ v w₁ w₂ s t, G.IsFiveWheelLike r v w₁ w₂ s t ∧ ∀ s' t',
     G.IsFiveWheelLike r v w₁ w₂ s' t' → #(s' ∩ t') ≤ #(s ∩ t) := by
   classical
-  obtain ⟨v, w₁, w₂, h3⟩ := exists_isP2Complement_of_not_isCompleteMultipartite hnc
+  obtain ⟨v, w₁, w₂, h3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
   obtain ⟨s, hvs, hw1s, hsv, hsw1⟩ := exists_of_maximal_cliqueFree_not_adj h h3.ne.1 h3.not_adj.1
   obtain ⟨t, hvt, hw2t, htv, htw2⟩ := exists_of_maximal_cliqueFree_not_adj h h3.ne.2 h3.not_adj.2
   let hw : G.IsFiveWheelLike r v w₁ w₂ s t :=  ⟨h3, ⟨hvs, hvt, hw1s, hw2t⟩, ⟨hsv, hsw1, htv, htw2⟩⟩
@@ -151,8 +151,8 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   obtain ⟨b, hb, hbj⟩ := hw.isNClique.2.2.2.exists_not_adj_of_cliqueFree_succ h x
   obtain ⟨c, hc, hcj⟩ := hw.isNClique.1.exists_not_adj_of_cliqueFree_succ h x
   obtain ⟨d, hd, hdj⟩ := hw.isNClique.2.2.1.exists_not_adj_of_cliqueFree_succ h x
-  have := hw.isP2Complement.adj.ne
-  have := hw.isP2Complement.ne
+  have := hw.isPathGraph3Compl.adj.ne
+  have := hw.isPathGraph3Compl.ne
   have := hw.not_mem'
   refine ⟨_, _, _, _, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
   <;> rw [mem_insert] at *
@@ -167,7 +167,7 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   · rintro rfl
     obtain (rfl | ha) := ha
     · obtain (rfl | hd) := hd
-      · exact hw.isP2Complement.ne.1 rfl
+      · exact hw.isPathGraph3Compl.ne.1 rfl
       · exact hw.not_mem'.1  hd
     · obtain (rfl | hd ) := hd
       · exact hw.not_mem.1 ha
@@ -175,7 +175,7 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   · rintro rfl;
     obtain (rfl | hb) := hb
     · obtain (rfl | hc ) := hc
-      · exact hw.isP2Complement.ne.2 rfl
+      · exact hw.isPathGraph3Compl.ne.2 rfl
       · exact hw.not_mem'.2  hc
     · obtain (rfl | hc ) := hc
       ·  exact hw.not_mem.2.1 hb
@@ -198,7 +198,7 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
   obtain ⟨a, b, c, d, ha, haj, hb, hbj, hc, hcj, hd, hdj, hab, had, hbc, hat, hbs⟩ :=
     hw.exist_not_adj_of_adj_inter h hWc
   let W := insert v <| insert w₁ <| insert w₂ (s ∪ t)
-  have ⟨_,_⟩ := hw.isP2Complement.ne
+  have ⟨_,_⟩ := hw.isPathGraph3Compl.ne
   have ca_db : c = a ∧ d = b := by
     apply eq_of_card_le_two_of_ne hab had hbc <| hsmall.trans' <| card_le_card _
     intro z; simp_rw [mem_filter, mem_insert, mem_singleton] at *
@@ -237,7 +237,7 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
         exact ⟨hz, hf⟩
     apply Nat.lt_le_asymm gt2 hsmall
 -- Below we prove that the new 5-wheel is indeed a 5-wheel
-  refine ⟨a, b, hat, hbs, ⟨hw.isP2Complement, ?_, ?_⟩⟩
+  refine ⟨a, b, hat, hbs, ⟨hw.isPathGraph3Compl, ?_, ?_⟩⟩
 -- We first prove `v w₁ w₂` are not in the various new isNClique
   · simp_rw [mem_insert, not_or]
     exact ⟨⟨hxvw12.1.symm, fun hv ↦ hw.not_mem.1 (mem_erase.1 hv).2 ⟩,

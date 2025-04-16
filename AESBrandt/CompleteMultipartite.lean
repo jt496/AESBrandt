@@ -20,9 +20,9 @@ A graph is complete multipartite iff non-adjacency is transitive.
 * `SimpleGraph.IsCompleteMultipartite.iso`: the graph isomorphism from a graph that
   `IsCompleteMultipartite` to the corresponding `completeMultipartiteGraph`.
 
-* `SimpleGraph.IsP2Complement`: predicate for three vertices to be a witness to
+* `SimpleGraph.IsPathGraph3Compl`: predicate for three vertices to be a witness to
    non-complete-multi-partite-ness of a graph G. (The name refers to the fact that the three
-   vertices form the complement of a path of length two.)
+   vertices form the complement of `pathGraph 3`.)
 -/
 
 universe u
@@ -30,12 +30,12 @@ namespace SimpleGraph
 variable {α : Type u}
 
 /-- `G` is `IsCompleteMultipartite` iff non-adjacency is transitive -/
-abbrev IsCompleteMultipartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
+def IsCompleteMultipartite (G : SimpleGraph α) : Prop := Transitive (¬ G.Adj · ·)
 
 variable {G : SimpleGraph α}
 /-- The setoid given by non-adjacency -/
-abbrev IsCompleteMultipartite.setoid (h : G.IsCompleteMultipartite) : Setoid α :=
-    ⟨(¬ G.Adj · ·), ⟨G.loopless , fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
+def IsCompleteMultipartite.setoid (h : G.IsCompleteMultipartite) : Setoid α :=
+    ⟨(¬ G.Adj · ·), ⟨G.loopless, fun h' ↦ by rwa [adj_comm] at h', fun h1 h2 ↦ h h1 h2⟩⟩
 
 lemma completeMultipartiteGraph.isCompleteMultipartite {ι : Type*} (V : ι → Type*) :
     (completeMultipartiteGraph V).IsCompleteMultipartite := by
@@ -63,7 +63,7 @@ lemma isCompleteMultipartite_iff : G.IsCompleteMultipartite ↔ ∃ (ι : Type u
   · obtain ⟨_, _, _, ⟨e⟩⟩ := h
     intro _ _ _ h1 h2
     rw [← e.map_rel_iff] at *
-    exact (completeMultipartiteGraph.isCompleteMultipartite _) h1 h2
+    exact completeMultipartiteGraph.isCompleteMultipartite _ h1 h2
 
 lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsCompleteMultipartite)
     (hc : G.CliqueFree n) : G.Colorable (n - 1) :=
@@ -72,43 +72,43 @@ lemma IsCompleteMultipartite.colorable_of_cliqueFree {n : ℕ} (h : G.IsComplete
 
 variable (G) in
 /--
-The vertices `v, w₁, w₂` form an `IsP2Complement` in `G` iff `w₁w₂` is the only edge present between
-these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
+The vertices `v, w₁, w₂` form an `IsPathGraph3Compl` in `G` iff `w₁w₂` is the only edge present
+between these three vertices. It is a witness to the non-complete-multipartite-ness of `G`
 -/
-structure IsP2Complement (v w₁ w₂ : α) : Prop where
+structure IsPathGraph3Compl (v w₁ w₂ : α) : Prop where
   adj : G.Adj w₁ w₂
   not_adj : ¬ G.Adj v w₁ ∧ ¬ G.Adj v w₂
 
-namespace IsP2Complement
+namespace IsPathGraph3Compl
 
 variable {v w₁ w₂ : α}
 
-lemma ne (h2 : G.IsP2Complement v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
+lemma ne (h2 : G.IsPathGraph3Compl v w₁ w₂) : v ≠ w₁ ∧ v ≠ w₂ :=
   ⟨fun h ↦ h2.not_adj.2 (h.symm ▸ h2.adj), fun h ↦ h2.not_adj.1 (h ▸ h2.adj.symm)⟩
 
-lemma symm (h : G.IsP2Complement v w₁ w₂) : G.IsP2Complement v w₂ w₁ := by
+lemma symm (h : G.IsPathGraph3Compl v w₁ w₂) : G.IsPathGraph3Compl v w₂ w₁ := by
   obtain ⟨h1, ⟨h2, h3⟩⟩ := h
   exact ⟨h1.symm, ⟨h3, h2⟩⟩
 
-end IsP2Complement
+end IsPathGraph3Compl
 
-lemma exists_isP2Complement_of_not_isCompleteMultipartite (h : ¬ IsCompleteMultipartite G) :
-    ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
+lemma exists_isPathGraph3Compl_of_not_isCompleteMultipartite (h : ¬ IsCompleteMultipartite G) :
+    ∃ v w₁ w₂, G.IsPathGraph3Compl v w₁ w₂ := by
   rw [IsCompleteMultipartite, Transitive] at h
   push_neg at h
   obtain ⟨_, _, _, h1, h2, h3⟩ := h
   rw [adj_comm] at h1
   exact ⟨_, _, _, h3, h1, h2⟩
 
-lemma not_isCompleteMultipartite_iff_exists_isP2Complement :
-    ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsP2Complement v w₁ w₂ := by
-  exact ⟨fun h ↦ G.exists_isP2Complement_of_not_isCompleteMultipartite h,
-        fun ⟨_, _, _, h1, h2, h3⟩ ↦ fun h ↦ h (by rwa [adj_comm] at h2) h3 h1⟩
+lemma not_isCompleteMultipartite_iff_exists_isPathGraph3Compl :
+    ¬ IsCompleteMultipartite G ↔ ∃ v w₁ w₂, G.IsPathGraph3Compl v w₁ w₂ :=
+  ⟨fun h ↦ G.exists_isPathGraph3Compl_of_not_isCompleteMultipartite h,
+   fun ⟨_, _, _, h1, h2, h3⟩ ↦ fun h ↦ h (by rwa [adj_comm] at h2) h3 h1⟩
 
-/-
-Any `IsP2Complement` in `G` gives rise to a graph embedding of the complement of the path graph
+/--
+Any `IsPathGraph3Compl` in `G` gives rise to a graph embedding of the complement of the path graph
 -/
-def IsP2Complement.pathGraph3ComplEmbedding {v w₁ w₂ : α} (h : G.IsP2Complement v w₁ w₂) :
+def IsPathGraph3Compl.pathGraph3ComplEmbedding {v w₁ w₂ : α} (h : G.IsPathGraph3Compl v w₁ w₂) :
     (pathGraph 3)ᶜ ↪g G where
   toFun := fun x ↦
     match x with
@@ -129,9 +129,10 @@ def IsP2Complement.pathGraph3ComplEmbedding {v w₁ w₂ : α} (h : G.IsP2Comple
     have h6 := h1.symm
     aesop
 
-noncomputable def pathGraph3ComplEmbeddingOf (h : ¬ G.IsCompleteMultipartite) : (pathGraph 3)ᶜ ↪g G :=
-  IsP2Complement.pathGraph3ComplEmbedding
-    (exists_isP2Complement_of_not_isCompleteMultipartite h).choose_spec.choose_spec.choose_spec
+noncomputable def pathGraph3ComplEmbeddingOf (h : ¬ G.IsCompleteMultipartite) :
+    (pathGraph 3)ᶜ ↪g G :=
+  IsPathGraph3Compl.pathGraph3ComplEmbedding
+    (exists_isPathGraph3Compl_of_not_isCompleteMultipartite h).choose_spec.choose_spec.choose_spec
 
 lemma not_isCompleteMultipartite_of_pathGraph3ComplEmbedding (e : (pathGraph 3)ᶜ ↪g G) :
     ¬ IsCompleteMultipartite G := by
@@ -141,10 +142,10 @@ lemma not_isCompleteMultipartite_of_pathGraph3ComplEmbedding (e : (pathGraph 3)�
   have h2 : G.Adj (e 0) (e 2) := by simp [pathGraph_adj]
   exact h h0 h1 h2
 
-/-- If a graph is complete-multipartite, any graph that embeds into it is also complete-multipartite. -/
 theorem IsCompleteMultipartite.comap {β : Type*} {H : SimpleGraph β} (f : H ↪g G) :
     G.IsCompleteMultipartite → H.IsCompleteMultipartite := by
   intro h; contrapose h
-  exact not_isCompleteMultipartite_of_pathGraph3ComplEmbedding <| f.comp (pathGraph3ComplEmbeddingOf h)
+  exact not_isCompleteMultipartite_of_pathGraph3ComplEmbedding
+          <| f.comp (pathGraph3ComplEmbeddingOf h)
 
 end SimpleGraph
