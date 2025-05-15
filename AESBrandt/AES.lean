@@ -5,12 +5,11 @@ Authors: John Talbot, Lian Bremner Tattersall
 -/
 import AESBrandt.FiveWheelLike
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Data.Fintype.Order
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 /-!
-# Andrasfai-Erdos-Sos Theorem:
+# Andrasfái-Erdős-Sós Theorem:
 
 We formalize Brandt's proof of the Andrásfai-Erdős-Sós theorem:
  `colorable_of_cliqueFree_lt_minDegree`
@@ -68,7 +67,7 @@ private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.fi
 
 namespace SimpleGraph
 open Classical in
-/-- **Andrasfai-Erdos-Sos**
+/-- **Andrasfái-Erdős-Sós**
 If `G` is `Kᵣ₊₁`-free and `G.minDegree > (3r - 4)n/(3r - 1)` then `G` is (r + 1)-colorable
 e.g. `K₃`-free and `G.minDegree > 2 * n / 5` then `G` is 2-colorable -/
 theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
@@ -88,7 +87,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
 -- The two key sets of vertices are `X`, consisting of all vertices that are common
 -- neighbours of all of `s₁ ∩ s₂`,
   let X := {x | ∀ {y}, y ∈ s₁ ∩ s₂ → H.Adj x y}.toFinset
--- and `W` which is consists of all vertices of the 5-wheel.
+-- and `W` which consists of all vertices of the 5-wheel.
   let W := insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))
 -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we can build a bigger wheel)
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z) := by
@@ -139,7 +138,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
 --- `s₁ ∩ s₂ ≠ ∅`
   · have hap :  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k := by omega
     calc
-    minDegree H * (2 * r + k + 3) ≤  ∑ w ∈ W, H.degree w +  2 * ∑ w ∈ s₁ ∩ s₂, H.degree w := by
+    minDegree H * (2 * r + k + 3) ≤ ∑ w ∈ W, H.degree w +  2 * ∑ w ∈ s₁ ∩ s₂, H.degree w := by
         rw [add_assoc, add_comm k, ← add_assoc, ← Wc, add_assoc, ← two_mul, mul_add]
         simp_rw [k, card_eq_sum_ones, ← mul_assoc, mul_sum, mul_one]
         apply add_le_add <;> apply sum_le_sum <;> intro i _
