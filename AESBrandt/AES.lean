@@ -84,36 +84,36 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   -- If H is complete-multipartite and Kᵣ₊₁-free then it is (r + 1)-colorable
   have hn : ¬ H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel-like
-  obtain ⟨v, w₁, w₂, s, t, hw, hm⟩ := exists_maximal_isFiveWheelLike_of_maximal_cliqueFree hmcf hn
+  obtain ⟨v, w₁, w₂, s₁, s₂, hw, hm⟩ := exists_maximal_isFiveWheelLike_of_maximal_cliqueFree hmcf hn
 -- The two key sets of vertices are `X`, consisting of all vertices that are common
--- neighbours of all of `s ∩ t`,
-  let X := {x | ∀ {y}, y ∈ s ∩ t → H.Adj x y}.toFinset
+-- neighbours of all of `s₁ ∩ s₂`,
+  let X := {x | ∀ {y}, y ∈ s₁ ∩ s₂ → H.Adj x y}.toFinset
 -- and `W` which is consists of all vertices of the 5-wheel.
-  let W := insert v (insert w₁ (insert w₂ (s ∪ t)))
+  let W := insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))
 -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we can build a bigger wheel)
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z) := by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
-    exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hm
+    exact hw.three_le_not_adj_of_cliqueFree_maximal hmcf.1 hx hm
 -- Every vertex has at least 1 non-neighbor in `W`.
 -- So we have a bound on the degree sum over `W`
 -- `∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)`
   have boundW := sum_degree_le_of_le_not_adj dXle <| hw.one_le_not_adj_of_cliqueFree hmcf.1
--- Since `X` consists of all vertices adjacent to all of `s ∩ t`,
+-- Since `X` consists of all vertices adjacent to all of `s₁ ∩ s₂`,
 -- so any `x ∈ Xᶜ` has at least one non-neighbour in `X`.
-  have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s ∩ t).filter fun z ↦ ¬ H.Adj  x z) := by
+  have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s₁ ∩ s₂).filter fun z ↦ ¬ H.Adj  x z) := by
     intro x hx
     apply card_pos.2
-    obtain ⟨_, hy⟩ : ∃ y ∈ s ∩ t, ¬ H.Adj x y := by
+    obtain ⟨_, hy⟩ : ∃ y ∈ s₁ ∩ s₂, ¬ H.Adj x y := by
       contrapose! hx
       rw [mem_compl, not_not, Set.mem_toFinset]
       exact hx _
     exact ⟨_, mem_filter.2 hy⟩
--- So we also have a bound on the degree sum over `s ∩ t`
--- `∑ w ∈ s ∩ t, H.degree w ≤  |Xᶜ| * (|s ∩ t| - 1) + |X| * |s ∩ t|`
+-- So we also have a bound on the degree sum over `s₁ ∩ s₂`
+-- `∑ w ∈ s₁ ∩ s₂, H.degree w ≤  |Xᶜ| * (|s₁ ∩ s₂| - 1) + |X| * |s₁ ∩ s₂|`
   have boundX := sum_degree_le_of_le_not_adj xcle (fun x ↦ Nat.zero_le _)
   rw [compl_compl, tsub_zero, add_comm] at boundX
-  let k := #(s ∩ t)
+  let k := #(s₁ ∩ s₂)
   have krle: (2 * r + k) * ‖α‖ / (2 * r + k + 3) ≤ (3 * r - 1) * ‖α‖ / (3 * r + 2) := by
     cases r with
     | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1
@@ -124,7 +124,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := hw.three_le_card
---- Two cases: `s ∩ t = ∅`
+--- Two cases: `s₁ ∩ s₂ = ∅`
   by_cases hst : k = 0
   · rw [hst, add_zero] at Wc ⊢
     rw [← Wc, ← tsub_eq_of_eq_add Wc]
@@ -136,10 +136,10 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     apply boundW.trans'
     rw [card_eq_sum_ones, mul_sum, mul_one]
     exact sum_le_sum (fun i _ ↦ H.minDegree_le_degree i)
---- `s ∩ t ≠ ∅`
+--- `s₁ ∩ s₂ ≠ ∅`
   · have hap :  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k := by omega
     calc
-    minDegree H * (2 * r + k + 3) ≤  ∑ w ∈ W, H.degree w +  2 * ∑ w ∈ s ∩ t, H.degree w := by
+    minDegree H * (2 * r + k + 3) ≤  ∑ w ∈ W, H.degree w +  2 * ∑ w ∈ s₁ ∩ s₂, H.degree w := by
         rw [add_assoc, add_comm k, ← add_assoc, ← Wc, add_assoc, ← two_mul, mul_add]
         simp_rw [k, card_eq_sum_ones, ← mul_assoc, mul_sum, mul_one]
         apply add_le_add <;> apply sum_le_sum <;> intro i _

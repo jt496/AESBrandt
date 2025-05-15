@@ -6,7 +6,7 @@ Authors: John Talbot, Lian Bremner Tattersall
 import Mathlib.Combinatorics.SimpleGraph.CompleteMultipartite
 
 /-!
-If `G` is maximally `Kᵣ₊₂`-free and `¬ G.Adj x y` (with `x ≠ y`) then there exists an `r`-set
+If `G` is maximally `Kᵣ₊₂`-free and `¬ G.Adj x y` (with `x ≠ y`) then there exists an `r`-set `s`
  such that `s ∪ {x}` and `s ∪ {y}` are both `r + 1`-cliques.
 
 If `¬ G.IsCompleteMultipartite` then it contains a `G.IsPathGraph3Compl v w₁ w₂` consisting of
@@ -15,12 +15,12 @@ an edge `w₁w₂` and a vertex `v` such that `vw₁` and `vw₂` are non-edges.
 Putting these together gives the definition of an `IsFiveWheelLike` structure
 which can be found in any maximally `Kᵣ₊₂`-free graph that is not complete-multipartite.
 
-These plays a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
+These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 
 Main definition:
 
-* `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s t` to form a 5-wheel-like subgraph of `G`
-  with `r`-sets `s` and `t`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
+* `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s₁ s₂` to form a 5-wheel-like subgraph of `G`
+  with `r`-sets `s₁` and `s₂`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
 
 open Finset
 variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r : ℕ} [DecidableEq α]
@@ -73,9 +73,11 @@ private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (h
   simp_rw [adj_comm, ← not_mem_singleton] at hd
   exact hs.insert_erase (fun _ h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
 
-/-- A `IsFiveWheelLike r v w₁ w₂ s₁ s₂` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets
- `s₁` and `s₂` such that `v w₁ w₂` form an `IsPathGraph3Compl`; `v, w₁, w₂ ∉ s₁ ∪ s₂` and
-  `s₁ ∪ {v}, s₂ ∪ {v}, s₁ ∪ {w₁}, s₂ ∪ {w₂}` are all `(r + 1)`- cliques. -/
+/--
+A `IsFiveWheelLike r v w₁ w₂ s₁ s₂` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets
+`s₁` and `s₂` such that `v w₁ w₂` form an `IsPathGraph3Compl`; `v, w₁, w₂ ∉ s₁ ∪ s₂` and
+`s₁ ∪ {v}, s₂ ∪ {v}, s₁ ∪ {w₁}, s₂ ∪ {w₂}` are all `(r + 1)`- cliques.
+-/
 structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s₁ s₂ : Finset α) : Prop where
   isPathGraph3Compl : G.IsPathGraph3Compl v w₁ w₂
   not_mem_fst : v ∉ s₁
@@ -89,7 +91,9 @@ structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s�
 
 namespace IsFiveWheelLike
 
-variable {v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂) include hw
+variable {v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂)
+
+include hw
 
 @[symm] lemma symm : G.IsFiveWheelLike r v w₂ w₁ s₂ s₁ :=
   let ⟨p2, d1, d2, d3, d4, c1, c2, c3, c4⟩ := hw
@@ -110,14 +114,14 @@ lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)
   · rw [mem_union, not_or]
     exact ⟨hw.symm.fst_not_mem_snd, hw.snd_not_mem⟩
   · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isPathGraph3Compl.adj.ne, hw.fst_not_mem, hw.fst_not_mem_snd⟩
+    exact ⟨hw.isPathGraph3Compl.fst_ne_snd, hw.fst_not_mem, hw.fst_not_mem_snd⟩
   · simp_rw [mem_insert, mem_union]
     push_neg
     exact ⟨hw.isPathGraph3Compl.ne_fst, hw.isPathGraph3Compl.ne_snd, hw.not_mem_fst, hw.not_mem_snd⟩
 
 lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))) :=
   two_lt_card.2 ⟨_, mem_insert_self .., _, by simp, _, by simp, hw.isPathGraph3Compl.ne_fst,
-                hw.isPathGraph3Compl.ne_snd, hw.isPathGraph3Compl.adj.ne⟩
+                hw.isPathGraph3Compl.ne_snd, hw.isPathGraph3Compl.fst_ne_snd⟩
 
 lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s₁ ∩ s₂) < r := by
   contrapose! h
@@ -131,13 +135,13 @@ lemma _root_.SimpleGraph.exists_maximal_isFiveWheelLike_of_maximal_cliqueFree
     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
     ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ ∀ s₁' s₂',
     G.IsFiveWheelLike r v w₁ w₂ s₁' s₂' → #(s₁' ∩ s₂') ≤ #(s₁ ∩ s₂) := by
-  classical
   obtain ⟨v, w₁, w₂, h3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
   obtain ⟨s₁, hvs, hw1s, hsv, hsw1⟩ := exists_of_maximal_cliqueFree_not_adj h h3.ne_fst h3.not_adj_fst
   obtain ⟨s₂, hvt, hw2t, htv, htw2⟩ := exists_of_maximal_cliqueFree_not_adj h h3.ne_snd h3.not_adj_snd
   let hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ :=  ⟨h3, hvs, hvt, hw1s, hw2t, hsv, hsw1, htv, htw2⟩
   let P : ℕ → Prop := fun k ↦ ∃ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ #(s₁ ∩ s₂) = k
   have : P #(s₁ ∩ s₂) := by use s₁, s₂
+  classical
   obtain ⟨s₁, s₂, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le this
   use v, w₁, w₂, s₁, s₂, hw.1
   intro s₁' s₂' hw'
@@ -156,7 +160,7 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
   · rintro rfl
     obtain (rfl | ha) := ha
     · obtain (rfl | hb) := hb
-      · exact hw.isPathGraph3Compl.adj.ne rfl
+      · exact hw.isPathGraph3Compl.fst_ne_snd rfl
       · exact hw.fst_not_mem_snd hb
     · obtain (rfl | hb) := hb
       · exact hw.symm.fst_not_mem_snd ha
@@ -273,17 +277,18 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
     rintro rfl; rw [mem_insert] at hz
     exact haw2 <| hz.resolve_right hat
 
-/-- For any x there is a 5-wheel vertex that is not adjacent to x (in fact there is one in s ∪ {w₁}) -/
 lemma one_le_not_adj_of_cliqueFree (hcf : G.CliqueFree (r + 2)) (x : α) :
     1 ≤ #(((insert v (insert w₁ (insert w₂ (s₁ ∪ s₂))))).filter (fun z ↦ ¬ G.Adj  x z)) := by
   apply card_pos.2
   obtain ⟨_, hz⟩ := hw.isNClique_fst_fst.exists_not_adj_of_cliqueFree_succ hcf x
   exact ⟨_, mem_filter.2 ⟨by aesop, hz.2⟩⟩
 
-/-- If G is Kᵣ₊₂-free and contains a maximal FiveWheel (in terms of the size of the
-intersection of the isNClique) then every vertex that is adjacent to all of the common
-clique vertices is non-adjacent to at least 3 vertices in W -/
-lemma three_le_not_adj_of_cliqueFree_max (hcf : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y)
+/--
+If G is Kᵣ₊₂-free and contains a maximal `IsFiveWheelLike` structure (in terms of the size of the
+intersection of the cliques) then every vertex that is adjacent to all of the common
+clique vertices is non-adjacent to at least 3 vertices of the wheel.
+-/
+lemma three_le_not_adj_of_cliqueFree_maximal (hcf : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y)
 (hmax : ∀ s₁' s₂', G.IsFiveWheelLike r v w₁ w₂ s₁' s₂' → #(s₁' ∩ s₂') ≤ #(s₁ ∩ s₂)) :
     3 ≤ #(((insert v (insert w₁ (insert w₂ (s₁ ∪ s₂))))).filter fun z ↦ ¬ G.Adj x z) := by
   by_contra! hc
