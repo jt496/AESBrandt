@@ -107,22 +107,6 @@ lemma card_isNClique_erase : s₁.card = r := by
   have := hw.isNClique_fst.2
   rwa [card_insert_of_not_mem hw.not_mem_fst, Nat.succ_inj] at this
 
-lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))) + #(s₁ ∩ s₂) = 2 * r + 3 := by
-  rw [add_comm, card_insert_of_not_mem, card_insert_of_not_mem, card_insert_of_not_mem]
-  · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_isNClique_erase,
-    hw.symm.card_isNClique_erase]
-  · rw [mem_union, not_or]
-    exact ⟨hw.symm.fst_not_mem_snd, hw.snd_not_mem⟩
-  · rw [mem_insert, mem_union, not_or, not_or]
-    exact ⟨hw.isPathGraph3Compl.fst_ne_snd, hw.fst_not_mem, hw.fst_not_mem_snd⟩
-  · simp_rw [mem_insert, mem_union]
-    push_neg
-    exact ⟨hw.isPathGraph3Compl.ne_fst, hw.isPathGraph3Compl.ne_snd, hw.not_mem_fst, hw.not_mem_snd⟩
-
-lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))) :=
-  two_lt_card.2 ⟨_, mem_insert_self .., _, by simp, _, by simp, hw.isPathGraph3Compl.ne_fst,
-                hw.isPathGraph3Compl.ne_snd, hw.isPathGraph3Compl.fst_ne_snd⟩
-
 lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s₁ ∩ s₂) < r := by
   contrapose! h
   have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_isNClique_erase ▸ h)
@@ -189,6 +173,22 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hWc : ∀ {y}, y �
     obtain (rfl | hb) := hb
     · exact hw.symm.fst_not_mem_snd hbs
     · exact hbj <| hWc <| mem_inter_of_mem hbs hb
+
+lemma card_add_card_inter : #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))) + #(s₁ ∩ s₂) = 2 * r + 3 := by
+  rw [add_comm, card_insert_of_not_mem, card_insert_of_not_mem, card_insert_of_not_mem]
+  · simp_rw [← add_assoc, card_inter_add_card_union, two_mul, hw.card_isNClique_erase,
+    hw.symm.card_isNClique_erase]
+  · rw [mem_union, not_or]
+    exact ⟨hw.symm.fst_not_mem_snd, hw.snd_not_mem⟩
+  · rw [mem_insert, mem_union, not_or, not_or]
+    exact ⟨hw.isPathGraph3Compl.fst_ne_snd, hw.fst_not_mem, hw.fst_not_mem_snd⟩
+  · simp_rw [mem_insert, mem_union]
+    push_neg
+    exact ⟨hw.isPathGraph3Compl.ne_fst, hw.isPathGraph3Compl.ne_snd, hw.not_mem_fst, hw.not_mem_snd⟩
+
+lemma three_le_card : 3 ≤ #(insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))) :=
+  two_lt_card.2 ⟨_, mem_insert_self .., _, by simp, _, by simp, hw.isPathGraph3Compl.ne_fst,
+                hw.isPathGraph3Compl.ne_snd, hw.isPathGraph3Compl.fst_ne_snd⟩
 
 variable [DecidableRel G.Adj]
 
