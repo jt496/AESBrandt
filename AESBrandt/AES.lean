@@ -116,7 +116,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   let k := #(s₁ ∩ s₂)
   have krle: (2 * r + k) * ‖α‖ / (2 * r + k + 3) ≤ (3 * r - 1) * ‖α‖ / (3 * r + 2) := by
     cases r with
-    | zero   => exact False.elim <| Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1
+    | zero   => exact (Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1).elim
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
 -- Complete the proof by contradiction by showing that `H.minDegree` is too small
   apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd

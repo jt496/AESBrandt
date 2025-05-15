@@ -48,7 +48,7 @@ lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree 
   obtain ⟨t, hc⟩ := not_forall_not.1 <| h.not_prop_of_gt <| G.lt_sup_edge _ _ hne hn
   use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
   cases r with
-  | zero => exact False.elim <| not_cliqueFree_zero h.1
+  | zero => exact (not_cliqueFree_zero h.1).elim
   | succ r =>
     have h1 := h.1.mem_of_sup_edge_isNClique hc
     have h2 := h.1.mem_of_sup_edge_isNClique (edge_comm .. ▸ hc)
@@ -63,12 +63,12 @@ private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
   intro b hb
   obtain (rfl | h) := mem_insert.1 hb
   · exact ha.symm
-  · exact h2.1 (mem_insert_self _ s) (mem_insert_of_mem h) <| fun h' ↦ False.elim <| h3 (h' ▸ h)
+  · exact h2.1 (mem_insert_self _ s) (mem_insert_of_mem h) <| fun h' ↦ (h3 (h' ▸ h)).elim
 
 private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (hc : c ∈ s)
     (ha : a ∉ s) (hd : ∀ w ∈ insert a s, w ≠ c → G.Adj w b) :
     G.IsNClique r (insert a (insert b (erase s c))) := by
-  have : a ≠ c := fun h ↦ False.elim <| ha (h ▸ hc)
+  have : a ≠ c := fun h ↦ (ha (h ▸ hc)).elim
   rw [insert_comm, ← erase_insert_of_ne this]
   simp_rw [adj_comm, ← not_mem_singleton] at hd
   exact hs.insert_erase (fun _ h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
