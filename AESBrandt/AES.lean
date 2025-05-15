@@ -77,7 +77,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   | zero => simpa using hf
   | succ r =>
   -- There is an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
-  obtain ⟨H, hle, hmcf⟩ := @Finite.exists_le_maximal _ _ G (fun H ↦ H.CliqueFree (r + 2)) _ hf
+  obtain ⟨H, hle, hmcf⟩ := @Finite.exists_le_maximal _ _ _ (fun H ↦ H.CliqueFree (r + 2)) G hf
   -- If we can (r + 1)-color H then we can (r + 1)-color G
   apply Colorable.mono_left hle
   by_contra! hnotcol
