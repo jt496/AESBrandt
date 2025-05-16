@@ -83,17 +83,18 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   -- If H is complete-multipartite and Kᵣ₊₁-free then it is (r + 1)-colorable
   have hn : ¬ H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
 -- Since H is maximally Kᵣ₊₂-free and not complete-multipartite it contains a maximal 5-wheel-like
-  obtain ⟨v, w₁, w₂, s₁, s₂, hw, hm⟩ := exists_maximal_isFiveWheelLike_of_maximal_cliqueFree hmcf hn
+  obtain ⟨v, w₁, w₂, s₁, s₂, hw, hm⟩ :=
+    exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite hmcf hn
 -- The two key sets of vertices are `X`, consisting of all vertices that are common
 -- neighbours of all of `s₁ ∩ s₂`,
   let X := {x | ∀ {y}, y ∈ s₁ ∩ s₂ → H.Adj x y}.toFinset
 -- and `W` which consists of all vertices of the 5-wheel.
-  let W := insert v (insert w₁ (insert w₂ (s₁ ∪ s₂)))
+  let W := {v} ∪ ({w₁} ∪ ({w₂} ∪ (s₁ ∪ s₂))) --  insert v <| insert w₁ <| insert w₂ (s₁ ∪ s₂)
 -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we can build a bigger wheel)
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ H.Adj  x z) := by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
-    exact hw.three_le_not_adj_of_cliqueFree_maximal hmcf.1 hx hm
+    exact hw.three_le_not_adj_of_cliqueFree_max hmcf.1 hx hm
 -- Every vertex has at least 1 non-neighbor in `W`.
 -- So we have a bound on the degree sum over `W`
 -- `∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)`
@@ -118,8 +119,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
     | zero   => exact (Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1).elim
     | succ r => apply kr_bound <| Nat.le_of_succ_le_succ <| hw.card_inter_lt_of_cliqueFree hmcf.1
 -- Complete the proof by contradiction by showing that `H.minDegree` is too small
-  apply H.minDegree.le_lt_asymm (krle.trans' _) <| lt_of_lt_of_le hd
-        <| G.minDegree_le_minDegree hle
+  apply H.minDegree.le_lt_asymm (krle.trans' _) <| hd.trans_le <| G.minDegree_le_minDegree hle
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := hw.three_le_card
