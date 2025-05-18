@@ -59,8 +59,7 @@ lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree 
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
     (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (ha : G.Adj a b) :
     G.IsNClique (r + 1) (insert b (insert a s)) := by
-  apply h1.insert
-  intro b hb
+  apply h1.insert (fun b hb ↦ ?_)
   obtain (rfl | h) := mem_insert.1 hb
   · exact ha.symm
   · exact h2.1 (mem_insert_self _ s) (mem_insert_of_mem h) <| fun h' ↦ (h3 (h' ▸ h)).elim
