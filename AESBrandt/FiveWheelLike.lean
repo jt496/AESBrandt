@@ -39,7 +39,7 @@ namespace SimpleGraph
 variable {s : Finset α}
 --- Next PR to mathlib
 lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique r s)
-    (h : G.CliqueFree (r + 1)) (x : α) :  ∃ y, y ∈ s ∧ ¬ G.Adj x y := by
+    (h : G.CliqueFree (r + 1)) (x : α) : ∃ y, y ∈ s ∧ ¬ G.Adj x y := by
   classical
   by_contra! hf
   exact (hc.insert hf).not_cliqueFree h
