@@ -125,7 +125,7 @@ lemma _root_.SimpleGraph.exists_max_isFiveWheelLike_of_max_cliqueFree_not_isComp
   obtain ⟨v, w₁, w₂, p3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
   obtain ⟨s₁, h1, h2, h3, h4⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_fst p3.not_adj_fst
   obtain ⟨s₂, h5, h6, h7, h8⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_snd p3.not_adj_snd
-  let hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ :=  ⟨p3, h1, h5, h2, h6, h3, h4, h7, h8⟩
+  let hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ := ⟨p3, h1, h5, h2, h6, h3, h4, h7, h8⟩
   let P : ℕ → Prop := fun k ↦ ∃ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ #(s₁ ∩ s₂) = k
   have : P #(s₁ ∩ s₂) := by use s₁, s₂
   classical
@@ -238,14 +238,13 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
   have wadj : ∀ w ∈ W, w ≠ a → w ≠ b → G.Adj w x := by
     intro z hz haz hbz
     by_contra! hf
-    have gt2 : 2 < #(W.filter (fun z ↦ ¬ G.Adj x z)) := by
-      refine two_lt_card.2 ⟨a, ?_, b, ?_, z, ?_, hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
-      · exact ⟨mem_insert_of_mem <| mem_insert_of_mem
-                 <| mem_insert_of_mem <| mem_union_left _ has, hcj⟩
-      · exact ⟨mem_insert_of_mem <| mem_insert_of_mem
-                 <| mem_insert_of_mem <| mem_union_right _ hbt, hdj⟩
-      · exact ⟨hz, by rwa [adj_comm] at hf⟩
-    exact Nat.lt_le_asymm gt2 h2
+    apply Nat.lt_le_asymm _ h2
+    refine two_lt_card.2 ⟨a, ?_, b, ?_, z, ?_, hab, haz.symm, hbz.symm⟩ <;> rw [mem_filter]
+    · exact ⟨mem_insert_of_mem <| mem_insert_of_mem
+                <| mem_insert_of_mem <| mem_union_left _ has, hcj⟩
+    · exact ⟨mem_insert_of_mem <| mem_insert_of_mem
+                <| mem_insert_of_mem <| mem_union_right _ hbt, hdj⟩
+    · exact ⟨hz, by rwa [adj_comm] at hf⟩
 -- We now prove that the new 5-wheel is indeed a 5-wheel
   have hc1 : insert v s₁ ⊆ W := by apply insert_subset_insert; intro x hx; simp [hx]
   have hc2 : insert w₁ s₁ ⊆ W := by
