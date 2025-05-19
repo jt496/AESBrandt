@@ -78,7 +78,7 @@ An `IsFiveWheelLike r k v w₁ w₂ s₁ s₂` structure in `G` consists of vert
 `IsPathGraph3Compl`), `v, w₁, w₂ ∉ s₁ ∪ s₂` and `s₁ ∪ {v}, s₂ ∪ {v}, s₁ ∪ {w₁}, s₂ ∪ {w₂}` are all
 `(r + 1)`- cliques and `#(s₁ ∩ s₂) = k`.
 (If `G` is maximally `(r + 2)`-cliquefree and not complete multipartite then `G` will contain such
- a structure: see
+ a structure for some `0 ≤ k < r` : see
 `exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`.)
 -/
 structure IsFiveWheelLike (G : SimpleGraph α) (r k : ℕ) (v w₁ w₂ : α) (s₁ s₂ : Finset α) : Prop where
@@ -102,10 +102,10 @@ lemma exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   exact  ⟨_, _, _, _, _, p3, h1, h5, h2, h6, h3, h4, h7, h8, rfl⟩
 
 /--
-`G.IsFiveWheelLikeFree r k` iff the sets `s₁` and `s₂` in any `G.IsFiveWheelLike r v w₁ w₂ s₁ s₂`
+`G.FiveWheelLikeFree r k` iff the sets `s₁` and `s₂` in any `G.IsFiveWheelLike r v w₁ w₂ s₁ s₂`
 structure meet in fewer than `k` vertices.
 -/
-def IsFiveWheelLikeFree (G : SimpleGraph α) (r k : ℕ) : Prop :=
+def FiveWheelLikeFree (G : SimpleGraph α) (r k : ℕ) : Prop :=
     ∀ ⦃v w₁ w₂ s₁ s₂⦄, ¬ G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂
 
 namespace IsFiveWheelLike
@@ -277,11 +277,10 @@ lemma exists_isFiveWheelLike_insert_of_not_adj_le_two (h : G.CliqueFree (r + 2))
                       fun z hz hZ ↦ wadj _ (hc4 hz) ?_ hZ
     rintro rfl; rw [mem_insert] at hz
     exact haw2 <| hz.resolve_right hat
-  · rw [← insert_inter_distrib, card_insert_of_not_mem _, erase_inter, inter_erase,
-        erase_eq_of_not_mem <| not_mem_mono inter_subset_left hbs,
-        erase_eq_of_not_mem <| not_mem_mono inter_subset_right hat, hw.card_eq]
-    rw [erase_inter, inter_erase]
-    exact fun hf ↦ G.loopless x (hW (mem_of_mem_erase (mem_of_mem_erase hf)))
+  · rw [← insert_inter_distrib, erase_inter, inter_erase, erase_eq_of_not_mem <|
+        not_mem_mono inter_subset_left hbs, erase_eq_of_not_mem <|
+        not_mem_mono inter_subset_right hat,
+        card_insert_of_not_mem (fun h ↦ G.loopless x (hW h)), hw.card_eq]
 
 lemma one_le_not_adj_of_cliqueFree (hcf : G.CliqueFree (r + 2)) (x : α) :
     1 ≤ #((({v} ∪ ({w₁} ∪ ({w₂} ∪ (s₁ ∪ s₂))))).filter (fun z ↦ ¬ G.Adj  x z)) := by
@@ -290,26 +289,23 @@ lemma one_le_not_adj_of_cliqueFree (hcf : G.CliqueFree (r + 2)) (x : α) :
   exact ⟨_, mem_filter.2 ⟨by aesop, hz.2⟩⟩
 
 /--
-If G is Kᵣ₊₂-free and contains a maximal `IsFiveWheelLike` structure (in terms of the size of the
-intersection of the cliques) then every vertex that is adjacent to all of the common
-clique vertices is non-adjacent to at least 3 vertices of the wheel.
+If G is Kᵣ₊₂-free and contains an `IsFiveWheelLike r k` structure but
+`G.FiveWheelLikeFree r (k + 1)` then every vertex that is adjacent to all of the common clique
+vertices is non-adjacent to at least 3 vertices of the wheel.
 -/
-lemma three_le_not_adj_of_cliqueFree_isFiveWheelLikeFree (hcf : G.CliqueFree (r + 2))
-    (hW : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y) (hmax :  G.IsFiveWheelLikeFree r (k + 1)) :
+lemma three_le_not_adj_of_cliqueFree_FiveWheelLikeFree (hcf : G.CliqueFree (r + 2))
+    (hW : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y) (hmax :  G.FiveWheelLikeFree r (k + 1)) :
     3 ≤ #(({v} ∪ ({w₁} ∪ ({w₂} ∪ (s₁ ∪ s₂)))).filter fun z ↦ ¬ G.Adj x z) := by
   by_contra! hc
-  obtain ⟨c, d, hw1 , hw2, hbW⟩ := hw.exists_isFiveWheelLike_insert_of_not_adj_le_two hcf hW
+  obtain ⟨_, _, _, _, hbW⟩ := hw.exists_isFiveWheelLike_insert_of_not_adj_le_two hcf hW
                                         <| Nat.succ_le_succ_iff.1 hc
   exact hmax hbW
 
 end IsFiveWheelLike
 
-lemma isFiveWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) : G.IsFiveWheelLikeFree r r := by
-  intro _ _ _ _ _ hw
-  exact Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ le_rfl)
-
-
-  --fun _ _ _ _ _ hw ↦ hw.card_inter_lt_of_cliqueFree h
+lemma isFiveWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
+    G.FiveWheelLikeFree r k :=
+  fun _ _ _ _ _ hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
 
 -- lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
 --     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
