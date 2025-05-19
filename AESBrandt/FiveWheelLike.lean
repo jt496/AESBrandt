@@ -14,7 +14,7 @@ an edge `w₁w₂` and a vertex `v` such that `vw₁` and `vw₂` are non-edges.
 
 Putting these together gives the definition of an `IsFiveWheelLike` structure
 which can be found in any maximally `Kᵣ₊₂`-free graph that is not complete-multipartite (see
-`exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`).
+`exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`).
 
 These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 
@@ -79,7 +79,7 @@ An `IsFiveWheelLike r v w₁ w₂ s₁ s₂` structure in `G` consists of vertic
 `(r + 1)`- cliques.
 (If `G` is maximally `(r + 2)`-cliquefree and not complete multipartite then `G` will contain such
  a structure: see
-`exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`.)
+`exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`.)
 -/
 structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s₁ s₂ : Finset α) : Prop where
   isPathGraph3Compl : G.IsPathGraph3Compl v w₁ w₂
@@ -92,8 +92,22 @@ structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s�
   isNClique_snd : G.IsNClique (r + 1) (insert v s₂)
   isNClique_snd_snd : G.IsNClique (r + 1) (insert w₂ s₂)
 
-namespace IsFiveWheelLike
+lemma exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
+    (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
+    ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ := by
+  obtain ⟨v, w₁, w₂, p3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
+  obtain ⟨s₁, h1, h2, h3, h4⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_fst p3.not_adj_fst
+  obtain ⟨s₂, h5, h6, h7, h8⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_snd p3.not_adj_snd
+  exact  ⟨_, _, _, _, _, p3, h1, h5, h2, h6, h3, h4, h7, h8⟩
 
+/--
+`G.IsFiveWheelLikeFree r k` iff the sets `s₁` and `s₂` in any `G.IsFiveWheelLiker v w₁ w₂ s₁ s₂`
+structure meet in fewer than `k` vertices.
+-/
+def IsFiveWheelLikeFree (G : SimpleGraph α) (r k : ℕ) : Prop :=
+    ∀ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ → #(s₁ ∩ s₂) < k
+
+namespace IsFiveWheelLike
 variable {v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂)
 
 include hw
@@ -116,24 +130,6 @@ lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s₁ ∩ s₂) 
   have ht := eq_of_subset_of_card_le inter_subset_right (hw.symm.card_isNClique_erase ▸ h)
   exact (hw.isNClique_fst_fst.insert_insert (hs ▸ ht.symm ▸ hw.isNClique_snd_snd)
     hw.symm.fst_not_mem_snd hw.isPathGraph3Compl.adj).not_cliqueFree
-
-omit hw in
-lemma _root_.SimpleGraph.exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
-    (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
-    ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ ∀ s₁' s₂',
-    G.IsFiveWheelLike r v w₁ w₂ s₁' s₂' → #(s₁' ∩ s₂') ≤ #(s₁ ∩ s₂) := by
-  obtain ⟨v, w₁, w₂, p3⟩ := exists_isPathGraph3Compl_of_not_isCompleteMultipartite hnc
-  obtain ⟨s₁, h1, h2, h3, h4⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_fst p3.not_adj_fst
-  obtain ⟨s₂, h5, h6, h7, h8⟩ := exists_of_maximal_cliqueFree_not_adj h p3.ne_snd p3.not_adj_snd
-  let hw : G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ := ⟨p3, h1, h5, h2, h6, h3, h4, h7, h8⟩
-  let P : ℕ → Prop := fun k ↦ ∃ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ #(s₁ ∩ s₂) = k
-  have : P #(s₁ ∩ s₂) := by use s₁, s₂
-  classical
-  obtain ⟨s₁, s₂, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le this
-  use v, w₁, w₂, s₁, s₂, hw.1
-  intro s₁' s₂' hw'
-  exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s₁', s₂')).trans
-            hw.2.symm.le
 
 lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hW : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y) :
     ∃ a b c d, a ∈ insert w₁ s₁ ∧ ¬ G.Adj x a ∧ b ∈ insert w₂ s₂ ∧ ¬ G.Adj x b ∧ c ∈ insert v s₁ ∧
@@ -306,4 +302,21 @@ lemma three_le_not_adj_of_cliqueFree_max (hcf : G.CliqueFree (r + 2))
   rw [erase_inter, inter_erase, erase_eq_of_not_mem <| not_mem_mono inter_subset_left hw2,
         erase_eq_of_not_mem fun hf ↦ hw1 <| mem_inter.1 hf|>.2]
 
-end SimpleGraph.IsFiveWheelLike
+end IsFiveWheelLike
+
+lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
+    (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
+    ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ ∀ s₁' s₂',
+    G.IsFiveWheelLike r v w₁ w₂ s₁' s₂' → #(s₁' ∩ s₂') ≤ #(s₁ ∩ s₂) := by
+  obtain ⟨v, w₁, w₂, s₁, s₂, hw⟩ :=
+    exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hnc
+  let P : ℕ → Prop := fun k ↦ ∃ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ #(s₁ ∩ s₂) = k
+  have : P #(s₁ ∩ s₂) := by use s₁, s₂
+  classical
+  obtain ⟨s₁, s₂, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le this
+  use v, w₁, w₂, s₁, s₂, hw.1
+  intro s₁' s₂' hw'
+  exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s₁', s₂')).trans
+            hw.2.symm.le
+
+end SimpleGraph

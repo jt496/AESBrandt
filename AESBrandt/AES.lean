@@ -101,7 +101,7 @@ theorem colorable_of_cliqueFree_lt_minDegree (hf : G.CliqueFree (r + 1))
   have boundW := sum_degree_le_of_le_not_adj dXle <| hw.one_le_not_adj_of_cliqueFree hmcf.1
 -- Since `X` consists of all vertices adjacent to all of `s₁ ∩ s₂`,
 -- so any `x ∈ Xᶜ` has at least one non-neighbour in `X`.
-  have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s₁ ∩ s₂).filter fun z ↦ ¬ H.Adj  x z) := by
+  have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s₁ ∩ s₂).filter fun z ↦ ¬ H.Adj x z) := by
     intro x hx
     apply card_pos.2
     obtain ⟨_, hy⟩ : ∃ y ∈ s₁ ∩ s₂, ¬ H.Adj x y := by
