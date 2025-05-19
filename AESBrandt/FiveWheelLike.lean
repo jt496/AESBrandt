@@ -304,7 +304,7 @@ lemma three_le_not_adj_of_cliqueFree_max (hcf : G.CliqueFree (r + 2))
 
 end IsFiveWheelLike
 
-lemma isWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) : G.IsFiveWheelLikeFree r r :=
+lemma isFiveWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) : G.IsFiveWheelLikeFree r r :=
   fun _ _ _ _ _ hw ↦ hw.card_inter_lt_of_cliqueFree h
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
