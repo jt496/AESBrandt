@@ -37,25 +37,6 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
 
 namespace SimpleGraph
 variable {s : Finset α}
---- Next PR to mathlib
-lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique r s)
-    (h : G.CliqueFree (r + 1)) (x : α) : ∃ y, y ∈ s ∧ ¬ G.Adj x y := by
-  classical
-  by_contra! hf
-  exact (hc.insert hf).not_cliqueFree h
-
-lemma exists_of_maximal_cliqueFree_not_adj (h : Maximal (fun H ↦ H.CliqueFree (r + 1)) G)
-    (hne : x ≠ y) (hn : ¬ G.Adj x y) :
-    ∃ s, x ∉ s ∧ y ∉ s ∧ G.IsNClique r (insert x s) ∧ G.IsNClique r (insert y s) := by
-  obtain ⟨t, hc⟩ := not_forall_not.1 <| h.not_prop_of_gt <| G.lt_sup_edge _ _ hne hn
-  use (t.erase x).erase y, erase_right_comm (a := x) ▸ (not_mem_erase _ _), not_mem_erase _ _
-  have h1 := h.1.mem_of_sup_edge_isNClique hc
-  have h2 := h.1.mem_of_sup_edge_isNClique (edge_comm .. ▸ hc)
-  rw [insert_erase <| mem_erase_of_ne_of_mem hne.symm h2, erase_right_comm,
-    insert_erase <| mem_erase_of_ne_of_mem hne h1]
-  exact ⟨(edge_comm .. ▸ hc).erase_of_sup_edge_of_mem h2, hc.erase_of_sup_edge_of_mem h1⟩
-
--- end PR to mathlib
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
     (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (ha : G.Adj a b) :
     G.IsNClique (r + 1) (insert b (insert a s)) := by
