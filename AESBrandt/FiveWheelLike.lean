@@ -396,7 +396,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hcf : G.Cl
 
 end IsFiveWheelLike
 
-lemma isFiveWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
+lemma CliqueFree.fiveWheelLikeFree_of_le (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
     G.FiveWheelLikeFree r k :=
   fun _ _ _ _ _ hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
 
