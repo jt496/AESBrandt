@@ -24,8 +24,19 @@ These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
 Main definition:
 
 * `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s₁ s₂` to form a 5-wheel-like subgraph of
- `G` with `r`-sets `s₁` and `s₂`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
+ `G` with `r`-sets `s₁` and `s₂`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl` and
+ `#(s₁ ∩ s₂) = k`. (We denote this by `Wᵣ,ₖ` below in comments.)
 
+## References
+
+  B. Andrasfái, P Erdős, V. T. Sós
+  **On the connection between chromatic number, maximal clique, and minimal degree of a graph**
+  https://doi.org/10.1016/0012-365X(74)90133-2
+
+  S. Brandt **On the structure of graphs with bounded clique number**
+  https://doi.org/10.1007/s00493-003-0042-z
+
+-/
 local notation "‖" x "‖" => Fintype.card x
 
 open Finset SimpleGraph
@@ -34,7 +45,7 @@ variable {α : Type*} {a b c d x y : α} {s : Finset α} {G : SimpleGraph α} {r
 
 section Counting
 
-variable {i j n : ℕ} [DecidableRel G.Adj] --{α : Type*} {G : SimpleGraph α}  {x : α} {s : Finset α}
+variable {i j n : ℕ} [DecidableRel G.Adj]
 
 private lemma kr_bound (hk : k ≤ r) :
     (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
@@ -134,7 +145,7 @@ lemma exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
 structure meet in fewer than `k` vertices.
 -/
 def FiveWheelLikeFree (G : SimpleGraph α) (r k : ℕ) : Prop :=
-    ∀ ⦃v w₁ w₂ s₁ s₂⦄, ¬ G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂
+    ∀ {v w₁ w₂ s₁ s₂}, ¬ G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂
 
 namespace IsFiveWheelLike
 variable {v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂)
@@ -328,6 +339,7 @@ lemma three_le_not_adj_of_cliqueFree_FiveWheelLikeFree_succ (hcf : G.CliqueFree 
   obtain ⟨_, _, _, _, hbW⟩ := hw.exists_isFiveWheelLike_insert_of_not_adj_le_two hcf hW
                                         <| Nat.succ_le_succ_iff.1 hc
   exact hmax hbW
+  
 /--
 If `G` is `Kᵣ₊₂`-free, contains a `Wᵣ,ₖ` but no `Wᵣ,ₖ₊₁` then
   `G.minDegree ≤ (2 * r + k) * n / (2 * r + k + 3)`
@@ -398,7 +410,7 @@ end IsFiveWheelLike
 
 lemma CliqueFree.fiveWheelLikeFree_of_le (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
     G.FiveWheelLikeFree r k :=
-  fun _ _ _ _ _ hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
+  fun hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
@@ -415,8 +427,8 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   exact ⟨_, _, _, _, _, hw'⟩
 
 /-- **Andrasfái-Erdős-Sós**
-If `G` is `Kᵣ₊₁`-free and `G.minDegree > (3r - 4)n/(3r - 1)` then `G` is (r + 1)-colorable
-e.g. `K₃`-free and `G.minDegree > 2 * n / 5` then `G` is 2-colorable -/
+If `G` is `Kᵣ₊₁`-free and `(3r - 4)n/(3r - 1) < G.minDegree` then `G` is `(r + 1)`-colorable
+e.g. `K₃`-free and `2 * n / 5 < G.minDegree` then `G` is 2-colorable -/
 theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
     (hf : G.CliqueFree (r + 1)) (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) :
     G.Colorable r := by
