@@ -37,7 +37,7 @@ section Counting
 variable {i j n : ℕ} [DecidableRel G.Adj] --{α : Type*} {G : SimpleGraph α}  {x : α} {s : Finset α}
 
 private lemma kr_bound (hk : k ≤ r) :
-    (2 * r + 2 + k) * n / (2 * r + 2 + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
+    (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
   apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
       <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
   rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
@@ -328,7 +328,10 @@ lemma three_le_not_adj_of_cliqueFree_FiveWheelLikeFree_succ (hcf : G.CliqueFree 
   obtain ⟨_, _, _, _, hbW⟩ := hw.exists_isFiveWheelLike_insert_of_not_adj_le_two hcf hW
                                         <| Nat.succ_le_succ_iff.1 hc
   exact hmax hbW
-
+/--
+If `G` is `Kᵣ₊₂`-free, contains a `Wᵣ,ₖ` but no `Wᵣ,ₖ₊₁` then
+  `G.minDegree ≤ (2 * r + k) * n / (2 * r + k + 3)`
+-/
 lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hcf : G.CliqueFree (r + 2))
     (hm : G.FiveWheelLikeFree r (k + 1)) : G.minDegree ≤ (2 * r + k) * ‖α‖ / (2 * r + k + 3) := by
   let X := {x | ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y}.toFinset
@@ -357,9 +360,6 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hcf : G.Cl
 -- `∑ w ∈ s₁ ∩ s₂, H.degree w ≤  |Xᶜ| * (|s₁ ∩ s₂| - 1) + |X| * |s₁ ∩ s₂|`
   have bdX := sum_degree_le_of_le_not_adj xcle (fun x _ ↦ Nat.zero_le _)
   rw [compl_compl, tsub_zero, add_comm] at bdX
-  -- cases r with
-  -- | zero   => exact (Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hcf).elim
-  -- | succ r =>
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := hw.three_le_card
@@ -400,19 +400,46 @@ lemma isFiveWheelLikeFree_of_cliqueFree (h : G.CliqueFree (r + 2)) (hk : r ≤ k
     G.FiveWheelLikeFree r k :=
   fun _ _ _ _ _ hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
 
--- lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
---     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
---     ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ ∀ s₁' s₂',
---     G.IsFiveWheelLike r v w₁ w₂ s₁' s₂' → #(s₁' ∩ s₂') ≤ #(s₁ ∩ s₂) := by
---   obtain ⟨v, w₁, w₂, s₁, s₂, hw⟩ :=
---     exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hnc
---   let P : ℕ → Prop := fun k ↦ ∃ s₁ s₂, G.IsFiveWheelLike r v w₁ w₂ s₁ s₂ ∧ #(s₁ ∩ s₂) = k
---   have : P #(s₁ ∩ s₂) := by use s₁, s₂
---   classical
---   obtain ⟨s₁, s₂, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le this
---   use v, w₁, w₂, s₁, s₂, hw.1
---   intro s₁' s₂' hw'
---   exact (Nat.le_findGreatest (hw'.card_inter_lt_of_cliqueFree h.1).le (by use s₁', s₂')).trans
---             hw.2.symm.le
+lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
+    (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
+    ∃ k v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂ ∧
+    ∀ j, k < j → G.FiveWheelLikeFree r j := by
+  obtain ⟨_, _, _, s₁, s₂, hw⟩ :=
+    exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hnc
+  let P : ℕ → Prop := fun k ↦ ∃ v w₁ w₂ s₁ s₂, G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂
+  have hk : P #(s₁ ∩ s₂) := ⟨_, _, _, _, _, hw⟩
+  classical
+  obtain ⟨_, _, _, _, _, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
+  refine ⟨Nat.findGreatest P r, _, _, _, _, _, hw, fun j hj _ _ _ _ _ hw' ↦  Nat.lt_le_asymm hj ?_⟩
+  apply Nat.le_findGreatest ((hw'.card_eq ▸ hw'.card_inter_lt_of_cliqueFree h.1).le)
+  exact ⟨_, _, _, _, _, hw'⟩
+
+/-- **Andrasfái-Erdős-Sós**
+If `G` is `Kᵣ₊₁`-free and `G.minDegree > (3r - 4)n/(3r - 1)` then `G` is (r + 1)-colorable
+e.g. `K₃`-free and `G.minDegree > 2 * n / 5` then `G` is 2-colorable -/
+theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
+    (hf : G.CliqueFree (r + 1)) (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) :
+    G.Colorable r := by
+  cases r with
+  | zero => simpa using hf
+  | succ r =>
+  -- There is an edge maximal Kᵣ₊₂-free graph H such that G ≤ H
+  obtain ⟨H, hle, hmcf⟩ := @Finite.exists_le_maximal _ _ _ (fun H ↦ H.CliqueFree (r + 2)) G hf
+  -- If we can (r + 1) - color H then we can (r + 1) - color G
+  apply Colorable.mono_left hle
+  by_contra! hnotcol
+  -- If H is complete-multipartite and Kᵣ₊₁-free then it is (r + 1)-colorable
+  have hn : ¬ H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
+-- H is maximally Kᵣ₊₂-free and not complete-multipartite
+  obtain ⟨k, v, w₁, w₂, s₁, s₂, hw, hm⟩ :=
+    exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite hmcf hn
+  cases r with
+  | zero => exact (Nat.not_succ_le_zero _ <| hw.card_inter_lt_of_cliqueFree hmcf.1).elim
+  | succ r =>
+    classical
+    have := hw.minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ hmcf.1 (hm (k + 1) (lt_add_one k))
+    have kle : (2 * (r + 1) + k) * ‖α‖ / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * ‖α‖ / (3 * r + 5) :=
+      kr_bound <| Nat.le_of_succ_le_succ <| (hw.card_eq ▸ hw.card_inter_lt_of_cliqueFree hmcf.1)
+    exact H.minDegree.le_lt_asymm (kle.trans' this) <| hd.trans_le <| G.minDegree_le_minDegree hle
 
 end SimpleGraph
