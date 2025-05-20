@@ -339,7 +339,7 @@ lemma three_le_not_adj_of_cliqueFree_FiveWheelLikeFree_succ (hcf : G.CliqueFree 
   obtain ⟨_, _, _, _, hbW⟩ := hw.exists_isFiveWheelLike_insert_of_not_adj_le_two hcf hW
                                         <| Nat.succ_le_succ_iff.1 hc
   exact hmax hbW
-  
+
 /--
 If `G` is `Kᵣ₊₂`-free, contains a `Wᵣ,ₖ` but no `Wᵣ,ₖ₊₁` then
   `G.minDegree ≤ (2 * r + k) * n / (2 * r + k + 3)`
@@ -350,7 +350,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hcf : G.Cl
 -- and `W` which consists of all vertices of the 5-wheel.
   let W := insert v <| insert w₁ <| insert w₂ (s₁ ∪ s₂)
 -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we can build a bigger wheel)
-  have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ G.Adj  x z) := by
+  have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ G.Adj x z) := by
     intro z hx
     simp_rw [X, Set.toFinset_setOf, mem_filter, mem_univ, true_and] at hx
     exact hw.three_le_not_adj_of_cliqueFree_FiveWheelLikeFree_succ hcf hx hm
@@ -422,9 +422,8 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   have hk : P #(s₁ ∩ s₂) := ⟨_, _, _, _, _, hw⟩
   classical
   obtain ⟨_, _, _, _, _, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
-  refine ⟨Nat.findGreatest P r, _, _, _, _, _, hw, fun j hj _ _ _ _ _ hw' ↦  Nat.lt_le_asymm hj ?_⟩
-  apply Nat.le_findGreatest ((hw'.card_eq ▸ hw'.card_inter_lt_of_cliqueFree h.1).le)
-  exact ⟨_, _, _, _, _, hw'⟩
+  exact ⟨_, _, _, _, _, _, hw, fun j hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj <|
+    Nat.le_findGreatest ((hv.card_eq ▸ hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv⟩⟩
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is `Kᵣ₊₁`-free and `(3r - 4)n/(3r - 1) < G.minDegree` then `G` is `(r + 1)`-colorable
