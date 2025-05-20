@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: John Talbot, Lian Bremner Tattersall
 -/
 import Mathlib.Combinatorics.SimpleGraph.CompleteMultipartite
-
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 /-!
 If `G` is maximally `Kᵣ₊₂`-free and `¬ G.Adj x y` (with `x ≠ y`) then there exists an `r`-set `s`
  such that `s ∪ {x}` and `s ∪ {y}` are both `r + 1`-cliques.
@@ -23,8 +24,22 @@ Main definition:
 * `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s₁ s₂` to form a 5-wheel-like subgraph of
  `G` with `r`-sets `s₁` and `s₂`, and vertices `v w₁ w₂` forming an `IsPathGraph3Compl`. -/
 
-open Finset
-variable {α : Type*} {a b c d x y : α} {G : SimpleGraph α} {r k : ℕ} [DecidableEq α]
+open Finset SimpleGraph
+
+variable {α : Type*} {a b c d x y : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
+
+section Counting
+
+variable {i j : ℕ} [DecidableRel G.Adj] --{α : Type*} {G : SimpleGraph α}  {x : α} {s : Finset α}
+
+/-- Transform lower bound on non-adjacency into upper bound on adjacency -/
+private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
+    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
+  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z),
+      add_tsub_assoc_of_le hx]
+  exact Nat.le_add_right ..
+
+variable [DecidableEq α]
 /-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
 private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c)
     (hc2 : #{a, b, c, d} ≤ 2) : c = a ∧ d = b := by
@@ -35,8 +50,28 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
       fun hbd ↦ (hf h.symm) hbd.symm⟩
   · exact ⟨a, b, c, Or.inl rfl, Or.inr <| Or.inl rfl, Or.inr <| Or.inr <| Or.inl rfl, hab, h, hbc⟩
 
+variable [Fintype α]  {W X : Finset α}
+/--
+Given lower bounds on non-degrees from `W` into `X` and into `Xᶜ` we can bound degrees over `W`
+-/
+private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
+    (hxc : ∀ y, y ∈ Xᶜ → j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
+    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
+   _ = ∑ v, #(G.neighborFinset v ∩ W) := by
+      simp_rw [degree, card_eq_sum_ones]
+      exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
+   _ ≤ _ := by
+    rw [← union_compl X, sum_union disjoint_compl_right]
+    simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
+      card_eq_sum_ones Xᶜ, sum_mul, one_mul]
+    apply add_le_add <;> apply sum_le_sum <;> intro x hx1
+    · exact card_adj_le_of_le_card_not_adj <| hx x hx1
+    · exact card_adj_le_of_le_card_not_adj <| hxc x hx1
+
+end Counting
+
 namespace SimpleGraph
-variable {s : Finset α}
+variable  [DecidableEq α]
 --- Next PR to mathlib
 lemma IsNClique.exists_not_adj_of_cliqueFree_succ (hc : G.IsNClique r s)
     (h : G.CliqueFree (r + 1)) (x : α) : ∃ y, y ∈ s ∧ ¬ G.Adj x y := by
@@ -75,13 +110,13 @@ private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (h
 /--
 An `IsFiveWheelLike r k v w₁ w₂ s₁ s₂` structure in `G` consists of vertices `v w₁ w₂` and `r`-sets
 `s₁` and `s₂` such that `{v, w₁, w₂}` induces the single edge `w₁w₂` (i.e. they form an
-`IsPathGraph3Compl`), `v, w₁, w₂ ∉ s₁ ∪ s₂` and `s₁ ∪ {v}, s₂ ∪ {v}, s₁ ∪ {w₁}, s₂ ∪ {w₂}` are all
-`(r + 1)`- cliques and `#(s₁ ∩ s₂) = k`.
-(If `G` is maximally `(r + 2)`-cliquefree and not complete multipartite then `G` will contain such
- a structure for some `0 ≤ k < r` : see
+`IsPathGraph3Compl`), `v, w₁, w₂ ∉ s₁ ∪ s₂`, `s₁ ∪ {v}, s₂ ∪ {v}, s₁ ∪ {w₁}, s₂ ∪ {w₂}` are all
+`(r + 1)`- cliques and `#(s₁ ∩ s₂) = k`. (If `G` is maximally `(r + 2)`-cliquefree and not complete
+ multipartite then `G` will contain such a structure for some `0 ≤ k < r` : see
 `exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`.)
 -/
-structure IsFiveWheelLike (G : SimpleGraph α) (r k : ℕ) (v w₁ w₂ : α) (s₁ s₂ : Finset α) : Prop where
+structure IsFiveWheelLike (G : SimpleGraph α) (r k : ℕ) (v w₁ w₂ : α) (s₁ s₂ : Finset α) :
+    Prop where
   isPathGraph3Compl : G.IsPathGraph3Compl v w₁ w₂
   not_mem_fst : v ∉ s₁
   not_mem_snd : v ∉ s₂

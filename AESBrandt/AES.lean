@@ -43,8 +43,7 @@ variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α} {s : Fi
 /-- Transform lower bound on non-edges into upper bound on edges -/
 private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
     #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
-  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z)]
-  rw [add_tsub_assoc_of_le hx]
+  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z), add_tsub_assoc_of_le hx]
   exact Nat.le_add_right ..
 
 variable [Fintype α] [DecidableEq α] {W X : Finset α}
@@ -55,7 +54,7 @@ private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.fi
     (hy : ∀ y, j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
-      simp only [degree, card_eq_sum_ones]
+      simp_rw [degree, card_eq_sum_ones]
       exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
    _ ≤ _ := by
     rw [← union_compl X, sum_union disjoint_compl_right]
