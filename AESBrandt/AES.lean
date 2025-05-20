@@ -40,29 +40,29 @@ private lemma kr_bound (hk : k ≤ r) :
 
 open Finset SimpleGraph
 variable {α : Type*} {G : SimpleGraph α} [DecidableRel G.Adj] {x : α} {s : Finset α}
-/-- Transform lower bound on non-edges into upper bound on edges -/
-private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
-    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
-  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z), add_tsub_assoc_of_le hx]
-  exact Nat.le_add_right ..
+-- /-- Transform lower bound on non-edges into upper bound on edges -/
+-- private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
+--     #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
+--   rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z), add_tsub_assoc_of_le hx]
+--   exact Nat.le_add_right ..
 
 variable [Fintype α] [DecidableEq α] {W X : Finset α}
-/--
-Given lower bounds on non-degrees from `W` into `X` and into `α` we can bound degrees over `W`
--/
-private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
-    (hy : ∀ y, j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
-    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
-   _ = ∑ v, #(G.neighborFinset v ∩ W) := by
-      simp_rw [degree, card_eq_sum_ones]
-      exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
-   _ ≤ _ := by
-    rw [← union_compl X, sum_union disjoint_compl_right]
-    simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
-      card_eq_sum_ones Xᶜ, sum_mul, one_mul]
-    apply add_le_add <;> apply sum_le_sum <;> intro x hx1
-    · exact card_adj_le_of_le_card_not_adj <| hx x hx1
-    · exact card_adj_le_of_le_card_not_adj <| hy x
+-- /--
+-- Given lower bounds on non-degrees from `W` into `X` and into `α` we can bound degrees over `W`
+-- -/
+-- private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
+--     (hy : ∀ y, j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
+--     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
+--    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
+--       simp_rw [degree, card_eq_sum_ones]
+--       exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
+--    _ ≤ _ := by
+--     rw [← union_compl X, sum_union disjoint_compl_right]
+--     simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
+--       card_eq_sum_ones Xᶜ, sum_mul, one_mul]
+--     apply add_le_add <;> apply sum_le_sum <;> intro x hx1
+--     · exact card_adj_le_of_le_card_not_adj <| hx x hx1
+--     · exact card_adj_le_of_le_card_not_adj <| hy x
 
 namespace SimpleGraph
 open Classical in
