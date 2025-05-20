@@ -429,7 +429,7 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is `Kᵣ₊₁`-free and `(3r - 4)n/(3r - 1) < G.minDegree` then `G` is `(r + 1)`-colorable
-e.g. `K₃`-free and `2 * n / 5 < G.minDegree` then `G` is 2-colorable -/
+e.g. if `G` is `K₃`-free and `2 * n / 5 < G.minDegree` then `G` is 2-colorable. -/
 theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
     (hf : G.CliqueFree (r + 1)) (hd : (3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree) :
     G.Colorable r := by
