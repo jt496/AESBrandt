@@ -19,7 +19,9 @@ Putting these together gives the definition of an `IsFiveWheelLike` structure
 which can be found in any maximally `Kᵣ₊₂`-free graph that is not complete-multipartite (see
 `exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite`).
 
-These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem.
+These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem (which we give below):
+`colorable_of_cliqueFree_lt_minDegree` if `G` is a `Kᵣ₊₁`-free graph on the finite vertex type `α`
+with minimum degree `(3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree` then `G.Colorable r`.
 
 Main definition:
 
