@@ -81,11 +81,11 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
   apply Nat.le_lt_asymm hc2 <| two_lt_card_iff.2 _
   by_cases h : a = c <;> aesop
 
-variable [Fintype α]  {W X : Finset α}
 /--
 Given lower bounds on non-adjacencies from `W` into `X`,`Xᶜ` we can bound the degree sum over `W`
 -/
-private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
+private lemma sum_degree_le_of_le_not_adj [Fintype α] {W X : Finset α}
+    (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
     (hxc : ∀ y, y ∈ Xᶜ → j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
     ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
    _ = ∑ v, #(G.neighborFinset v ∩ W) := by
@@ -102,7 +102,9 @@ private lemma sum_degree_le_of_le_not_adj (hx : ∀ x, x ∈ X → i  ≤ #(W.fi
 end Counting
 
 namespace SimpleGraph
+
 variable  [DecidableEq α]
+
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
     (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (ha : G.Adj a b) :
     G.IsNClique (r + 1) (insert b (insert a s)) := by
@@ -114,8 +116,7 @@ private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
 private lemma IsNClique.insert_insert_erase (hs : G.IsNClique r (insert a s)) (hc : c ∈ s)
     (ha : a ∉ s) (hd : ∀ w ∈ insert a s, w ≠ c → G.Adj w b) :
     G.IsNClique r (insert a (insert b (erase s c))) := by
-  have : a ≠ c := fun h ↦ (ha (h ▸ hc)).elim
-  rw [insert_comm, ← erase_insert_of_ne this]
+  rw [insert_comm, ← erase_insert_of_ne (fun h : a = c ↦ ha (h ▸ hc)|>.elim)]
   simp_rw [adj_comm, ← not_mem_singleton] at hd
   exact hs.insert_erase (fun _ h ↦ hd _ (mem_sdiff.1 h).1 (mem_sdiff.1 h).2) (mem_insert_of_mem hc)
 
@@ -188,25 +189,22 @@ lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hW : ∀ {y}, y ∈
   obtain ⟨_, hc, hcj⟩ := hw.isNClique_fst.exists_not_adj_of_cliqueFree_succ h x
   obtain ⟨_, hd, hdj⟩ := hw.isNClique_snd.exists_not_adj_of_cliqueFree_succ h x
   refine ⟨_, _, _, _, ha, haj, hb, hbj, hc, hcj, hd, hdj, ?_, ?_, ?_, ?_, ?_⟩
-  <;> rw [mem_insert] at *
-  · rintro rfl
-    obtain (rfl | ha) := ha
+    <;> rw [mem_insert] at * <;> try rintro rfl
+  · obtain (rfl | ha) := ha
     · obtain (rfl | hb) := hb
       · exact hw.isPathGraph3Compl.fst_ne_snd rfl
       · exact hw.fst_not_mem_snd hb
     · obtain (rfl | hb) := hb
       · exact hw.symm.fst_not_mem_snd ha
       · exact haj <| hW <| mem_inter_of_mem ha hb
-  · rintro rfl
-    obtain (rfl | ha) := ha
+  · obtain (rfl | ha) := ha
     · obtain (rfl | hd) := hd
       · exact hw.isPathGraph3Compl.ne_fst rfl
       · exact hw.fst_not_mem_snd  hd
     · obtain (rfl | hd) := hd
       · exact hw.not_mem_fst ha
       · exact haj <| hW <| mem_inter_of_mem ha hd
-  · rintro rfl;
-    obtain (rfl | hb) := hb
+  · obtain (rfl | hb) := hb
     · obtain (rfl | hc) := hc
       · exact hw.isPathGraph3Compl.ne_snd rfl
       · exact hw.symm.fst_not_mem_snd  hc
@@ -338,19 +336,18 @@ then `G.minDegree ≤ (2 * r + k) * n / (2 * r + k + 3)`
 lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.CliqueFree (r + 2))
     (hm : G.FiveWheelLikeFree r (k + 1)) : G.minDegree ≤ (2 * r + k) * ‖α‖ / (2 * r + k + 3) := by
   let X := {x | ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y}.toFinset
--- and `W` which consists of all vertices of the 5-wheel.
   let W := insert v <| insert w₁ <| insert w₂ (s₁ ∪ s₂)
--- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we could build a bigger wheel)
+  -- Any vertex in `X` has at least 3 non-neighbors in `W` (otherwise we could build a bigger wheel)
   have dXle : ∀ x, x ∈ X → 3 ≤ #(W.filter fun z ↦ ¬ G.Adj x z) := by
     intro z hx
     by_contra! h
     obtain ⟨_, _, _, _, hW⟩ := hw.exists_isFiveWheelLike_succ_of_not_adj_le_two hc
                                   (by simpa [X] using hx) <| Nat.le_of_succ_le_succ h
     exact hm hW
--- Every vertex has at least 1 non-neighbor in `W`, so we have a bound on the degree sum over `W`
--- `∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)`
+  -- Every vertex has at least 1 non-neighbor in `W`, so we have a bound on the degree sum over `W`
+  -- `∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)`
   have bdW := sum_degree_le_of_le_not_adj dXle (fun y _ ↦ (hw.one_le_not_adj_of_cliqueFree hc) y)
--- By the definition of `X`, any `x ∈ Xᶜ` has at least one non-neighbour in `X`.
+  -- By the definition of `X`, any `x ∈ Xᶜ` has at least one non-neighbour in `X`.
   have xcle : ∀ x, x ∈ Xᶜ → 1 ≤ #((s₁ ∩ s₂).filter fun z ↦ ¬ G.Adj x z) := by
     intro x hx
     apply card_pos.2
@@ -359,15 +356,15 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
       rw [mem_compl, not_not, Set.mem_toFinset]
       exact hx _
     exact ⟨_, mem_filter.2 hy⟩
--- So we also have a bound on the degree sum over `s₁ ∩ s₂`
--- `∑ w ∈ s₁ ∩ s₂, H.degree w ≤  |Xᶜ| * (|s₁ ∩ s₂| - 1) + |X| * |s₁ ∩ s₂|`
+  -- So we also have a bound on the degree sum over `s₁ ∩ s₂`
+  -- `∑ w ∈ s₁ ∩ s₂, H.degree w ≤  |Xᶜ| * (|s₁ ∩ s₂| - 1) + |X| * |s₁ ∩ s₂|`
   have bdX := sum_degree_le_of_le_not_adj xcle (fun x _ ↦ Nat.zero_le _)
   rw [compl_compl, tsub_zero, add_comm] at bdX
   rw [Nat.le_div_iff_mul_le (Nat.add_pos_right _ zero_lt_three)]
   have Wc : #W + k = 2 * r + 3 := hw.card_add_card_inter
   have w3 : 3 ≤ #W := two_lt_card.2 ⟨_, mem_insert_self .., _, by simp [W], _, by simp [W],
     hw.isPathGraph3Compl.ne_fst, hw.isPathGraph3Compl.ne_snd, hw.isPathGraph3Compl.fst_ne_snd⟩
---- Two cases: `s₁ ∩ s₂ = ∅`
+  -- 1st case: `s₁ ∩ s₂ = ∅`
   by_cases hst : k = 0
   · rw [hst, add_zero] at Wc ⊢
     rw [← Wc, ← tsub_eq_of_eq_add Wc]
@@ -379,7 +376,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
     apply bdW.trans'
     rw [card_eq_sum_ones, mul_sum, mul_one]
     exact sum_le_sum (fun i _ ↦ G.minDegree_le_degree i)
---- `s₁ ∩ s₂ ≠ ∅`
+  -- 2nd case `s₁ ∩ s₂ ≠ ∅`
   · have hap :  #W - 1 + 2 * (k - 1) = #W - 3 + 2 * k := by omega
     calc
     minDegree G * (2 * r + k + 3) ≤ ∑ w ∈ W, G.degree w +  2 * ∑ w ∈ s₁ ∩ s₂, G.degree w := by
@@ -415,7 +412,7 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   classical
   obtain ⟨_, _, _, _, _, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
   exact ⟨_, _, _, _, _, _, hw, hw.card_eq ▸ hw.card_inter_lt_of_cliqueFree h.1,
-    fun j hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj <|
+    fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj <|
     Nat.le_findGreatest ((hv.card_eq ▸ hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv⟩⟩
 
 /-- **Andrasfái-Erdős-Sós**
@@ -437,11 +434,11 @@ theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
     -- If H is complete-multipartite and Kᵣ₊₂-free then it is (r + 2) - colorable
     have hn : ¬ H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
     -- H contains `Wᵣ₊₁,ₖ` but not `Wᵣ₊₁,ₖ₊₁`, for some `k ≤ r`
-    obtain ⟨k, _, _, _, _, _, hw, hlt, hm⟩ :=
+    obtain ⟨_, _, _, _, _, _, hw, hlt, hm⟩ :=
       exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite hmcf hn
     classical
-    have := hw.minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ hmcf.1 <| hm _ <| lt_add_one _
-    exact Nat.le_lt_asymm (this.trans (kr_bound <| Nat.le_of_succ_le_succ <| hlt)) <| hd.trans_le
-          <| minDegree_le_minDegree hle
+    have hD := hw.minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ hmcf.1 <| hm _ <| lt_add_one _
+    exact Nat.lt_le_asymm (hd.trans_le <| minDegree_le_minDegree hle)
+            <| hD.trans (kr_bound <| Nat.le_of_succ_le_succ <| hlt)
 
 end SimpleGraph
