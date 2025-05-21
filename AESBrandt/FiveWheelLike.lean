@@ -424,7 +424,7 @@ theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
     -- If we can (r + 2) - color H then we can (r + 2) - color G
     apply Colorable.mono_left hle
     by_contra! hnotcol
-    -- If H is complete-multipartite and Kᵣ₊₂-free then it is (r + 2) - colorable
+    -- If H is complete-multipartite and Kᵣ₊₃-free then it is (r + 2) - colorable
     have hn : ¬ H.IsCompleteMultipartite := fun hc ↦ hnotcol <| hc.colorable_of_cliqueFree hmcf.1
     -- H contains `Wᵣ₊₁,ₖ` but not `Wᵣ₊₁,ₖ₊₁`, for some `k ≤ r`
     obtain ⟨_, _, _, _, _, _, hw, hlt, hm⟩ :=
