@@ -54,23 +54,17 @@ lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).mi
   · rw [not_isEmpty_iff] at he
     exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
 
-/-- Any coloring of `G` with at most as many colors as the chromatic number of `H : G.Subgraph` is
-surjective on `H.verts`. -/
-lemma SimpleGraph.Coloring.surjOn_of_card_le_chromaticNumber_coe {γ : Type*} [Fintype γ]
-    (H : G.Subgraph) (hc : Fintype.card γ ≤ H.coe.chromaticNumber) (C : G.Coloring γ) :
-    Set.SurjOn C H.verts Set.univ := by
-  intro _ h
-  obtain ⟨x, hx⟩ := Set.surjective_iff_surjOn_univ (f := (C.comp H.hom)).1
-    (card_le_chromaticNumber_iff_forall_surjective.1 hc _) h
-  use x; simpa using hx
-
 /-- Any coloring of `G` with at most as many colors as the size of a clique `s` in `G` is
 surjective on `s`. -/
 lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Set α}
     [Fintype s] (h : G.IsClique s) (hc : Fintype.card γ ≤ Fintype.card s) (C : G.Coloring γ) :
     Set.SurjOn C s Set.univ := by
-  rw [G.isClique_iff_induce_eq, G.induce_eq_coe_induce_top] at h
-  exact C.surjOn_of_card_le_chromaticNumber_coe ((⊤ : G.Subgraph).induce s) (by simpa [h] using hc)
+  rw [G.isClique_iff_induce_eq, induce] at h
+  have : Function.Surjective (C.comp (Hom.comap ((Function.Embedding.subtype fun x ↦ x ∈ s)) G)) :=
+    card_le_chromaticNumber_iff_forall_surjective.1 (by simp_all) _
+  intro c _
+  obtain ⟨x, _⟩ := this c
+  use x; simpa
 
 section Counting
 
@@ -448,21 +442,17 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
     Nat.le_findGreatest ((hv.card_eq ▸ hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv⟩⟩
 
 /-- A maximally `Kᵣ₊₁`-free graph is `r`-colorable iff it is complete-multipartite. -/
-theorem colorable_iff_isCompleteMultipartite_of_maximal_cliqueFree
-    (h : Maximal (fun H => H.CliqueFree (r + 1)) G) :
-    G.Colorable r ↔ G.IsCompleteMultipartite := by
+theorem colorable_iff_isCompleteMultipartite_of_max_cliqueFree
+    (h : Maximal (fun H => H.CliqueFree (r + 1)) G) : G.Colorable r ↔ G.IsCompleteMultipartite := by
   match r with
-  | 0 =>
-    constructor <;> intro hc
-    · exact fun x ↦ (cliqueFree_one.1 h.1).elim' x
-    · exact G.colorable_zero_iff.2 <| cliqueFree_one.1 h.1
+  | 0 =>  exact ⟨fun _ ↦ fun x ↦ cliqueFree_one.1 h.1|>.elim' x,
+                 fun _ ↦ G.colorable_zero_iff.2 <| cliqueFree_one.1 h.1⟩
   | r + 1 =>
-    constructor <;> intro hc
-    · contrapose! hc
-      obtain ⟨_, _, _, _, _, hw⟩ :=
-        exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hc
-      exact hw.not_colorable_succ
-    · exact hc.colorable_of_cliqueFree h.1
+    refine ⟨fun hc ↦ ?_, fun hc ↦ hc.colorable_of_cliqueFree h.1⟩
+    contrapose! hc
+    obtain ⟨_, _, _, _, _, hw⟩ :=
+      exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hc
+    exact hw.not_colorable_succ
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is a `Kᵣ₊₁` - free graph with `n` vertices and `(3r - 4)n / (3r - 1) < G.minDegree` then `G`
