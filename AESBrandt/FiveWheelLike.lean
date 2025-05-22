@@ -23,6 +23,9 @@ These play a key role in Brandt's proof of the Andrásfai-Erdős-Sós theorem (w
 `colorable_of_cliqueFree_lt_minDegree`: if `G` is a `Kᵣ₊₁`-free graph on the finite vertex type `α`
 with minimum degree `(3 * r - 4) * ‖α‖ / (3 * r - 1) < G.minDegree` then `G.Colorable r`.
 
+They also allow us to prove that any maximally `Kᵣ₊₁`-free graph is `r`-colorable iff it is
+complete-multipartite : `colorable_iff_isCompleteMultipartite_of_max_cliqueFree`
+
 Main definitions :
 
 * `SimpleGraph.IsFiveWheelLike`: predicate for `v w₁ w₂ s₁ s₂` to form a 5-wheel-like subgraph of
@@ -46,14 +49,15 @@ local notation "‖" x "‖" => Fintype.card x
 open Finset SimpleGraph
 
 variable {α : Type*} {a b c d x y : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
-
+--PR 1
 @[simp]
 lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
   by_cases he : IsEmpty α
   · exact minDegree_of_isEmpty ⊥
   · rw [not_isEmpty_iff] at he
     exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
-
+-- end PR 1
+-- PR 2
 lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Finset α}
     (h : G.IsClique s) (hc : Fintype.card γ ≤ s.card) (C : G.Coloring γ) :
     Set.SurjOn C s Set.univ := by
@@ -61,57 +65,12 @@ lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] 
   obtain ⟨_, hx⟩ := card_le_chromaticNumber_iff_forall_surjective.mp
                     (by simp_all [isClique_iff_induce_eq]) (C.comp (Embedding.induce s).toHom) _
   exact ⟨_, Subtype.coe_prop _, hx⟩
-
-section Counting
-
-variable {i j n : ℕ} [DecidableRel G.Adj]
-
-private lemma kr_bound (hk : k ≤ r) :
-    (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
-  apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
-      <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
-  rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
-  apply (Nat.mul_le_mul_right _ (Nat.div_mul_le_self ..)).trans
-  nlinarith
-
-/-- Transform lower bound on non-adjacencies into upper bound on adjacencies. -/
-private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
-    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
-  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z),
-      add_tsub_assoc_of_le hx]
-  exact Nat.le_add_right ..
-
-variable [DecidableEq α]
-/-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
-private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c)
-    (hc2 : #{a, b, c, d} ≤ 2) : c = a ∧ d = b := by
-  by_contra! hf
-  apply Nat.le_lt_asymm hc2 <| two_lt_card_iff.2 _
-  by_cases h : a = c <;> aesop
-
-/--
-Given lower bounds on non-adjacencies from `W` into `X`,`Xᶜ` we can bound the degree sum over `W`
--/
-private lemma sum_degree_le_of_le_not_adj [Fintype α] {W X : Finset α}
-    (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
-    (hxc : ∀ y, y ∈ Xᶜ → j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
-    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
-   _ = ∑ v, #(G.neighborFinset v ∩ W) := by
-      simp_rw [degree, card_eq_sum_ones]
-      exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
-   _ ≤ _ := by
-    rw [← union_compl X, sum_union disjoint_compl_right]
-    simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
-      card_eq_sum_ones Xᶜ, sum_mul, one_mul]
-    apply add_le_add <;> apply sum_le_sum <;> intro x hx1
-    · exact card_adj_le_of_le_card_not_adj <| hx x hx1
-    · exact card_adj_le_of_le_card_not_adj <| hxc x hx1
-
-end Counting
-
+-- end PR2
+-- PR3
 namespace SimpleGraph
 
-variable  [DecidableEq α]
+section withDecEq
+variable [DecidableEq α]
 
 private lemma IsNClique.insert_insert (h1 : G.IsNClique r (insert a s))
     (h2 : G.IsNClique r (insert b s)) (h3 : b ∉ s) (ha : G.Adj a b) :
@@ -207,6 +166,82 @@ lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s₁ ∩ s₂) 
   have ht := eq_of_subset_of_card_le inter_subset_right (hw.symm.card_isNClique_erase ▸ h)
   exact (hw.isNClique_fst_fst.insert_insert (hs ▸ ht.symm ▸ hw.isNClique_snd_snd)
     hw.symm.fst_not_mem_snd hw.isPathGraph3Compl.adj).not_cliqueFree
+
+end IsFiveWheelLike
+
+lemma CliqueFree.fiveWheelLikeFree_of_le (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
+    G.FiveWheelLikeFree r k :=
+  fun hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
+
+/-- A maximally `Kᵣ₊₁`-free graph is `r`-colorable iff it is complete-multipartite. -/
+theorem colorable_iff_isCompleteMultipartite_of_max_cliqueFree
+    (h : Maximal (fun H => H.CliqueFree (r + 1)) G) : G.Colorable r ↔ G.IsCompleteMultipartite := by
+  match r with
+  | 0 =>  exact ⟨fun _ ↦ fun x ↦ cliqueFree_one.1 h.1|>.elim' x,
+                 fun _ ↦ G.colorable_zero_iff.2 <| cliqueFree_one.1 h.1⟩
+  | r + 1 =>
+    refine ⟨fun hc ↦ ?_, fun hc ↦ hc.colorable_of_cliqueFree h.1⟩
+    contrapose! hc
+    obtain ⟨_, _, _, _, _, hw⟩ :=
+      exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hc
+    exact hw.not_colorable_succ
+
+end withDecEq
+--end PR3
+--PR4
+section Counting
+
+variable {i j n : ℕ} [DecidableRel G.Adj]
+
+private lemma kr_bound (hk : k ≤ r) :
+    (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
+  apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
+      <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
+  rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
+  apply (Nat.mul_le_mul_right _ (Nat.div_mul_le_self ..)).trans
+  nlinarith
+
+/-- Transform lower bound on non-adjacencies into upper bound on adjacencies. -/
+private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
+    #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
+  rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z),
+      add_tsub_assoc_of_le hx]
+  exact Nat.le_add_right ..
+
+variable [DecidableEq α]
+
+/-- Useful trivial fact about when `|{a, b, c, d}| ≤ 2` given `a ≠ b` , `a ≠ d`, `b ≠ c`. -/
+private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b ≠ c)
+    (hc2 : #{a, b, c, d} ≤ 2) : c = a ∧ d = b := by
+  by_contra! hf
+  apply Nat.le_lt_asymm hc2 <| two_lt_card_iff.2 _
+  by_cases h : a = c <;> aesop
+
+/--
+Given lower bounds on non-adjacencies from `W` into `X`,`Xᶜ` we can bound the degree sum over `W`
+-/
+private lemma sum_degree_le_of_le_not_adj [Fintype α] {W X : Finset α}
+    (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
+    (hxc : ∀ y, y ∈ Xᶜ → j ≤ #(W.filter fun z ↦ ¬ G.Adj y z)) :
+    ∑ w ∈ W, G.degree w ≤ #X * (#W - i) + #Xᶜ * (#W - j) := calc
+   _ = ∑ v, #(G.neighborFinset v ∩ W) := by
+      simp_rw [degree, card_eq_sum_ones]
+      exact sum_comm' (fun _ _ ↦ by simp [and_comm, adj_comm])
+   _ ≤ _ := by
+    rw [← union_compl X, sum_union disjoint_compl_right]
+    simp_rw [neighborFinset_eq_filter, filter_inter, univ_inter, card_eq_sum_ones X,
+      card_eq_sum_ones Xᶜ, sum_mul, one_mul]
+    apply add_le_add <;> apply sum_le_sum <;> intro x hx1
+    · exact card_adj_le_of_le_card_not_adj <| hx x hx1
+    · exact card_adj_le_of_le_card_not_adj <| hxc x hx1
+
+end Counting
+
+namespace IsFiveWheelLike
+
+variable [DecidableEq α]{v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂)
+
+include hw
 
 lemma exist_not_adj_of_adj_inter (h : G.CliqueFree (r + 2)) (hW : ∀ {y}, y ∈ s₁ ∩ s₂ → G.Adj x y) :
     ∃ a b c d, a ∈ insert w₁ s₁ ∧ ¬ G.Adj x a ∧ b ∈ insert w₂ s₂ ∧ ¬ G.Adj x b ∧ c ∈ insert v s₁ ∧
@@ -306,18 +341,16 @@ lemma exists_isFiveWheelLike_succ_of_not_adj_le_two (h : G.CliqueFree (r + 2))
                 <| mem_insert_of_mem <| mem_union_right _ hbt, hdj⟩
     · exact ⟨hz, by rwa [adj_comm] at hf⟩
 -- We now prove that the new 5-wheel is indeed a 5-wheel
-  have hc1 : insert v s₁ ⊆ W := by apply insert_subset_insert; intro x hx; simp [hx]
+  have hc1 : insert v s₁ ⊆ W := insert_subset_insert _ fun _ hx ↦ (by simp [hx])
   have hc2 : insert w₁ s₁ ⊆ W := by
     change _ ⊆ insert _ _
     rw [insert_comm]
-    apply insert_subset_insert
-    intro x hx; simp [hx]
-  have hc3 : insert v s₂ ⊆ W := by apply insert_subset_insert; intro x hx; simp [hx]
+    exact insert_subset_insert _ fun _ hx ↦ (by simp [hx])
+  have hc3 : insert v s₂ ⊆ W := insert_subset_insert _ fun _ hx ↦ (by simp [hx])
   have hc4 : insert w₂ s₂ ⊆ W := by
     change _ ⊆ insert _ _
     rw [insert_comm w₁, insert_comm v]
-    apply insert_subset_insert
-    intro x hx; simp [hx]
+    exact insert_subset_insert _ fun _ hx ↦ (by simp [hx])
   refine ⟨_, _, hat, hbs, ⟨hw.isPathGraph3Compl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩⟩
     <;> try rw [mem_insert, not_or]
   · exact ⟨hxvw12.1.symm, fun hv ↦ hw.not_mem_fst (mem_erase.1 hv).2⟩
@@ -419,9 +452,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
 
 end IsFiveWheelLike
 
-lemma CliqueFree.fiveWheelLikeFree_of_le (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
-    G.FiveWheelLikeFree r k :=
-  fun hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
+variable [DecidableEq α]
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
@@ -436,19 +467,6 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   exact ⟨_, _, _, _, _, _, hw, hw.card_eq ▸ hw.card_inter_lt_of_cliqueFree h.1,
     fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj <|
     Nat.le_findGreatest ((hv.card_eq ▸ hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv⟩⟩
-
-/-- A maximally `Kᵣ₊₁`-free graph is `r`-colorable iff it is complete-multipartite. -/
-theorem colorable_iff_isCompleteMultipartite_of_max_cliqueFree
-    (h : Maximal (fun H => H.CliqueFree (r + 1)) G) : G.Colorable r ↔ G.IsCompleteMultipartite := by
-  match r with
-  | 0 =>  exact ⟨fun _ ↦ fun x ↦ cliqueFree_one.1 h.1|>.elim' x,
-                 fun _ ↦ G.colorable_zero_iff.2 <| cliqueFree_one.1 h.1⟩
-  | r + 1 =>
-    refine ⟨fun hc ↦ ?_, fun hc ↦ hc.colorable_of_cliqueFree h.1⟩
-    contrapose! hc
-    obtain ⟨_, _, _, _, _, hw⟩ :=
-      exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite h hc
-    exact hw.not_colorable_succ
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is a `Kᵣ₊₁` - free graph with `n` vertices and `(3r - 4)n / (3r - 1) < G.minDegree` then `G`
@@ -477,3 +495,4 @@ theorem colorable_of_cliqueFree_lt_minDegree [Fintype α] [DecidableRel G.Adj]
             <| hD.trans (kr_bound <| Nat.le_of_succ_le_succ <| hlt)
 
 end SimpleGraph
+--end PR4
