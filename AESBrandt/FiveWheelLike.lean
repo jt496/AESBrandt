@@ -54,6 +54,25 @@ lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).mi
   · rw [not_isEmpty_iff] at he
     exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
 
+/-- Any coloring of `G` with at most as many colors as the chromatic number of `H : G.Subgraph` is
+surjective onto `H.verts`. -/
+lemma SimpleGraph.Coloring.surjOn_of_card_le_chromaticNumber_subgraph {γ : Type*} [Fintype γ]
+    (H : G.Subgraph) (hc : Fintype.card γ ≤ H.coe.chromaticNumber) (C : G.Coloring γ) :
+    Set.SurjOn C H.verts Set.univ := by
+  intro _ h
+  obtain ⟨x, hx⟩ := Set.surjective_iff_surjOn_univ (f := (C.comp H.hom)).1
+    (card_le_chromaticNumber_iff_forall_surjective.1 hc _) h
+  use x; simpa using hx
+
+/-- Any coloring of `G` with at most as many colors as the size of a clique `s` in `G` is
+surjective onto `s`. -/
+lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Set α}
+    [Fintype s] (h : G.IsClique s) (hc : Fintype.card γ ≤ Fintype.card s) (C : G.Coloring γ) :
+    Set.SurjOn C s Set.univ := by
+  rw [G.isClique_iff_induce_eq, G.induce_eq_coe_induce_top] at h
+  apply C.surjOn_of_card_le_chromaticNumber_subgraph ((⊤ : G.Subgraph).induce s)
+  simpa [h] using hc
+
 section Counting
 
 variable {i j n : ℕ} [DecidableRel G.Adj]
@@ -168,6 +187,29 @@ include hw
 lemma fst_not_mem_snd : w₁ ∉ s₂ :=
   fun h ↦ hw.isPathGraph3Compl.not_adj_fst <| hw.isNClique_snd.1 (mem_insert_self ..)
           (mem_insert_of_mem h) hw.isPathGraph3Compl.ne_fst
+
+/--
+Any graph containing an `IsFiveWheelLike r k` structure is not `(r + 1)`-colorable.
+-/
+lemma not_colorable_succ : ¬ G.Colorable (r + 1) := by
+  intro ⟨C⟩
+  have h1 := C.surjOn_of_card_le_isClique hw.isNClique_fst_fst.1 (by simp [hw.isNClique_fst_fst.2])
+  have h2 := C.surjOn_of_card_le_isClique hw.isNClique_snd_snd.1 (by simp [hw.isNClique_snd_snd.2])
+  apply C.valid hw.isPathGraph3Compl.adj
+  obtain ⟨x, hx, hcx⟩ := h1 (a := C v) trivial
+  obtain ⟨y, hy, hcy⟩ := h2 (a := C v) trivial
+  rw [coe_insert] at *
+  cases hx with
+  | inl hx =>
+    cases hy with
+    | inl hy => subst_vars; exact hcy ▸ hcx
+    | inr hy =>
+      apply (C.valid _ hcy.symm).elim
+      exact hw.isNClique_snd.1 (by simp) (by simp [hy]) (by rintro rfl; apply hw.not_mem_snd hy)
+  | inr hx =>
+      apply (C.valid _ hcx.symm).elim
+      exact hw.isNClique_fst.1 (by simp) (by simp [hx]) (by rintro rfl; apply hw.not_mem_fst hx)
+
 
 lemma card_isNClique_erase : s₁.card = r := by
   simp [← Nat.succ_inj, ← hw.isNClique_fst.2, hw.not_mem_fst]
