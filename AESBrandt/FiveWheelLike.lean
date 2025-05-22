@@ -194,21 +194,19 @@ lemma not_colorable_succ : ¬ G.Colorable (r + 1) := by
   intro ⟨C⟩
   have h1 := C.surjOn_of_card_le_isClique hw.isNClique_fst_fst.1 (by simp [hw.isNClique_fst_fst.2])
   have h2 := C.surjOn_of_card_le_isClique hw.isNClique_snd_snd.1 (by simp [hw.isNClique_snd_snd.2])
-  apply C.valid hw.isPathGraph3Compl.adj
   obtain ⟨x, hx, hcx⟩ := h1 (a := C v) trivial
   obtain ⟨y, hy, hcy⟩ := h2 (a := C v) trivial
   rw [coe_insert] at *
   cases hx with
   | inl hx =>
     cases hy with
-    | inl hy => subst_vars; exact hcy ▸ hcx
+    | inl hy => subst_vars; exact C.valid hw.isPathGraph3Compl.adj (hcy ▸ hcx)
     | inr hy =>
       apply (C.valid _ hcy.symm).elim
-      exact hw.isNClique_snd.1 (by simp) (by simp [hy]) (by rintro rfl; apply hw.not_mem_snd hy)
+      exact hw.isNClique_snd.1 (by simp) (by simp [hy]) fun h ↦ hw.not_mem_snd (h ▸ hy)
   | inr hx =>
       apply (C.valid _ hcx.symm).elim
-      exact hw.isNClique_fst.1 (by simp) (by simp [hx]) (by rintro rfl; apply hw.not_mem_fst hx)
-
+      exact hw.isNClique_fst.1 (by simp) (by simp [hx]) fun h ↦ hw.not_mem_fst (h ▸ hx)
 
 lemma card_isNClique_erase : s₁.card = r := by
   simp [← Nat.succ_inj, ← hw.isNClique_fst.2, hw.not_mem_fst]
