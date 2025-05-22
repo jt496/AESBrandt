@@ -55,8 +55,8 @@ lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).mi
     exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
 
 /-- Any coloring of `G` with at most as many colors as the chromatic number of `H : G.Subgraph` is
-surjective onto `H.verts`. -/
-lemma SimpleGraph.Coloring.surjOn_of_card_le_chromaticNumber_subgraph {γ : Type*} [Fintype γ]
+surjective on `H.verts`. -/
+lemma SimpleGraph.Coloring.surjOn_of_card_le_chromaticNumber_coe {γ : Type*} [Fintype γ]
     (H : G.Subgraph) (hc : Fintype.card γ ≤ H.coe.chromaticNumber) (C : G.Coloring γ) :
     Set.SurjOn C H.verts Set.univ := by
   intro _ h
@@ -65,13 +65,12 @@ lemma SimpleGraph.Coloring.surjOn_of_card_le_chromaticNumber_subgraph {γ : Type
   use x; simpa using hx
 
 /-- Any coloring of `G` with at most as many colors as the size of a clique `s` in `G` is
-surjective onto `s`. -/
+surjective on `s`. -/
 lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Set α}
     [Fintype s] (h : G.IsClique s) (hc : Fintype.card γ ≤ Fintype.card s) (C : G.Coloring γ) :
     Set.SurjOn C s Set.univ := by
   rw [G.isClique_iff_induce_eq, G.induce_eq_coe_induce_top] at h
-  apply C.surjOn_of_card_le_chromaticNumber_subgraph ((⊤ : G.Subgraph).induce s)
-  simpa [h] using hc
+  exact C.surjOn_of_card_le_chromaticNumber_coe ((⊤ : G.Subgraph).induce s) (by simpa [h] using hc)
 
 section Counting
 
