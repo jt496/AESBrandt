@@ -56,15 +56,14 @@ lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).mi
 
 /-- Any coloring of `G` with at most as many colors as the size of a clique `s` in `G` is
 surjective on `s`. -/
-lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Set α}
-    [Fintype s] (h : G.IsClique s) (hc : Fintype.card γ ≤ Fintype.card s) (C : G.Coloring γ) :
+lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Finset α}
+    (h : G.IsClique s) (hc : Fintype.card γ ≤ s.card) (C : G.Coloring γ) :
     Set.SurjOn C s Set.univ := by
-  rw [G.isClique_iff_induce_eq, induce] at h
-  have : Function.Surjective (C.comp (Hom.comap ((Function.Embedding.subtype fun x ↦ x ∈ s)) G)) :=
-    card_le_chromaticNumber_iff_forall_surjective.1 (by simp_all) _
   intro c _
-  obtain ⟨x, _⟩ := this c
-  use x; simpa
+  obtain ⟨_, hx⟩ := card_le_chromaticNumber_iff_forall_surjective.1
+                    (by simp_all [G.isClique_iff_induce_eq]) (C.comp (Embedding.induce s).toHom) c
+  exact ⟨_, Subtype.coe_prop _, hx⟩
+
 
 section Counting
 
