@@ -49,14 +49,7 @@ local notation "‖" x "‖" => Fintype.card x
 open Finset SimpleGraph
 
 variable {α : Type*} {a b c : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
---PR #25121
-@[simp]
-lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
-  by_cases he : IsEmpty α
-  · exact minDegree_of_isEmpty ⊥
-  · rw [not_isEmpty_iff] at he
-    exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
--- end PR #25121
+
 -- PR3
 namespace SimpleGraph
 
@@ -109,7 +102,6 @@ lemma exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   exact  ⟨_, _, _, _, _, p3, h1, h5, h2, h6, h3, h4, h7, h8, rfl⟩
 
 /-- `G.FiveWheelLikeFree r k` means there is no `IsFiveWheelLike r k` structure in `G`. -/
-@[simp]
 def FiveWheelLikeFree (G : SimpleGraph α) (r k : ℕ) : Prop :=
     ∀ {v w₁ w₂ s₁ s₂}, ¬ G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂
 
@@ -443,7 +435,14 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
         rw [tsub_add_eq_add_tsub w3, Wc, Nat.add_sub_cancel_right]
 
 end IsFiveWheelLike
-
+--PR #25121
+@[simp]
+lemma minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
+  by_cases he : IsEmpty α
+  · exact minDegree_of_isEmpty ⊥
+  · rw [not_isEmpty_iff] at he
+    exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
+-- end PR #25121
 variable [DecidableEq α]
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
