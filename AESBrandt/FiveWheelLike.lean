@@ -49,23 +49,14 @@ local notation "‖" x "‖" => Fintype.card x
 open Finset SimpleGraph
 
 variable {α : Type*} {a b c d x y : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
---PR 1
+--PR #25121
 @[simp]
 lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
   by_cases he : IsEmpty α
   · exact minDegree_of_isEmpty ⊥
   · rw [not_isEmpty_iff] at he
     exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
--- end PR 1
--- PR 2
-lemma SimpleGraph.Coloring.surjOn_of_card_le_isClique {γ : Type*} [Fintype γ] {s : Finset α}
-    (h : G.IsClique s) (hc : Fintype.card γ ≤ s.card) (C : G.Coloring γ) :
-    Set.SurjOn C s Set.univ := by
-  intro _ _
-  obtain ⟨_, hx⟩ := card_le_chromaticNumber_iff_forall_surjective.mp
-                    (by simp_all [isClique_iff_induce_eq]) (C.comp (Embedding.induce s).toHom) _
-  exact ⟨_, Subtype.coe_prop _, hx⟩
--- end PR2
+-- end PR #25121
 -- PR3
 namespace SimpleGraph
 
@@ -191,8 +182,6 @@ end withDecEq
 --PR4
 section Counting
 
-variable {i j n : ℕ} [DecidableRel G.Adj]
-
 private lemma kr_bound (hk : k ≤ r) :
     (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
   apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
@@ -200,6 +189,8 @@ private lemma kr_bound (hk : k ≤ r) :
   rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
   apply (Nat.mul_le_mul_right _ (Nat.div_mul_le_self ..)).trans
   nlinarith
+
+variable {i j : ℕ} [DecidableRel G.Adj]
 
 /-- Transform lower bound on non-adjacencies into upper bound on adjacencies. -/
 private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
@@ -239,7 +230,7 @@ end Counting
 
 namespace IsFiveWheelLike
 
-variable [DecidableEq α]{v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂)
+variable [DecidableEq α] {v w₁ w₂ : α} {s₁ s₂ : Finset α} (hw : G.IsFiveWheelLike r k v w₁ w₂ s₁ s₂)
 
 include hw
 
