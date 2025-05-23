@@ -48,7 +48,7 @@ local notation "‖" x "‖" => Fintype.card x
 
 open Finset SimpleGraph
 
-variable {α : Type*} {a b c d x y : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
+variable {α : Type*} {a b c : α} {s : Finset α} {G : SimpleGraph α} {r k : ℕ}
 --PR #25121
 @[simp]
 lemma SimpleGraph.minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
@@ -151,18 +151,17 @@ lemma not_colorable_succ : ¬ G.Colorable (r + 1) := by
 lemma card_isNClique_erase : s₁.card = r := by
   simp [← Nat.succ_inj, ← hw.isNClique_fst.2, hw.not_mem_fst]
 
-lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : #(s₁ ∩ s₂) < r := by
+lemma card_inter_lt_of_cliqueFree (h : G.CliqueFree (r + 2)) : k < r := by
   contrapose! h
-  have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_isNClique_erase ▸ h)
-  have ht := eq_of_subset_of_card_le inter_subset_right (hw.symm.card_isNClique_erase ▸ h)
+  have hs := eq_of_subset_of_card_le inter_subset_left (hw.card_eq ▸ hw.card_isNClique_erase ▸ h)
+  have ht := eq_of_subset_of_card_le inter_subset_right (hw.card_eq ▸ hw.symm.card_isNClique_erase ▸ h)
   exact (hw.isNClique_fst_fst.insert_insert (hs ▸ ht.symm ▸ hw.isNClique_snd_snd)
     hw.symm.fst_not_mem_snd hw.isPathGraph3Compl.adj).not_cliqueFree
 
 end IsFiveWheelLike
 
 lemma CliqueFree.fiveWheelLikeFree_of_le (h : G.CliqueFree (r + 2)) (hk : r ≤ k) :
-    G.FiveWheelLikeFree r k :=
-  fun hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) (hw.card_eq ▸ hk)
+    G.FiveWheelLikeFree r k := fun hw ↦ Nat.lt_le_asymm (hw.card_inter_lt_of_cliqueFree h) hk
 
 /-- A maximally `Kᵣ₊₁`-free graph is `r`-colorable iff it is complete-multipartite. -/
 theorem colorable_iff_isCompleteMultipartite_of_max_cliqueFree
@@ -180,19 +179,21 @@ theorem colorable_iff_isCompleteMultipartite_of_max_cliqueFree
 end withDecEq
 --end PR3
 --PR4
+variable {i j n : ℕ} {d x : α}
+
 section Counting
 
 private lemma kr_bound (hk : k ≤ r) :
     (2 * (r + 1) + k) * n / (2 * (r + 1) + k + 3) ≤ (3 * r + 2) * n / (3 * r + 5) := by
   apply (Nat.le_div_iff_mul_le <| Nat.succ_pos _).2
-      <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
+    <| (mul_le_mul_left (2 * r + 2 + k + 2).succ_pos).1 _
   rw [← mul_assoc, mul_comm (2 * r + 2 + k + 3), mul_comm _ (_ * n)]
   apply (Nat.mul_le_mul_right _ (Nat.div_mul_le_self ..)).trans
   nlinarith
 
-variable {i j : ℕ} [DecidableRel G.Adj]
+variable [DecidableRel G.Adj]
 
-/-- Transform lower bound on non-adjacencies into upper bound on adjacencies. -/
+/-- Transform a lower bound on non-adjacencies into an upper bound on adjacencies. -/
 private lemma card_adj_le_of_le_card_not_adj (hx : i ≤ #(s.filter fun z ↦ ¬ G.Adj x z)) :
     #(s.filter fun z ↦ G.Adj x z) ≤ #s - i := by
   rw [← filter_card_add_filter_neg_card_eq_card (s := s) (fun z ↦ G.Adj x z),
@@ -209,7 +210,7 @@ private lemma eq_of_card_le_two_of_ne (hab : a ≠ b) (had : a ≠ d) (hbc : b �
   by_cases h : a = c <;> aesop
 
 /--
-Given lower bounds on non-adjacencies from `W` into `X`,`Xᶜ` we can bound the degree sum over `W`
+Given lower bounds on non-adjacencies from `W` into `X`,`Xᶜ` we can bound the degree sum over `W`.
 -/
 private lemma sum_degree_le_of_le_not_adj [Fintype α] {W X : Finset α}
     (hx : ∀ x, x ∈ X → i  ≤ #(W.filter fun z ↦ ¬ G.Adj x z))
@@ -370,7 +371,7 @@ lemma exists_isFiveWheelLike_succ_of_not_adj_le_two (h : G.CliqueFree (r + 2))
         card_insert_of_not_mem (fun h ↦ G.loopless x (hW h)), hw.card_eq]
 
 lemma one_le_not_adj_of_cliqueFree (hc : G.CliqueFree (r + 2)) (x : α) :
-    1 ≤ #((({v} ∪ ({w₁} ∪ ({w₂} ∪ (s₁ ∪ s₂))))).filter (fun z ↦ ¬ G.Adj  x z)) := by
+    1 ≤ #((({v} ∪ ({w₁} ∪ ({w₂} ∪ (s₁ ∪ s₂))))).filter (fun z ↦ ¬ G.Adj x z)) := by
   apply card_pos.2
   obtain ⟨_, hz⟩ := hw.isNClique_fst_fst.exists_not_adj_of_cliqueFree_succ hc x
   exact ⟨_, mem_filter.2 ⟨by aesop, hz.2⟩⟩
@@ -455,9 +456,9 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   have hk : P #(s₁ ∩ s₂) := ⟨_, _, _, _, _, hw⟩
   classical
   obtain ⟨_, _, _, _, _, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
-  exact ⟨_, _, _, _, _, _, hw, hw.card_eq ▸ hw.card_inter_lt_of_cliqueFree h.1,
-    fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj <|
-    Nat.le_findGreatest ((hv.card_eq ▸ hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv⟩⟩
+  exact ⟨_, _, _, _, _, _, hw, hw.card_inter_lt_of_cliqueFree h.1,
+        fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj
+        <| Nat.le_findGreatest (hv.card_inter_lt_of_cliqueFree h.1).le ⟨_, _, _, _, _, hv⟩⟩
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is a `Kᵣ₊₁` - free graph with `n` vertices and `(3r - 4)n / (3r - 1) < G.minDegree` then `G`
