@@ -125,7 +125,7 @@ include hw
 
 lemma fst_not_mem_snd : w₁ ∉ s₂ :=
   fun h ↦ hw.isPathGraph3Compl.not_adj_fst <| hw.isNClique_snd.1 (mem_insert_self ..)
-          (mem_insert_of_mem h) hw.isPathGraph3Compl.ne_fst
+    (mem_insert_of_mem h) hw.isPathGraph3Compl.ne_fst
 
 /--
 Any graph containing an `IsFiveWheelLike r k` structure is not `(r + 1)`-colorable.
@@ -389,7 +389,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
     intro z hx
     by_contra! h
     obtain ⟨_, _, _, _, hW⟩ := hw.exists_isFiveWheelLike_succ_of_not_adj_le_two hc
-                                  (by simpa [X] using hx) <| Nat.le_of_succ_le_succ h
+      (by simpa [X] using hx) <| Nat.le_of_succ_le_succ h
     exact hm hW
   -- Every vertex has at least 1 non-neighbor in `W`, so we have a bound on the degree sum over `W`
   -- `∑ w ∈ W, H.degree w ≤  |X| * (|W| - 3) + |Xᶜ| * (|W| - 1)`
@@ -457,8 +457,8 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   classical
   obtain ⟨_, _, _, _, _, hw⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
   exact ⟨_, _, _, _, _, _, hw, hw.card_inter_lt_of_cliqueFree h.1,
-        fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj
-        <| Nat.le_findGreatest (hv.card_inter_lt_of_cliqueFree h.1).le ⟨_, _, _, _, _, hv⟩⟩
+         fun _ hj _ _ _ _ _ hv ↦ Nat.lt_le_asymm hj
+           <| Nat.le_findGreatest (hv.card_inter_lt_of_cliqueFree h.1).le ⟨_, _, _, _, _, hv⟩⟩
 
 /-- **Andrasfái-Erdős-Sós**
 If `G` is a `Kᵣ₊₁` - free graph with `n` vertices and `(3r - 4)n / (3r - 1) < G.minDegree` then `G`
