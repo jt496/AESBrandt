@@ -435,14 +435,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
         rw [tsub_add_eq_add_tsub w3, Wc, Nat.add_sub_cancel_right]
 
 end IsFiveWheelLike
---PR #25121
-@[simp]
-lemma minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
-  by_cases he : IsEmpty α
-  · exact minDegree_of_isEmpty ⊥
-  · rw [not_isEmpty_iff] at he
-    exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
--- end PR #25121
+
 variable [DecidableEq α]
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
