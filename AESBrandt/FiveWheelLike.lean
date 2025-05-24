@@ -91,7 +91,6 @@ structure IsFiveWheelLike (G : SimpleGraph α) (r : ℕ) (v w₁ w₂ : α) (s�
   isNClique_fst_fst : G.IsNClique (r + 1) (insert w₁ s₁)
   isNClique_snd : G.IsNClique (r + 1) (insert v s₂)
   isNClique_snd_snd : G.IsNClique (r + 1) (insert w₂ s₂)
-  --card_eq : #(s₁ ∩ s₂) = k
 
 lemma exists_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
     (h : Maximal (fun H => H.CliqueFree (r + 2)) G) (hnc : ¬ G.IsCompleteMultipartite) :
@@ -438,14 +437,7 @@ lemma minDegree_le_of_cliqueFree_FiveWheelLikeFree_succ [Fintype α] (hc : G.Cli
         rw [tsub_add_eq_add_tsub w3, Wc, Nat.add_sub_cancel_right]
 
 end IsFiveWheelLike
---PR #25121
-@[simp]
-lemma minDegree_bot_eq_zero [Fintype α] : (⊥ : SimpleGraph α).minDegree = 0 := by
-  by_cases he : IsEmpty α
-  · exact minDegree_of_isEmpty ⊥
-  · rw [not_isEmpty_iff] at he
-    exact he.elim (fun v ↦ Nat.le_zero.1 <| (bot_degree v) ▸ minDegree_le_degree _ v)
--- end PR #25121
+
 variable [DecidableEq α]
 
 lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
@@ -458,9 +450,9 @@ lemma exists_max_isFiveWheelLike_of_max_cliqueFree_not_isCompleteMultipartite
   have hk : P #(s₁ ∩ s₂) := ⟨_, _, _, _, _, hw, rfl⟩
   classical
   obtain ⟨_, _, _, _, _, hw1, hw2⟩ := Nat.findGreatest_spec (hw.card_inter_lt_of_cliqueFree h.1).le hk
-  refine ⟨_, _, _, _, _, hw1, hw1.card_inter_lt_of_cliqueFree h.1,
-         fun _ hj _ _ _ _ _ hv hf ↦ hj.not_le  ?_⟩
-  exact hw2 ▸ Nat.le_findGreatest (hf ▸ (hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv, hf⟩
+  exact ⟨_, _, _, _, _, hw1, hw1.card_inter_lt_of_cliqueFree h.1,
+         fun _ hj _ _ _ _ _ hv hf ↦ hj.not_le <| hw2 ▸ Nat.le_findGreatest
+         (hf ▸ (hv.card_inter_lt_of_cliqueFree h.1).le) ⟨_, _, _, _, _, hv, hf⟩⟩
 
 
 /-- **Andrasfái-Erdős-Sós**
