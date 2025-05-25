@@ -120,7 +120,7 @@ lemma fst_not_mem_snd : w₁ ∉ s₂ :=
     (mem_insert_of_mem h) hw.isPathGraph3Compl.ne_fst
 
 /--
-Any graph containing an `IsFiveWheelLike r k` structure is not `(r + 1)`-colorable.
+Any graph containing an `IsFiveWheelLike r k` structure is not `r`-colorable.
 -/
 lemma not_colorable_succ : ¬ G.Colorable r := by
   intro ⟨C⟩
